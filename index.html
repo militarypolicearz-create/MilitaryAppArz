@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arizona RP — Экзаменационные тесты ВП</title>
+    <title>Arizona RP — Тест Военной Полиции</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -121,7 +121,6 @@
         
         <header>
             <div class="header-left">
-                <!-- АККАУНТ ПОЛЬЗОВАТЕЛЯ -->
                 <div class="user-account" id="userAccount">
                     <div class="user-avatar" id="userAvatar">👤</div>
                     <div class="user-info">
@@ -130,13 +129,19 @@
                     </div>
                     <button class="btn small ghost logout-btn" id="logoutBtn">🚪 Выйти</button>
                 </div>
+                <!-- СООБЩЕНИЕ ДЛЯ РАНГА (приветствие) -->
+                <div class="rank-message" id="rankMessage">
+                    <span class="rank-message-icon" id="rankMessageIcon">🖥️</span>
+                    <span class="rank-message-text" id="rankMessageText">Добро пожаловать в систему</span>
+                </div>
             </div>
             
             <div class="header-right">
                 <div class="tabs">
-                    <div class="tab active" data-tab="exam">Экзаменационные тесты</div>
-                    <div class="tab" data-tab="admin">Админ</div>
-                    <div class="tab" data-tab="decree">Постановления</div>
+                    <div class="tab active" data-tab="exam">🎓 Экзамен</div>
+                    <div class="tab" data-tab="retraining">🔄 Переаттестация</div>
+                    <div class="tab" data-tab="admin">⚙️ Админ</div>
+                    <div class="tab" data-tab="decree">📋 Постановления</div>
                 </div>
             </div>
         </header>
