@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arizona RP — Экзаменационные тесты ВП</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Модальное окно авторизации -->
+    <div id="authModal" class="modal-overlay" style="display: flex;">
+        <div class="modal-content auth-modal">
+            <div class="auth-header">
+                <img src="https://cdn11.bigcommerce.com/s-jbg7mp3qyd/images/stencil/1280x1280/products/2515/1041/dep_army_police_badge__84795.1464722242.jpg?c=2&imbypass=on" alt="MP Badge" style="width: 80px; height: 80px; border-radius: 50%; margin-bottom: 15px;">
+                <h2>🔐 Авторизация</h2>
+                <p class="auth-subtitle">Войдите в систему тестирования Военной Полиции</p>
+            </div>
+            
+            <div class="auth-body">
+                <div id="authStatus" class="auth-status" style="display: none;"></div>
+                
+                <div class="auth-input-group">
+                    <label>👤 Ваш ник</label>
+                    <input type="text" id="authUsername" placeholder="Имя_Фамилия (например: Jan_Abobbi)" list="authPlayersList" autocomplete="off">
+                    <datalist id="authPlayersList"></datalist>
+                    <div class="auth-hint">Введите ник в формате: Имя_Фамилия</div>
+                </div>
+                
+                <div class="auth-input-group">
+                    <label>🔑 Пароль</label>
+                    <input type="password" id="authPassword" placeholder="Введите пароль" autocomplete="off">
+                    <div class="auth-hint">Минимум 6 символов</div>
+                </div>
+                
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-tab="login">🔑 Вход</button>
+                    <button class="auth-tab" data-tab="register">📝 Регистрация</button>
+                </div>
+                
+                <button class="btn auth-btn" id="authActionBtn">🔑 Войти в систему</button>
+                
+                <div class="auth-footer">
+                    <span>🔒 Доступ только для сотрудников Военной Полиции</span>
+                    <span class="auth-small">Сессия действует 7 дней</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Дисклеймер -->
+    <div id="disclaimerModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h2>⚠️ ВАЖНОЕ ПРЕДУПРЕЖДЕНИЕ</h2>
+            <div class="disclaimer-text">
+                <p><strong>Перед началом теста внимательно ознакомьтесь с правилами:</strong></p>
+                
+                <div class="warning-item">
+                    <span class="warning-icon">🚫</span>
+                    <span><strong>Система отслеживает активность</strong> - бездействие более 20 секунд приведет к блокировке теста</span>
+                </div>
+                
+                <div class="warning-item">
+                    <span class="warning-icon">📱</span>
+                    <span><strong>Запрещено использовать телефон</strong> или другие устройства для подсматривания ответов</span>
+                </div>
+                
+                <div class="warning-item">
+                    <span class="warning-icon">⚡</span>
+                    <span><strong>Двигайте мышкой или печатайте</strong> каждые 15-20 секунд для подтверждения активности</span>
+                </div>
+                
+                <div class="warning-item">
+                    <span class="warning-icon">🔒</span>
+                    <span><strong>При блокировке</strong> потребуется код разблокировки от администратора</span>
+                </div>
+                
+                <div class="warning-item">
+                    <span class="warning-icon">⏱️</span>
+                    <span><strong>Тест состоит из 15 вопросов</strong>, ответы сохраняются автоматически</span>
+                </div>
+                
+                <p style="margin-top: 20px; color: #ff4444; font-weight: bold;">
+                    Нажимая "Подтверждаю и начинаю тест", вы соглашаетесь с этими правилами.
+                </p>
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="btn ghost" id="closeDisclaimerBtn">Закрыть</button>
+                <button class="btn" id="confirmStartBtn">✅ Подтверждаю и начинаю тест</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно выбора сотрудника -->
+    <div id="employeeSelectionModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h2>🔍 Выбор сотрудника</h2>
+            <div class="disclaimer-text">
+                <p><strong>Для файла:</strong> <span id="fileNameDisplay"></span></p>
+                <p>Найдено несколько возможных сотрудников. Выберите правильного:</p>
+                
+                <div id="employeeSelectionList" style="max-height: 300px; overflow-y: auto; margin: 15px 0;">
+                </div>
+                
+                <div style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                    <strong>💡 Подсказка:</strong> Обратите внимание на должность и количество файлов в папках
+                </div>
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="btn ghost" id="cancelEmployeeSelection">Отмена</button>
+                <button class="btn" id="confirmEmployeeSelection" disabled>✅ Сохранить выбранному сотруднику</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="app" id="app" style="display: none;">
+        <div class="warning-banner">
+            ⚠️ Внимание! Система отслеживает активность. Бездействие более 20 секунд приведет к блокировке теста!
+        </div>
+        
+        <header>
+            <div class="header-left">
+                <!-- АККАУНТ ПОЛЬЗОВАТЕЛЯ -->
+                <div class="user-account" id="userAccount">
+                    <div class="user-avatar" id="userAvatar">👤</div>
+                    <div class="user-info">
+                        <div class="user-name" id="userNameDisplay">Не авторизован</div>
+                        <div class="user-role" id="userRoleDisplay">—</div>
+                    </div>
+                    <button class="btn small ghost logout-btn" id="logoutBtn">🚪 Выйти</button>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <div class="tabs">
+                    <div class="tab active" data-tab="exam">Экзаменационные тесты</div>
+                    <div class="tab" data-tab="admin">Админ</div>
+                    <div class="tab" data-tab="decree">Постановления</div>
+                </div>
+            </div>
+        </header>
+
+        <div id="contentArea">
+            <div class="card" id="mainArea" style="display: block;">
+                <div id="testGreeting"></div>
+                <div id="testContent">
+                    <p>Введите имя и нажмите «Начать тест».</p>
+                </div>
+            </div>
+
+            <div class="adminArea" id="adminArea" style="display: none;">
+            </div>
+
+            <div id="decreeArea" style="display: none;">
+            </div>
+
+            <div class="card user-card" id="userCard">
+                <div class="small" id="userInfo">
+                    <strong>👤 Текущий пользователь:</strong> <span id="currentUsernameDisplay">Не авторизован</span>
+                    <span id="currentUserRoleDisplay" style="margin-left: 10px; color: var(--accent);"></span>
+                </div>
+                
+                <div style="margin: 15px 0;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 600; color: var(--text-muted);">👤 Введите ваш ник для теста:</label>
+                    <input type="text" id="username" placeholder="Например: Jan_Abobbi" style="width: 100%; padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white; font-size: 16px;">
+                </div>
+                
+                <p class="small">
+                    Система автоматически определит ваш статус и предложит соответствующий тест.
+                    <br><strong>Курсанты</strong> → Экзамен | <strong>Офицеры и выше</strong> → Переаттестация
+                </p>
+
+                <button class="btn" id="startBtn">🚀 Начать тест</button>
+                <button class="btn ghost" id="finishBtn" style="display: none;">✅ Завершить тест</button>
+                <button class="btn ghost" id="unlockBtn" style="display: none;">🔓 Разблокировать</button>
+                <button class="btn warning" id="adminUnlockBtn" style="display: none; background: var(--warning); color: black;">🔓 Админ-разблокировка</button>
+            </div>
+        </div>
+
+        <footer>
+            <div class="footer-content">
+                <span>© Arizona RP | Военная Полиция</span>
+            </div>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/decree.js"></script>
+</body>
+</html>
