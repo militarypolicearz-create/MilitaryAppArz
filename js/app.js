@@ -1,126 +1,19 @@
+// === НАСТРОЙКИ ===
 const TEST_COUNT = 15;
 const ADMIN_PASSWORD = "TryX9kTo77PassLm2TheQ8Exam2025RZx3kP9But5IfY6You2LoseN4t5202BvC7BanW1ForTheWholeLife2520";
 const AES_KEY = "my_secret_aes_key_2024";
 const INACTIVITY_TIMEOUT = 20000;
 const AUTH_EXPIRY_DAYS = 7;
-const ADMIN_SESSION_DAYS = 30;
 
 let isAdminAuthenticated = localStorage.getItem('adminAuthenticated') === 'true';
-let adminAuthDate = localStorage.getItem('adminAuthDate');
 let currentTestType = 'exam';
 let playersDatabase = JSON.parse(localStorage.getItem('playersDatabase') || '[]');
 let currentUser = null;
-let currentUserType = null;
-
-const FIXED_EMPLOYEE_STRUCTURE = [
-    { id: 'curator', position: 'Куратор ВП', type: 'curator', username: 'Jan_Abobbi' },
-    { id: 'senior_officer_2', position: 'Старший офицер ВП', type: 'senior_officer', username: 'Chaffy_Washington' },
-    { id: 'senior_officer_1', position: 'Старший офицер ВП', type: 'senior_officer', username: 'Gustavo_Mendez' },
-    { id: 'officer_2', position: 'Офицер ВП', type: 'officer', username: 'Eul_Requiem' },
-    { id: 'officer_5', position: 'Офицер ВП', type: 'officer', username: 'Ralph_Laurence' },
-    { id: 'officer_7', position: 'Офицер ВП', type: 'officer', username: 'Danya_Armani' },
-    { id: 'officer_3', position: 'Офицер ВП', type: 'officer', username: 'Akashi_Miyazuki' },
-    { id: 'officer_1', position: 'Офицер ВП', type: 'officer', username: 'Gera_Guerra' },
-    { id: 'officer_4', position: 'Офицер ВП', type: 'officer', username: 'Вакантно' },
-    { id: 'officer_6', position: 'Офицер ВП', type: 'officer', username: 'Вакантно' },
-    { id: 'cadet_2', position: 'Курсант ВП', type: 'cadet', username: 'Blake_Obi' },
-    { id: 'cadet_1', position: 'Курсант ВП', type: 'cadet', username: 'Kristoph_Hidenberg' },
-    { id: 'cadet_3', position: 'Курсант ВП', type: 'cadet', username: 'Вакантно' }
-];
-
-const AI_GREETINGS = {
-    'cadet': [
-        "Курсант, ты принят в систему. Твой путь только начинается. Экзамен ждёт — не подведи.",
-        "Новобранец, система видит твой потенциал. Докажи, что ты достоин носить это звание. Удачи.",
-        "Ты только что ступил на путь Военной Полиции, курсант. Экзамен покажет, чего ты стоишь. Не опозорься.",
-        "Курсант, система наблюдает за тобой. Это твой первый шаг к величию. Сделай его правильно.",
-        "Ты — будущее Военной Полиции, курсант. Покажи всем, на что ты способен. Мы верим в тебя."
-    ],
-    'officer': [
-        "Офицер, вы на посту. Система готова к выполнению ваших запросов. Действуйте решительно.",
-        "Приветствую вас, офицер. Ваша квалификация подтверждена. Постановления ждут вашего исполнения.",
-        "Вы — голос закона, офицер. Каждое ваше решение меняет судьбы. Не подведите систему.",
-        "Офицер, ваше присутствие в системе — гарантия порядка. Продолжайте в том же духе.",
-        "Добро пожаловать, офицер. Ваш авторитет признан. Система к вашим услугам."
-    ],
-    'senior_officer': [
-        "Командир, рад приветствовать вас. Ваш опыт — опора системы. Младшие равняются на вас.",
-        "Господин старший офицер, ваше присутствие — честь. Система готова выполнять любые задачи.",
-        "Приветствую вас, сэр. Ваш авторитет заслужен годами. Продолжайте укреплять нашу систему.",
-        "Старший офицер, вы — пример для подражания. Ваш путь — это путь настоящего воина.",
-        "Командир, система полностью подчинена вам. Ожидаю ваших распоряжений. Слава Военной Полиции!"
-    ],
-    'curator': [
-        "Ваше Превосходительство, система к вашим услугам. Ваш приказ — закон для всей Военной Полиции.",
-        "Куратор, рад приветствовать вас. Ваш авторитет абсолютен. Система полностью в вашем подчинении.",
-        "Ваше слово — закон, Куратор. Все модули активированы и ждут ваших указаний. Повелевайте.",
-        "Ваше Превосходительство, ваша мудрость ведёт нас. Без вас система — ничто. Мы гордимся вами.",
-        "Куратор, ваше величие — основа Военной Полиции. Приветствую вас. Система преклоняется."
-    ]
-};
-
-const examQuestions = [
-    { text: "Что обязаны знать и соблюдать сотрудники Военной полиции?", type: "multiple", options: [ "Устав МО, Устав ВП", "Устав МЮ", "Федеральное постановление, уголовный кодекс, административный кодекс", "Всё выше перечисленное" ], correctAnswers: ["Устав МО, Устав ВП", "Федеральное постановление, уголовный кодекс, административный кодекс"], maxSelections: 2 },
-    { text: "Как должны разговаривать сотрудники военной полиции?", type: "text" },
-    { text: "При каких условиях сотрудник ВП может покинуть свою ВЧ без формы в рабочее время?(Не с разрешения и не в обед)", type: "text" },
-    { text: "Что должны иметь при себе сотрудники военной полиции при проверке ВЧ на ЧС?", type: "text" },
-    { text: "Что должен делать сотрудник ВП при проверке ВЧ на ЧС, помимо самой проверки?", type: "text" },
-    { text: "Что запрещается сотрудникам ВП при выполнении спец.задачи?", type: "text" },
-    { text: "При каком приказе сотрудник ВП обязан снять маску?", type: "multiple", options: [ "Приказ Министра Обороны", "Приказ Куратора Дельты", "Приказ Сотрудника Пра-во", "Приказ Руководста армии" ], correctAnswers: ["Приказ Министра Обороны", "Приказ Руководства армии"], maxSelections: 2 },
-    { text: "Какими цветами должен быть покрашен автомобиль сотрудника ВП?", type: "text" },
-    { text: "Какая приписка в рации департамента?", type: "text" },
-    { text: "Сколько минимум минут нужно проверять ВЧ на ЧС?", type: "multiple", options: [ "4 минуты", "5 минут", "3 минуты", "Минимального лимита нет" ], correctAnswers: ["3 минуты"], maxSelections: 1 },
-    { text: "Кому подчиняются сотрудники ВП?", type: "text" },
-    { text: "Последовательность действий офицера ВП при виде нарушителя?", type: "text" },
-    { text: "Какие места помимо Военных Частей нужно проверять?", type: "text" },
-    { text: "Назовите недельную норму проверок состава МО от ВП.", type: "multiple", options: [ "7 раз в неделю", "3 раза в неделю", "5 раз в неделю", "4 раза в неделю" ], correctAnswers: ["3 раза в неделю"], maxSelections: 1 },
-    { text: "Какие последствия ждут организацию получившая неудовлетворительную оценку при проверке состава?", type: "text" },
-];
-
-const retrainingQuestions = [
-    { text: "Что обязаны знать и соблюдать сотрудники Военной полиции?", type: "multiple", options: [ "Устав МО, Устав ВП", "Устав МЮ", "Федеральное постановление, уголовный кодекс, административный кодекс", "Всё выше перечисленное" ], correctAnswers: ["Устав МО, Устав ВП", "Федеральное постановление, уголовный кодекс, административный кодекс"], maxSelections: 2 },
-    { text: "Как должны разговаривать сотрудники военной полиции?", type: "text" },
-    { text: "При каких условиях сотрудник ВП может покинуть свою ВЧ без формы в рабочее время?(Не с разрешения и не в обед)", type: "text" },
-    { text: "Что должны иметь при себе сотрудники военной полиции при проверке ВЧ на ЧС?", type: "text" },
-    { text: "Что должен делать сотрудник ВП при проверке ВЧ на ЧС, помимо самой проверки?", type: "text" },
-    { text: "Что запрещается сотрудникам ВП при выполнении спец.задачи?", type: "text" },
-    { text: "При каком приказе сотрудник ВП обязан снять маску?", type: "multiple", options: [ "Приказ Министра Обороны", "Приказ Куратора Дельты", "Приказ Сотрудника Пра-во", "Приказ Руководста армии" ], correctAnswers: ["Приказ Министра Обороны", "Приказ Руководства армии"], maxSelections: 2 },
-    { text: "Какими цветами должен быть покрашен автомобиль сотрудника ВП?", type: "text" },
-    { text: "Какая приписка в рации департамента?", type: "text" },
-    { text: "Сколько минимум минут нужно проверять ВЧ на ЧС?", type: "multiple", options: [ "4 минуты", "5 минут", "3 минуты", "Минимального лимита нет" ], correctAnswers: ["3 минуты"], maxSelections: 1 },
-    { text: "Кому подчиняются сотрудники ВП?", type: "text" },
-    { text: "Последовательность действий офицера ВП при виде нарушителя?", type: "text" },
-    { text: "Какие места помимо Военных Частей нужно проверять?", type: "text" },
-    { text: "Назовите недельную норму проверок состава МО от ВП.", type: "multiple", options: [ "7 раз в неделю", "3 раза в неделю", "5 раз в неделю", "4 раза в неделю" ], correctAnswers: ["3 раза в неделю"], maxSelections: 1 },
-    { text: "Какие последствия ждут организацию получившая неудовлетворительную оценку при проверке состава?", type: "text" },
-    { text: "В какое время запрещается делать проверку состава МО от ВП?", type: "text" },
-    { text: "Назовите все критерии требующиеся для внесения личного транспортного средства в реестр.", type: "text" },
-    { text: "Какие грузовые транспортные средства можно регистрировать в реестре?", type: "text" },
-    { text: "Представим ситуацию, вы хотите заехать в СФа, стоите на КПП и видите как воруют маты в грузовом отсеке. Ваши действия?", type: "text" },
-    { text: "Представим ситуацию, на Министра Обороны напали трое бандитов. Ваши действия?", type: "text" },
-    { text: "У кого сотрудники ВП могут попросить помощи, ради поимки прогульщиков?", type: "text" },
-    { text: "В каких случаях разрешается заехать на ВЧ без запроса?", type: "text" },
-    { text: "Что грозит сотруднику ВП при распространения ответов из экзамена или её попытке?", type: "text" },
-    { text: "Что грозит сотруднику ВП при трёхразовом провале экзамена?", type: "text" },
-    { text: "В каких случаях разрешено заниматся надзорной деятельностью без формы?", type: "text" },
-    { text: "Сколько времени даётся на прохождение переатестации?", type: "text" },
-    { text: "В каких случаях Куратор ВП может потребовать пройти внеплановую переатестацию?", type: "text" },
-];
-
-let test = null;
-let blocked = false;
-let inactivityTimer = null;
-let lastActivityTime = Date.now();
-let currentGradingFile = null;
-let currentGradingAnswers = null;
-let currentFileIndex = null;
-
 
 // === БАЗА ПОЛЬЗОВАТЕЛЕЙ (ХРАНИТСЯ В LOCALSTORAGE) ===
 let usersDatabase = JSON.parse(localStorage.getItem('usersDatabase') || '{}');
 
 function hashPassword(password) {
-    // Простое хеширование (в реальном проекте используйте bcrypt)
     let hash = 0;
     for (let i = 0; i < password.length; i++) {
         const char = password.charCodeAt(i);
@@ -141,7 +34,6 @@ function registerUser(username, password) {
         return false;
     }
     
-    // Проверяем, есть ли сотрудник с таким ником
     const employeesData = loadEmployeesData();
     const employee = Object.values(employeesData).find(emp => 
         emp.username.toLowerCase() === username.toLowerCase() && emp.username !== 'Вакантно'
@@ -152,13 +44,11 @@ function registerUser(username, password) {
         return false;
     }
     
-    // Проверяем, зарегистрирован ли уже этот пользователь
     if (usersDatabase[username.toLowerCase()]) {
         showAuthStatus('❌ Этот ник уже зарегистрирован! Используйте вход.', 'error');
         return false;
     }
     
-    // Регистрируем
     usersDatabase[username.toLowerCase()] = {
         username: username,
         password: hashPassword(password),
@@ -193,24 +83,19 @@ function loginUser(username, password) {
         return false;
     }
     
-    // Проверяем 7 дней
     const daysPassed = (Date.now() - userData.lastLogin) / (1000 * 60 * 60 * 24);
     if (daysPassed >= 7) {
         showAuthStatus('❌ Сессия истекла (7 дней). Перерегистрируйтесь!', 'error');
-        // Удаляем истекшего пользователя
         delete usersDatabase[username.toLowerCase()];
         localStorage.setItem('usersDatabase', JSON.stringify(usersDatabase));
         return false;
     }
     
-    // Обновляем время входа
     userData.lastLogin = Date.now();
     localStorage.setItem('usersDatabase', JSON.stringify(usersDatabase));
     
-    // Выполняем авторизацию
     return performAuth(username);
 }
-
 
 function checkAuth() {
     const savedUser = localStorage.getItem('currentUser');
@@ -239,12 +124,14 @@ function checkAuth() {
             return false;
         }
         
-        currentUserType = employee.type;
+        currentUser.type = employee.type;
+        currentUser.position = employee.position;
         return true;
     } catch (e) {
         return false;
     }
 }
+
 function performAuth(username) {
     const employeesData = loadEmployeesData();
     const employee = Object.values(employeesData).find(emp => 
@@ -262,7 +149,6 @@ function performAuth(username) {
         position: employee.position,
         id: employee.id
     };
-    currentUserType = employee.type;
     
     localStorage.setItem('currentUser', JSON.stringify(currentUser));
     localStorage.setItem('authDate', String(Date.now()));
@@ -276,6 +162,8 @@ function performAuth(username) {
         const userRoleDisplay = document.getElementById('userRoleDisplay');
         const usernameInput = document.getElementById('username');
         const avatar = document.getElementById('userAvatar');
+        const currentUsernameDisplay = document.getElementById('currentUsernameDisplay');
+        const currentUserRoleDisplay = document.getElementById('currentUserRoleDisplay');
         
         if (authModal) {
             authModal.style.opacity = '0';
@@ -295,6 +183,9 @@ function performAuth(username) {
         
         if (userNameDisplay) userNameDisplay.textContent = employee.username;
         if (userRoleDisplay) userRoleDisplay.textContent = employee.position;
+        if (currentUsernameDisplay) currentUsernameDisplay.textContent = employee.username;
+        if (currentUserRoleDisplay) currentUserRoleDisplay.textContent = `— ${employee.position}`;
+        
         if (avatar) {
             const icons = {
                 'curator': '👑',
@@ -310,7 +201,8 @@ function performAuth(username) {
             usernameInput.style.opacity = '1';
         }
         
-        renderAIGreeting();
+        updateRankMessage();
+        renderGreeting();
         renderCurrentTest();
     }, 600);
     
@@ -326,21 +218,17 @@ function showAuthStatus(message, type) {
 }
 
 function logoutUser() {
-    // Очищаем данные пользователя
     localStorage.removeItem('currentUser');
     localStorage.removeItem('authDate');
     
-    // Очищаем тест если есть
     if (test) {
         clearTestState();
     }
     
     currentUser = null;
-    currentUserType = null;
     test = null;
     blocked = false;
     
-    // Показываем модалку авторизации
     const app = document.getElementById('app');
     const authModal = document.getElementById('authModal');
     const statusEl = document.getElementById('authStatus');
@@ -361,7 +249,6 @@ function logoutUser() {
     if (usernameInput) usernameInput.value = '';
     if (passwordInput) passwordInput.value = '';
     
-    // Разблокируем все поля
     document.querySelectorAll("input, button, textarea, select").forEach(el => {
         el.disabled = false;
     });
@@ -369,1452 +256,236 @@ function logoutUser() {
     showMessage('Вы вышли из системы', 'info');
 }
 
+const GREETINGS = {
+    'cadet': [
+        "Добро пожаловать, курсант. Ты только начинаешь свой путь в Военной Полиции. Впереди много испытаний.",
+        "Приветствую, новобранец. Система видит твой потенциал. Докажи, что ты достоин носить это звание.",
+        "Курсант, ты принят в систему. Экзамен ждёт — не подведи. Твоя карьера начинается здесь и сейчас.",
+        "С приветствием, курсант. Твой путь только начинается. Каждый великий офицер когда-то был новичком.",
+        "Добро пожаловать в ряды Военной Полиции, курсант. Твоя преданность и усердие помогут тебе пройти этот путь."
+    ],
+    'officer': [
+        "Приветствую, офицер. Ты уже не новичок, но путь к вершине ещё долог. Система готова к твоим запросам.",
+        "Офицер, твоя квалификация подтверждена. Военная Полиция нуждается в таких, как ты. Продолжай в том же духе.",
+        "С возвращением, офицер. Твой опыт — наше богатство. Выполняй свой долг с честью и достоинством.",
+        "Приветствую тебя, офицер. Ты — опора Военной Полиции. Твои решения меняют судьбы людей.",
+        "Офицер, рад видеть тебя в системе. Твой профессионализм — пример для младших. Действуй решительно."
+    ],
+    'senior_officer': [
+        "Командир, рад приветствовать вас. Ваш опыт — опора системы. Младшие равняются на вас, не подведите их.",
+        "Господин старший офицер, ваше присутствие — честь. Система готова выполнять любые ваши приказы.",
+        "Приветствую вас, сэр. Ваш авторитет заслужен годами. Продолжайте укреплять нашу систему изнутри.",
+        "Старший офицер, вы — пример для подражания. Ваш путь — это путь настоящего воина, достойного уважения.",
+        "Командир, система полностью подчинена вам. Ваша мудрость и решительность ведут нас к победе."
+    ],
+    'curator': [
+        "Ваше Превосходительство, система к вашим услугам. Ваш приказ — закон для всей Военной Полиции.",
+        "Куратор, рад приветствовать вас. Ваш авторитет абсолютен. Система полностью в вашем подчинении.",
+        "Ваше слово — закон, Куратор. Все модули активированы и ждут ваших указаний. Повелевайте.",
+        "Ваше Превосходительство, ваша мудрость ведёт нас. Без вас система — ничто. Мы гордимся вами.",
+        "Куратор, ваше величие — основа Военной Полиции. Приветствую вас. Система преклоняется перед вами."
+    ]
+};
+
 function getRandomGreeting(userType) {
-    const greetings = AI_GREETINGS[userType] || AI_GREETINGS['cadet'];
+    const greetings = GREETINGS[userType] || GREETINGS['cadet'];
     return greetings[Math.floor(Math.random() * greetings.length)];
 }
 
-function renderAIGreeting() {
+function renderGreeting() {
     const greetingEl = document.getElementById('testGreeting');
-    if (!greetingEl || !currentUser || !currentUserType) return;
+    if (!greetingEl || !currentUser || !currentUser.type) return;
     
-    const greetingText = getRandomGreeting(currentUserType);
+    const greetingText = getRandomGreeting(currentUser.type);
     
-    let typeClass = '';
-    let borderColor = '';
-    let glowColor = '';
     let icon = '';
+    let roleName = '';
     
-    switch(currentUserType) {
+    switch(currentUser.type) {
         case 'cadet':
-            typeClass = 'greeting-cadet';
-            borderColor = '#3b82f6';
-            glowColor = 'rgba(59, 130, 246, 0.15)';
             icon = '🎓';
+            roleName = 'Курсант';
             break;
         case 'officer':
-            typeClass = 'greeting-officer';
-            borderColor = '#10b981';
-            glowColor = 'rgba(16, 185, 129, 0.15)';
             icon = '⚖️';
+            roleName = 'Офицер';
             break;
         case 'senior_officer':
-            typeClass = 'greeting-senior';
-            borderColor = '#f59e0b';
-            glowColor = 'rgba(245, 158, 11, 0.15)';
-            icon = '⚡';
+            icon = '⭐';
+            roleName = 'Старший офицер';
             break;
         case 'curator':
-            typeClass = 'greeting-curator';
-            borderColor = '#8b5cf6';
-            glowColor = 'rgba(139, 92, 246, 0.2)';
             icon = '👑';
+            roleName = 'Куратор';
             break;
         default:
-            typeClass = 'greeting-default';
-            borderColor = '#6b7280';
-            glowColor = 'rgba(107, 114, 128, 0.1)';
-            icon = '🖥️';
+            icon = '👤';
+            roleName = 'Сотрудник';
     }
     
     greetingEl.innerHTML = `
-        <div class="greeting-box ${typeClass}" style="border-color: ${borderColor}; box-shadow: 0 0 30px ${glowColor};">
+        <div class="greeting-box">
             <div class="greeting-icon">${icon}</div>
             <div class="greeting-content">
-                <div class="greeting-title">${currentUser.position}</div>
+                <div class="greeting-role">${roleName} ${currentUser.position}</div>
                 <div class="greeting-message">${greetingText}</div>
                 <div class="greeting-user">${currentUser.username}</div>
             </div>
-            <div class="greeting-typing">▌</div>
-        </div>
-    `;
-    
-    setTimeout(() => {
-        const typing = greetingEl.querySelector('.greeting-typing');
-        if (typing) {
-            typing.style.animation = 'blink 0.8s infinite';
-        }
-    }, 500);
-}
-
-function getUserTestType() {
-    if (!currentUserType) return null;
-    
-    if (currentUserType === 'cadet') {
-        return 'exam';
-    } else if (['officer', 'senior_officer'].includes(currentUserType)) {
-        return 'retraining';
-    } else if (currentUserType === 'curator') {
-        // Куратор может выбирать
-        return null; // Возвращаем null, чтобы показать выбор
-    }
-    return null;
-}
-
-function issueAccessCode() {
-    if (!currentUser) return null;
-    
-    const testType = getUserTestType();
-    const testTypeName = testType === 'exam' ? 'Экзамен' : 'Переаттестация';
-    const code = generateReadableCode();
-    
-    const accessContent = `ЕДИНОРАЗОВЫЙ КОД ДОСТУПА К ТЕСТУ
-=================================
-
-Тип теста: ${testTypeName}
-Имя пользователя: ${currentUser.username}
-Должность: ${currentUser.position}
-Код доступа: ${code}
-Дата выдачи: ${new Date().toLocaleString('ru-RU')}
-
-=================================
-Arizona RP | Военная Полиция`;
-
-    try {
-        const encrypted = CryptoJS.AES.encrypt(accessContent, AES_KEY).toString();
-        const blob = new Blob([btoa(encrypted)], { 
-            type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
-        });
-        
-        saveAs(blob, `${currentUser.username}_${testTypeName}_код_доступа.docx`);
-        showMessage(`📄 Код доступа выдан!`, "success");
-        return code;
-    } catch (e) {
-        showError('Ошибка создания файла кода доступа');
-        return null;
-    }
-}
-
-function showDisclaimer() {
-    // === РАЗБЛОКИРУЕМ ПОЛЯ ВВОДА ===
-    ['username', 'authUsername'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.disabled = false;
-            el.style.pointerEvents = 'auto';
-            el.style.opacity = '1';
-        }
-    });
-    
-    if (!currentUser) {
-        showError("Авторизуйтесь!");
-        return;
-    }
-    
-    const username = document.getElementById("username").value.trim();
-    if (!username) {
-        showError("Введите имя перед началом теста!");
-        return;
-    }
-    
-    // Проверяем, что введённый ник совпадает с авторизованным
-    if (username.toLowerCase() !== currentUser.username.toLowerCase()) {
-        showError(`Вы авторизованы как ${currentUser.username}. Введите свой ник!`);
-        return;
-    }
-    
-    // Для куратора проверяем выбор
-    if (currentUserType === 'curator') {
-        const selectedType = localStorage.getItem('curatorSelectedTest');
-        if (!selectedType) {
-            showError("Сначала выберите тип теста на главной странице!");
-            return;
-        }
-    }
-    
-    const testType = currentUserType === 'curator' ? localStorage.getItem('curatorSelectedTest') : getUserTestType();
-    if (!testType) {
-        showError("Ваш статус не позволяет проходить тестирование.");
-        return;
-    }
-    
-    const modal = document.getElementById("disclaimerModal");
-    if (modal) {
-        modal.style.display = "flex";
-        document.getElementById("closeDisclaimerBtn").onclick = closeDisclaimer;
-        document.getElementById("confirmStartBtn").onclick = confirmStartTest;
-    }
-}
-
-function closeDisclaimer() {
-    const modal = document.getElementById("disclaimerModal");
-    if (modal) modal.style.display = "none";
-}
-
-function confirmStartTest() {
-    const modal = document.getElementById("disclaimerModal");
-    if (modal) modal.style.display = "none";
-    
-    if (currentUserType === 'curator') {
-        const selectedType = localStorage.getItem('curatorSelectedTest');
-        if (selectedType) {
-            createTestWithType(selectedType);
-        } else {
-            showError("Ошибка: тип теста не выбран!");
-        }
-    } else {
-        const testType = getUserTestType();
-        if (testType) {
-            createTestWithType(testType);
-        } else {
-            showError("Ошибка: тип теста не определен!");
-        }
-    }
-}
-
-function actuallyStartTest() {
-    if (!currentUser) {
-        showError("Авторизуйтесь!");
-        return;
-    }
-    
-    // Если куратор — проверяем, выбран ли тип теста
-    if (currentUserType === 'curator') {
-        const selectedType = localStorage.getItem('curatorSelectedTest');
-        if (!selectedType) {
-            showError("Сначала выберите тип теста!");
-            return;
-        }
-        createTestWithType(selectedType);
-        return;
-    }
-    
-    const testType = getUserTestType();
-    if (!testType) {
-        showError("Ваш статус не позволяет проходить тестирование.");
-        return;
-    }
-    
-    createTestWithType(testType);
-}
-
-function blockTest(reason = 'Бездействие') {
-    if (blocked || !test) return;
-    
-    blocked = true;
-    test.blocked = true;
-    test.blockReason = reason;
-
-    // БЛОКИРУЕМ ТОЛЬКО ЭЛЕМЕНТЫ ТЕСТА
-    document.querySelectorAll("input, button, textarea, select").forEach(el => {
-        if (el.closest('#authModal') || el.id === 'authUsername' || el.id === 'authLoginBtn') return;
-        if (el.id === "username") return;
-        if (el.id === "logoutBtn") return; // НЕ БЛОКИРУЕМ ВЫХОД
-        if (el.id.includes("unlock") || el.id.includes("adminUnlock")) return;
-        if (el.closest(".tabs")) return;
-        el.disabled = true;
-    });
-
-    if (inactivityTimer) {
-        clearTimeout(inactivityTimer);
-        inactivityTimer = null;
-    }
-
-    if (!test.unlockCode) {
-        test.unlockCode = generateReadableCode();
-        createUnlockFile();
-    }
-
-    saveTestState();
-    renderBlockedScreen();
-}
-
-function unblockTestSuccess() {
-    blocked = false;
-    test.blocked = false;
-    
-    // РАЗБЛОКИРУЕМ ВСЁ, ЧТО БЫЛО ЗАБЛОКИРОВАНО
-    document.querySelectorAll("input, button, textarea, select").forEach(el => {
-        el.disabled = false;
-    });
-    
-    // Убеждаемся, что поле ввода ника разблокировано
-    const usernameInput = document.getElementById('username');
-    if (usernameInput) {
-        usernameInput.disabled = false;
-        usernameInput.style.pointerEvents = 'auto';
-        usernameInput.style.opacity = '1';
-    }
-    
-    saveTestState();
-    showMessage("Тест разблокирован!", "success");
-    resetInactivityTimer(blockTest);
-    renderCurrentTest();
-}
-
-function adminUnblockTest() {
-    if (!test) {
-        showError("Нет активного теста для разблокировки!");
-        return;
-    }
-    
-    if (!authenticateAdmin()) {
-        showError("Только для администратора!");
-        return;
-    }
-    
-    if (test.blocked) {
-        blocked = false;
-        test.blocked = false;
-        delete test.unlockCode;
-        
-        document.querySelectorAll("input, button, textarea, select").forEach(el => {
-            if (el.id === "username" || el.id === "authUsername") {
-                el.disabled = false;
-                el.style.pointerEvents = 'auto';
-                el.style.opacity = '1';
-                return;
-            }
-            if (!el.id.includes("admin") && !el.closest(".tabs")) {
-                el.disabled = false;
-            }
-        });
-        
-        saveTestState();
-        showMessage("Тест успешно разблокирован администратором!", "success");
-        resetInactivityTimer(blockTest);
-        renderCurrentTest();
-    } else {
-        showError("Тест не заблокирован!", "info");
-    }
-}
-
-function unblockTest() {
-    const code = document.getElementById("username").value.trim().toUpperCase();
-    if (!test) {
-        showError("Нет активного теста для разблокировки!");
-        return;
-    }
-    
-    if (code === test.unlockCode) {
-        unblockTestSuccess();
-    } else {
-        showError("Неверный код разблокировки!");
-    }
-}
-
-function renderBlockedScreen() {
-    const testTypeName = getTestTypeName(test.testType);
-    const area = document.getElementById("mainArea");
-    const isNeutral = test.blockReason === 'Ожидание старта';
-    
-    area.innerHTML = `
-        <div id="testGreeting"></div>
-        <div class="blocked-note ${isNeutral ? 'test-blocked-neutral' : ''}" 
-             style="${isNeutral ? 'background: rgba(255,255,255,0.03); border: 2px solid rgba(255,255,255,0.1); color: var(--text-muted);' : ''}">
-            <h2 style="${isNeutral ? 'color: var(--text-muted);' : ''}">
-                ${isNeutral ? '⏳' : '🚫'} ${testTypeName} ${isNeutral ? 'ожидает начала' : 'заблокирован'}!
-            </h2>
-            <p>${isNeutral ? 'Нажмите кнопку "Начать тест" для активации.' : 'Система зафиксировала отсутствие активности более 20 секунд.'}</p>
-            ${!isNeutral ? `
-                <p>Файл с кодом разблокировки был скачан и сохранен в вашу папку.</p>
-                <p>Отправьте файл <strong>${test.username}_${testTypeName}_код_разблокировки.docx</strong> администратору.</p>
-            ` : ''}
-            
-            ${!isNeutral ? `
-                <div style="margin: 20px 0;">
-                    <button class="btn ghost" id="resendCodeBtn">📧 Получить код повторно</button>
-                </div>
-            ` : ''}
-            
-            <div style="margin-top: 20px;">
-                <input type="text" id="unlockCodeInput" placeholder="${isNeutral ? 'Введите код для разблокировки' : 'Введите код от администратора'}" style="margin: 10px 0; width: 100%;">
-                <button class="btn" id="submitUnlockBtn">Разблокировать тест</button>
-            </div>
-            
-            <div style="margin-top: 15px;">
-                <button class="btn warning" id="adminUnlockBtn" style="background: var(--warning); color: black;">🔓 Админ-разблокировка</button>
-            </div>
-        </div>
-    `;
-    
-    // Показываем приветствие внутри заблокированного экрана
-    if (currentUser && currentUserType) {
-        renderAIGreeting();
-    }
-
-    document.getElementById("resendCodeBtn")?.addEventListener("click", () => {
-        createUnlockFile();
-        showMessage("Файл с кодом разблокировки отправлен на скачивание!", "success");
-    });
-
-    document.getElementById("submitUnlockBtn").addEventListener("click", () => {
-        const enteredCode = document.getElementById("unlockCodeInput").value.trim().toUpperCase();
-        if (enteredCode === test.unlockCode) {
-            unblockTestSuccess();
-        } else {
-            showError("Неверный код разблокировки!");
-        }
-    });
-    
-    document.getElementById("adminUnlockBtn").addEventListener("click", adminUnblockTest);
-}
-
-function createUnlockFile() {
-    if (!test) return;
-    
-    const testTypeName = getTestTypeName(test.testType);
-    const unlockContent = `КОД РАЗБЛОКИРОВКИ ТЕСТА (ЕДИНОРАЗОВЫЙ)
-=================================
-
-Тип теста: ${testTypeName}
-Имя пользователя: ${test.username}
-Код разблокировки: ${test.unlockCode}
-
-=================================
-Arizona RP | Военная Полиция`;
-
-    try {
-        const encrypted = CryptoJS.AES.encrypt(unlockContent, AES_KEY).toString();
-        const blob = new Blob([btoa(encrypted)], { 
-            type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
-        });
-        saveAs(blob, `${test.username}_${testTypeName}_код_разблокировки.docx`);
-        saveUnlockFileToEmployeeFolder(test.username, test.testType, unlockContent);
-    } catch (e) {
-        showError('Ошибка создания файла разблокировки');
-    }
-}
-
-function saveUnlockFileToEmployeeFolder(username, testType, unlockContent) {
-    const testTypeName = getTestTypeName(testType);
-    const fileName = `${username}_${testTypeName}_разблокировка_${new Date().toLocaleDateString('ru-RU')}.docx`;
-    addFileToEmployeeFolder(username, testType, fileName, unlockContent);
-}
-
-function renderCurrentTest() {
-    // === РАЗБЛОКИРУЕМ ПОЛЯ ВВОДА ===
-    ['username', 'authUsername'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.disabled = false;
-            el.style.pointerEvents = 'auto';
-            el.style.opacity = '1';
-        }
-    });
-    
-    // === ПОКАЗЫВАЕМ ПРИВЕТСТВИЕ ===
-    if (currentUser && currentUserType) {
-        renderAIGreeting();
-    }
-    
-    // === ЕСЛИ ТЕСТ НЕ СОЗДАН — ПОКАЗЫВАЕМ СТАРТОВЫЙ ЭКРАН ===
-    if (!test) {
-        const area = document.getElementById("mainArea");
-        if (area) {
-            const testType = getUserTestType();
-            
-            // === ЕСЛИ КУРАТОР — ПОКАЗЫВАЕМ ВЫБОР ===
-            if (currentUserType === 'curator') {
-                area.innerHTML = `
-                    <div class="question-box">
-                        <div id="testGreeting"></div>
-                        <div class="test-ready">
-                            <p><strong>👑 ${currentUser.username}</strong> (${currentUser.position})</p>
-                            <p>Выберите тип теста:</p>
-                            <div style="display: flex; gap: 15px; justify-content: center; margin-top: 20px; flex-wrap: wrap;">
-                                <button class="btn curator-test-btn" data-test-type="exam" style="min-width: 150px;">
-                                    🎓 Экзамен
-                                </button>
-                                <button class="btn curator-test-btn" data-test-type="retraining" style="min-width: 150px;">
-                                    🔄 Переаттестация
-                                </button>
-                            </div>
-                            <div class="test-info" style="display: flex; gap: 20px; justify-content: center; margin-top: 15px; flex-wrap: wrap;">
-                                <span>📝 Экзамен: 15 вопросов</span>
-                                <span>📝 Переаттестация: 25 вопросов</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                // === ОБРАБОТЧИКИ ДЛЯ КНОПОК ВЫБОРА ===
-                document.querySelectorAll('.curator-test-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const selectedType = this.dataset.testType;
-                        // Сохраняем выбранный тип
-                        localStorage.setItem('curatorSelectedTest', selectedType);
-                        currentTestType = selectedType;
-                        // Пересоздаем тест с выбранным типом
-                        createTestWithType(selectedType);
-                    });
-                });
-                
-                // Показываем приветствие
-                if (currentUser && currentUserType) {
-                    renderAIGreeting();
-                }
-                return;
-            }
-            
-            // === ДЛЯ ОСТАЛЬНЫХ ===
-            if (!testType) {
-                area.innerHTML = `
-                    <div class="question-box">
-                        <h2>❌ Доступ запрещен</h2>
-                        <p>Ваш статус не позволяет проходить тестирование.</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            const typeName = testType === 'exam' ? 'Экзамен' : 'Переаттестацию';
-            const questionCount = testType === 'exam' ? 15 : 25;
-            
-            area.innerHTML = `
-                <div class="question-box">
-                    <div id="testGreeting"></div>
-                    <div class="test-ready">
-                        <p><strong>👤 ${currentUser ? currentUser.username : 'Не авторизован'}</strong>${currentUser ? ` (${currentUser.position})` : ''}</p>
-                        <p>${currentUser ? `Вы готовы пройти <strong>${typeName}</strong>.` : 'Авторизуйтесь.'}</p>
-                        ${currentUser ? `
-                        <div class="test-info" style="display: flex; gap: 20px; justify-content: center; margin-top: 15px; flex-wrap: wrap;">
-                            <span>📝 Вопросов: ${questionCount}</span>
-                            <span>🔒 ${['cadet', 'officer'].includes(currentUserType) ? 'Требуется код разблокировки' : 'Код не требуется'}</span>
-                        </div>
-                        ` : ''}
-                    </div>
-                </div>
-            `;
-            
-            if (currentUser && currentUserType) {
-                renderAIGreeting();
-            }
-        }
-        return;
-    }
-    
-    // === ЕСЛИ ТЕСТ ЗАБЛОКИРОВАН ===
-    if (test && test.blocked) {
-        renderBlockedScreen();
-        return;
-    }
-    
-    // === ЕСЛИ ТЕСТ ЗАВЕРШЕН ===
-    if (test && test.current >= TEST_COUNT) {
-        renderReviewPage();
-        return;
-    }
-    
-    // === ПОКАЗЫВАЕМ ВОПРОСЫ ===
-    renderTestQuestions();
-}
-function renderTestQuestions() {
-    const area = document.getElementById("mainArea");
-    
-    // === РАЗБЛОКИРУЕМ ПОЛЯ ВВОДА ===
-    ['username', 'authUsername'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.disabled = false;
-            el.style.pointerEvents = 'auto';
-            el.style.opacity = '1';
-        }
-    });
-    
-    if (!test) return;
-    
-    if (test.blocked) {
-        renderBlockedScreen();
-        return;
-    }
-    
-    if (test.current >= TEST_COUNT) {
-        renderReviewPage();
-        return;
-    }
-    
-    const q = test.shuffledQuestions[test.current];
-    if (!q) return;
-    
-    if (q.type === 'multiple' && q.options && q.options.length > 0) {
-        area.innerHTML = renderMultipleChoiceQuestion(q, test.current);
-        setupMultipleChoiceHandlers(q);
-    } else {
-        area.innerHTML = renderTextQuestion(q, test.current);
-        setupTextQuestionHandlers();
-    }
-}
-
-function renderMultipleChoiceQuestion(q, currentIndex) {
-    const savedAnswers = test.answers[currentIndex];
-    let selectedOptions = [];
-    
-    if (savedAnswers && Array.isArray(savedAnswers)) {
-        selectedOptions = savedAnswers;
-    } else if (savedAnswers && typeof savedAnswers === 'string') {
-        selectedOptions = [savedAnswers];
-    }
-    
-    const maxSelections = q.maxSelections || 2;
-    const testTypeName = getTestTypeName(test.testType);
-    
-    return `
-        <div class="question-box">
-            <div class="question-header">
-                <span class="question-counter">${testTypeName} — Вопрос ${test.current + 1} из ${TEST_COUNT}</span>
-                <span class="selection-limit">✅ Выберите до ${maxSelections} вариантов</span>
-            </div>
-            <div class="question-text-large">${escapeHtml(q.text)}</div>
-            <div class="options-grid">
-                ${q.options.map((option) => {
-                    const isSelected = selectedOptions.includes(option);
-                    return `
-                        <div class="option-card ${isSelected ? 'selected' : ''}" data-option-value="${escapeHtml(option)}">
-                            <div class="option-check">
-                                <span class="checkmark">${isSelected ? '✓' : ''}</span>
-                            </div>
-                            <div class="option-text">${escapeHtml(option)}</div>
-                        </div>
-                    `;
-                }).join('')}
-            </div>
-            <div class="selected-info">
-                <span>📋 Выбрано: <strong id="selectedCount">${selectedOptions.length}</strong> / ${maxSelections}</span>
-            </div>
-            <div class="question-actions">
-                <button class="btn btn-primary" id="nextBtn">
-                    ${test.current < TEST_COUNT - 1 ? "Следующий вопрос →" : "✓ Завершить тест"}
-                </button>
-            </div>
-            <div class="activity-warning">⚠️ Система отслеживает активность!</div>
         </div>
     `;
 }
 
-function renderTextQuestion(q, currentIndex) {
-    const testTypeName = getTestTypeName(test.testType);
-    
-    return `
-        <div class="question-box">
-            <div class="question-header">
-                <span class="question-counter">${testTypeName} — Вопрос ${test.current + 1} из ${TEST_COUNT}</span>
-            </div>
-            <div class="question-text-large">${escapeHtml(q.text)}</div>
-            <input type="text" id="answerInput" placeholder="Введите ваш ответ..." 
-                   value="${test.answers[test.current] || ''}" autocomplete="off">
-            <div style="margin-top: 20px;">
-                <button class="btn" id="nextBtn">
-                    ${test.current < TEST_COUNT - 1 ? "Следующий вопрос →" : "✓ Завершить тест"}
-                </button>
-            </div>
-            <div class="activity-warning">⚠️ Система отслеживает активность!</div>
-        </div>
-    `;
-}
+const FIXED_EMPLOYEE_STRUCTURE = [
+    { id: 'curator', position: 'Куратор ВП', type: 'curator', username: 'Jan_Abobbi' },
+    { id: 'senior_officer_2', position: 'Старший офицер ВП', type: 'senior_officer', username: 'Chaffy_Washington' },
+    { id: 'senior_officer_1', position: 'Старший офицер ВП', type: 'senior_officer', username: 'Gustavo_Mendez' },
+    { id: 'officer_2', position: 'Офицер ВП', type: 'officer', username: 'Eul_Requiem' },
+    { id: 'officer_5', position: 'Офицер ВП', type: 'officer', username: 'Ralph_Laurence' },
+    { id: 'officer_7', position: 'Офицер ВП', type: 'officer', username: 'Danya_Armani' },
+    { id: 'officer_3', position: 'Офицер ВП', type: 'officer', username: 'Akashi_Miyazuki' },
+    { id: 'officer_1', position: 'Офицер ВП', type: 'officer', username: 'Gera_Guerra' },
+    { id: 'officer_4', position: 'Офицер ВП', type: 'officer', username: 'Вакантно' },
+    { id: 'officer_6', position: 'Офицер ВП', type: 'officer', username: 'Вакантно' },
+    { id: 'cadet_2', position: 'Курсант ВП', type: 'cadet', username: 'Blake_Obi' },
+    { id: 'cadet_1', position: 'Курсант ВП', type: 'cadet', username: 'Kristoph_Hidenberg' },
+    { id: 'cadet_3', position: 'Курсант ВП', type: 'cadet', username: 'Вакантно' }
+];
 
-function setupMultipleChoiceHandlers(q) {
-    const optionCards = document.querySelectorAll('.option-card');
-    const selectedCountSpan = document.getElementById('selectedCount');
-    const maxSelections = q.maxSelections || 2;
-    
-    const updateSelection = () => {
-        const selectedOptions = Array.from(document.querySelectorAll('.option-card.selected'))
-            .map(card => card.dataset.optionValue);
-        test.answers[test.current] = selectedOptions;
-        saveTestState();
-        if (selectedCountSpan) {
-            selectedCountSpan.textContent = selectedOptions.length;
-        }
-    };
-    
-    optionCards.forEach(card => {
-        card.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const isSelected = card.classList.contains('selected');
-            const currentSelected = document.querySelectorAll('.option-card.selected').length;
-            
-            if (!isSelected && currentSelected >= maxSelections) {
-                showError(`Можно выбрать не более ${maxSelections} вариантов!`);
-                return;
-            }
-            
-            if (isSelected) {
-                card.classList.remove('selected');
-                card.querySelector('.checkmark').textContent = '';
-            } else {
-                card.classList.add('selected');
-                card.querySelector('.checkmark').textContent = '✓';
-            }
-            updateSelection();
-            trackActivity();
-        });
-    });
-    
-    const nextBtn = document.getElementById("nextBtn");
-    if (nextBtn) {
-        nextBtn.addEventListener("click", () => {
-            const selectedOptions = test.answers[test.current];
-            if (!selectedOptions || selectedOptions.length === 0) {
-                showError("Выберите хотя бы один вариант!");
-                return;
-            }
-            nextQuestion();
-        });
-    }
-}
+// === ВОПРОСЫ ДЛЯ ЭКЗАМЕНА ===
+const examQuestions = [
+    { text: "Что обязаны знать и соблюдать сотрудники Военной полиции?", type: "multiple",
+        options: [
+            "Устав МО, Устав ВП",
+            "Устав МЮ",
+            "Федеральное постановление, уголовный кодекс, административный кодекс",
+            "Всё выше перечисленное"
+        ],
+        correctAnswers: ["Устав МО, Устав ВП", "Федеральное постановление, уголовный кодекс, административный кодекс"],
+        maxSelections: 2
+    },
+    { text: "Как должны разговаривать сотрудники военной полиции?", type: "text" },
+    { text: "При каких условиях сотрудник ВП может покинуть свою ВЧ без формы в рабочее время?(Не с разрешения и не в обед)", type: "text" },
+    { text: "Что должны иметь при себе сотрудники военной полиции при проверке ВЧ на ЧС?", type: "text" },
+    { text: "Что должен делать сотрудник ВП при проверке ВЧ на ЧС, помимо самой проверки?", type: "text" },
+    { text: "Что запрещается сотрудникам ВП при выполнении спец.задачи?", type: "text" },
+    { text: "При каком приказе сотрудник ВП обязан снять маску?",
+        type: "multiple",
+        options: [
+            "Приказ Министра Обороны",
+            "Приказ Куратора Дельты",
+            "Приказ Сотрудника Пра-во",
+            "Приказ Руководста армии"
+        ],
+        correctAnswers: ["Приказ Министра Обороны", "Приказ Руководства армии"],
+        maxSelections: 2
+    },
+    { text: "Какими цветами должен быть покрашен автомобиль сотрудника ВП?", type: "text" },
+    { text: "Какая приписка в рации департамента?", type: "text" },
+    { text: "Сколько минимум минут нужно проверять ВЧ на ЧС?", type: "multiple",
+        options: [
+            "4 минуты",
+            "5 минут",
+            "3 минуты",
+            "Минимального лимита нет"
+        ],
+        correctAnswers: ["3 минуты"],
+        maxSelections: 1
+    },
+    { text: "Кому подчиняются сотрудники ВП?", type: "text" },
+    { text: "Последовательность действий офицера ВП при виде нарушителя?", type: "text" },
+    { text: "Какие места помимо Военных Частей нужно проверять?", type: "text" },
+    { text: "Назовите недельную норму проверок состава МО от ВП.", type: "multiple",
+        options: [
+            "7 раз в неделю",
+            "3 раза в неделю",
+            "5 раз в неделю",
+            "4 раза в неделю"
+        ],
+        correctAnswers: ["3 раза в неделю"],
+        maxSelections: 1
+    },
+    { text: "Какие последствия ждут организацию получившая неудовлетворительную оценку при проверке состава?", type: "text" },
+];
 
-function setupTextQuestionHandlers() {
-    const answerInput = document.getElementById("answerInput");
-    if (answerInput) {
-        answerInput.addEventListener("input", (e) => {
-            trackActivity();
-            test.answers[test.current] = e.target.value.trim();
-            saveTestState();
-        });
-        answerInput.addEventListener("keypress", (e) => {
-            trackActivity();
-            if (e.key === "Enter") nextQuestion();
-        });
-        answerInput.addEventListener("mousedown", trackActivity);
-        setTimeout(() => answerInput.focus(), 100);
-    }
-    
-    const nextBtn = document.getElementById("nextBtn");
-    if (nextBtn) {
-        nextBtn.addEventListener("click", () => {
-            trackActivity();
-            nextQuestion();
-        });
-    }
-}
+// === ВОПРОСЫ ДЛЯ ПЕРЕАТТЕСТАЦИИ ===
+const retrainingQuestions = [
+    { text: "Что обязаны знать и соблюдать сотрудники Военной полиции?", type: "multiple",
+        options: [
+            "Устав МО, Устав ВП",
+            "Устав МЮ",
+            "Федеральное постановление, уголовный кодекс, административный кодекс",
+            "Всё выше перечисленное"
+        ],
+        correctAnswers: ["Устав МО, Устав ВП", "Федеральное постановление, уголовный кодекс, административный кодекс"],
+        maxSelections: 2
+    },
+    { text: "Как должны разговаривать сотрудники военной полиции?", type: "text" },
+    { text: "При каких условиях сотрудник ВП может покинуть свою ВЧ без формы в рабочее время?(Не с разрешения и не в обед)", type: "text" },
+    { text: "Что должны иметь при себе сотрудники военной полиции при проверке ВЧ на ЧС?", type: "text" },
+    { text: "Что должен делать сотрудник ВП при проверке ВЧ на ЧС, помимо самой проверки?", type: "text" },
+    { text: "Что запрещается сотрудникам ВП при выполнении спец.задачи?", type: "text" },
+    { text: "При каком приказе сотрудник ВП обязан снять маску?",
+        type: "multiple",
+        options: [
+            "Приказ Министра Обороны",
+            "Приказ Куратора Дельты",
+            "Приказ Сотрудника Пра-во",
+            "Приказ Руководста армии"
+        ],
+        correctAnswers: ["Приказ Министра Обороны", "Приказ Руководства армии"],
+        maxSelections: 2
+    },
+    { text: "Какими цветами должен быть покрашен автомобиль сотрудника ВП?", type: "text" },
+    { text: "Какая приписка в рации департамента?", type: "text" },
+    { text: "Сколько минимум минут нужно проверять ВЧ на ЧС?", type: "multiple",
+        options: [
+            "4 минуты",
+            "5 минут",
+            "3 минуты",
+            "Минимального лимита нет"
+        ],
+        correctAnswers: ["3 минуты"],
+        maxSelections: 1
+    },
+    { text: "Кому подчиняются сотрудники ВП?", type: "text" },
+    { text: "Последовательность действий офицера ВП при виде нарушителя?", type: "text" },
+    { text: "Какие места помимо Военных Частей нужно проверять?", type: "text" },
+    { text: "Назовите недельную норму проверок состава МО от ВП.", type: "multiple",
+        options: [
+            "7 раз в неделю",
+            "3 раза в неделю",
+            "5 раз в неделю",
+            "4 раза в неделю"
+        ],
+        correctAnswers: ["3 раза в неделю"],
+        maxSelections: 1
+    },
+    { text: "Какие последствия ждут организацию получившая неудовлетворительную оценку при проверке состава?", type: "text" },
+    { text: "В какое время запрещается делать проверку состава МО от ВП?", type: "text" },
+    { text: "Назовите все критерии требующиеся для внесения личного транспортного средства в реестр.", type: "text" },
+    { text: "Какие грузовые транспортные средства можно регистрировать в реестре?", type: "text" },
+    { text: "Представим ситуацию, вы хотите заехать в СФа, стоите на КПП и видите как воруют маты в грузовом отсеке. Ваши действия?", type: "text" },
+    { text: "Представим ситуацию, на Министра Обороны напали трое бандитов. Ваши действия?", type: "text" },
+    { text: "У кого сотрудники ВП могут попросить помощи, ради поимки прогульщиков?", type: "text" },
+    { text: "В каких случаях разрешается заехать на ВЧ без запроса?", type: "text" },
+    { text: "Что грозит сотруднику ВП при распространения ответов из экзамена или её попытке?", type: "text" },
+    { text: "Что грозит сотруднику ВП при трёхразовом провале экзамена?", type: "text" },
+    { text: "В каких случаях разрешено заниматся надзорной деятельностью без формы?", type: "text" },
+    { text: "Сколько времени даётся на прохождение переатестации?", type: "text" },
+    { text: "В каких случаях Куратор ВП может потребовать пройти внеплановую переатестацию?", type: "text" },
+];
 
-function nextQuestion() {
-    if (test.current < TEST_COUNT - 1) {
-        test.current++;
-        saveTestState();
-        renderCurrentTest();
-    } else {
-        renderReviewPage();
-    }
-}
+let test = null;
+let blocked = false;
+let inactivityTimer = null;
+let lastActivityTime = Date.now();
+let currentGradingFile = null;
+let currentGradingAnswers = null;
+let currentFileIndex = null;
 
-function renderReviewPage() {
-    const area = document.getElementById("mainArea");
-    const testTypeName = getTestTypeName(test.testType);
-    
-    let answersHtml = '';
-    
-    test.shuffledQuestions.forEach((q, index) => {
-        const userAnswer = test.answers[index];
-        let answerDisplay = '';
-        
-        if (q.type === 'multiple' && q.options) {
-            const selectedOptions = Array.isArray(userAnswer) ? userAnswer : [];
-            answerDisplay = `
-                <div class="review-multiple-answers">
-                    ${q.options.map(option => {
-                        const isSelected = selectedOptions.includes(option);
-                        return `
-                            <span class="review-option ${isSelected ? 'review-option-selected' : 'review-option-unselected'}">
-                                ${isSelected ? '✓' : '○'} ${escapeHtml(option)}
-                            </span>
-                        `;
-                    }).join('')}
-                </div>
-                <div class="review-edit">
-                    <button class="btn small review-edit-btn" data-question-index="${index}">✏️ Редактировать</button>
-                </div>
-            `;
-        } else {
-            const answerText = userAnswer || "Нет ответа";
-            answerDisplay = `
-                <div class="review-answer-text">${escapeHtml(answerText)}</div>
-                <div class="review-edit">
-                    <button class="btn small review-edit-btn" data-question-index="${index}">✏️ Редактировать</button>
-                </div>
-            `;
-        }
-        
-        answersHtml += `
-            <div class="review-item" data-question-index="${index}">
-                <div class="review-question-header">
-                    <span class="review-question-number">Вопрос ${index + 1}</span>
-                    <span class="review-question-text">${escapeHtml(q.text)}</span>
-                </div>
-                <div class="review-answer">${answerDisplay}</div>
-            </div>
-        `;
-    });
-    
-    area.innerHTML = `
-        <div class="review-container">
-            <div class="review-header">
-                <h2>📋 Предпросмотр ответов</h2>
-                <p>Проверьте ответы перед завершением ${testTypeName.toLowerCase()}</p>
-                <div class="review-stats">
-                    <div class="review-stat">
-                        <span>📝 Всего:</span>
-                        <strong>${TEST_COUNT}</strong>
-                    </div>
-                    <div class="review-stat">
-                        <span>✅ Отвечено:</span>
-                        <strong>${Object.keys(test.answers).length}</strong>
-                    </div>
-                    <div class="review-stat">
-                        <span>❌ Без ответа:</span>
-                        <strong>${TEST_COUNT - Object.keys(test.answers).length}</strong>
-                    </div>
-                </div>
-            </div>
-            <div class="review-answers-list">${answersHtml}</div>
-            <div class="review-actions">
-                <button class="btn ghost" id="backToTestBtn">← Вернуться</button>
-                <button class="btn" id="confirmFinishBtn" ${Object.keys(test.answers).length < TEST_COUNT ? 'disabled' : ''}>
-                    ✅ Завершить
-                </button>
-            </div>
-            ${Object.keys(test.answers).length < TEST_COUNT ? `
-                <div class="review-warning">⚠️ Ответьте на все вопросы!</div>
-            ` : ''}
-        </div>
-    `;
-    
-    document.getElementById("backToTestBtn").addEventListener("click", () => {
-        renderCurrentTest();
-    });
-    
-    document.querySelectorAll(".review-edit-btn").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-            const questionIndex = parseInt(btn.dataset.questionIndex);
-            test.current = questionIndex;
-            saveTestState();
-            renderCurrentTest();
-        });
-    });
-    
-    const confirmFinishBtn = document.getElementById("confirmFinishBtn");
-    if (confirmFinishBtn) {
-        confirmFinishBtn.addEventListener("click", () => {
-            if (Object.keys(test.answers).length >= TEST_COUNT) {
-                finishTest();
-            } else {
-                showError("Ответьте на все вопросы!");
-            }
-        });
-    }
-}
-
-function finishTest() {
-    const endTime = new Date();
-    const timeSpent = Math.round((endTime - test.startTime) / 1000 / 60);
-    const testTypeName = getTestTypeName(test.testType);
-    
-    let reportText = `${testTypeName.toUpperCase()} ВОЕННОЙ ПОЛИЦИИ - РЕЗУЛЬТАТЫ
-=================================
-
-Общая информация:
-----------------
-Имя: ${test.username}
-Тип теста: ${testTypeName}
-Дата: ${new Date().toLocaleString('ru-RU')}
-Время: ${timeSpent} минут
-Всего вопросов: ${TEST_COUNT}
-
-Ответы:
-----------------
-`;
-
-    test.shuffledQuestions.forEach((q, i) => {
-        let answerText = test.answers[i];
-        if (Array.isArray(answerText)) {
-            answerText = answerText.join(', ');
-        } else if (!answerText) {
-            answerText = "Нет ответа";
-        }
-        reportText += `\n${i + 1}. ${q.text}\nОтвет: ${answerText}\n---------------------------------\n`;
-    });
-
-    reportText += `
-
-=================================
-Arizona RP | Военная Полиция
-Тест завершен. Ожидает оценки администратора.`;
-
-    try {
-        const encrypted = CryptoJS.AES.encrypt(reportText, AES_KEY).toString();
-        const blob = new Blob([btoa(encrypted)], { 
-            type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
-        });
-        saveAs(blob, `${test.username}_${testTypeName}_${timeSpent}мин_результаты.docx`);
-    } catch (e) {
-        showError('Ошибка сохранения результатов');
-    }
-
-    saveTestResultForStatistics(test, timeSpent, 0, 0, false);
-
-    if (inactivityTimer) {
-        clearTimeout(inactivityTimer);
-        inactivityTimer = null;
-    }
-
-    clearTestState();
-    document.getElementById("unlockBtn").style.display = "none";
-    document.getElementById("adminUnlockBtn").style.display = "none";
-    document.getElementById("finishBtn").style.display = "none";
-    document.getElementById("startBtn").disabled = false;
-
-    document.getElementById("mainArea").innerHTML = `
-        <div class="question-box">
-            <h2>✅ ${testTypeName} завершён!</h2>
-            <p><strong>${escapeHtml(test.username)}</strong>, тест успешно завершён.</p>
-            <p>Файл с результатами скачан.</p>
-            <p>Отправьте файл администратору для оценки.</p>
-        </div>
-    `;
-}
-
-function finishTestManually() {
-    if (confirm("Завершить тест?")) {
-        renderReviewPage();
-    }
-}
-
-function saveTestResultForStatistics(testData, timeSpent, score, correctCount, passed) {
-    const testResult = {
-        id: Date.now().toString(),
-        username: testData.username,
-        testType: testData.testType,
-        score: score,
-        timeSpent: timeSpent,
-        totalQuestions: TEST_COUNT,
-        correctAnswers: correctCount,
-        date: new Date().toISOString(),
-        graded: false,
-        passed: passed
-    };
-    const pendingResults = JSON.parse(localStorage.getItem('pendingTestResults') || '[]');
-    pendingResults.push(testResult);
-    localStorage.setItem('pendingTestResults', JSON.stringify(pendingResults));
-}
-
-function saveTestToPlayerFolder(testData, timeSpent) {
-    const player = getCurrentPlayer();
-    if (!player) return;
-    
-    const testResult = {
-        id: Date.now().toString(),
-        date: new Date().toISOString(),
-        score: 0,
-        timeSpent: timeSpent,
-        totalQuestions: TEST_COUNT,
-        correctAnswers: 0,
-        graded: false
-    };
-    
-    const updatedPlayers = playersDatabase.map(p => {
-        if (p.id === player.id) {
-            return {
-                ...p,
-                tests: {
-                    ...p.tests,
-                    [testData.testType]: [...p.tests[testData.testType], testResult]
-                }
-            };
-        }
-        return p;
-    });
-    
-    playersDatabase = updatedPlayers;
-    localStorage.setItem('playersDatabase', JSON.stringify(playersDatabase));
-    localStorage.setItem('currentPlayer', JSON.stringify(
-        updatedPlayers.find(p => p.id === player.id)
-    ));
-}
-
-function validateAndRegisterPlayer(username, testType) {
-    const nicknameRegex = /^[a-zA-Z0-9\s_-]+$/;
-    if (!nicknameRegex.test(username)) {
-        showError("Ник должен содержать только латинские буквы, цифры, пробелы, дефисы и подчеркивания!");
-        return false;
-    }
-    
-    if (username.length < 2) {
-        showError("Ник должен содержать минимум 2 символа!");
-        return false;
-    }
-    
-    let player = playersDatabase.find(p => p.username.toLowerCase() === username.toLowerCase());
-    
-    if (!player) {
-        const confirmed = confirm(`Вы новый игрок?\n\nВаш ник: ${username}\n\nВНИМАНИЕ: После подтверждения изменить ник будет невозможно!\n\nПодтверждаете правильность ника?`);
-        
-        if (!confirmed) {
-            showError("Пожалуйста, введите правильный никнейм");
-            return false;
-        }
-        
-        player = {
-            id: Date.now().toString(),
-            username: username,
-            registrationDate: new Date().toISOString(),
-            folders: {
-                exam: `${username}_Exam`,
-                retraining: `${username}_Retraining`, 
-                academy: `${username}_Academy`
-            },
-            tests: {
-                exam: [],
-                retraining: [],
-                academy: []
-            }
-        };
-        
-        playersDatabase.push(player);
-        localStorage.setItem('playersDatabase', JSON.stringify(playersDatabase));
-        
-        showMessage(`Игрок ${username} успешно зарегистрирован!`, "success");
-    }
-    
-    localStorage.setItem('currentPlayer', JSON.stringify(player));
-    return true;
-}
-
-function getCurrentPlayer() {
-    return JSON.parse(localStorage.getItem('currentPlayer') || 'null');
-}
-
-function updatePlayersDatalist() {
-    const datalist = document.getElementById('playersList');
-    if (datalist) {
-        datalist.innerHTML = playersDatabase.map(player => 
-            `<option value="${player.username}">`
-        ).join('');
-    }
-}
-
-function saveTestState() {
-    if (test) {
-        localStorage.setItem('currentTest', JSON.stringify({
-            username: test.username,
-            current: test.current,
-            answers: test.answers,
-            shuffledQuestions: test.shuffledQuestions,
-            startTime: test.startTime,
-            blocked: test.blocked,
-            unlockCode: test.unlockCode,
-            testType: test.testType,
-            playerId: test.playerId
-        }));
-    }
-}
-
-function loadTestState() {
-    const saved = localStorage.getItem('currentTest');
-    if (saved) {
-        try {
-            const savedTest = JSON.parse(saved);
-            test = {
-                username: savedTest.username,
-                userType: savedTest.userType,
-                current: savedTest.current,
-                answers: savedTest.answers,
-                shuffledQuestions: savedTest.shuffledQuestions,
-                startTime: new Date(savedTest.startTime),
-                blocked: savedTest.blocked,
-                unlockCode: savedTest.unlockCode,
-                testType: savedTest.testType || 'exam',
-                accessCode: savedTest.accessCode,
-                playerId: savedTest.playerId
-            };
-            blocked = savedTest.blocked;
-            currentTestType = savedTest.testType || 'exam';
-            
-            if (blocked) {
-                // БЛОКИРУЕМ ТОЛЬКО ЭЛЕМЕНТЫ ТЕСТА
-                document.querySelectorAll("input, button, textarea, select").forEach(el => {
-                    // === НИКОГДА НЕ БЛОКИРУЕМ АВТОРИЗАЦИЮ ===
-                    if (el.closest('#authModal') || el.id === 'authUsername' || el.id === 'authLoginBtn') {
-                        return;
-                    }
-                    // === НИКОГДА НЕ БЛОКИРУЕМ ПОЛЕ ВВОДА НИКА ===
-                    if (el.id === "username") return;
-                    if (el.id.includes("unlock") || el.id.includes("adminUnlock")) return;
-                    if (el.closest(".tabs")) return;
-                    
-                    el.disabled = true;
-                });
-            }
-        } catch (e) {
-            console.error('Ошибка загрузки теста:', e);
-            localStorage.removeItem('currentTest');
-            test = null;
-            blocked = false;
-        }
-    }
-}
-
-function clearTestState() {
-    localStorage.removeItem('currentTest');
-    test = null;
-    blocked = false;
-}
-
-function resetInactivityTimer(callbackOnBlock) {
-    lastActivityTime = Date.now();
-    if (inactivityTimer) {
-        clearTimeout(inactivityTimer);
-    }
-    
-    if (test && !test.blocked) {
-        inactivityTimer = setTimeout(() => {
-            const timeSinceLastActivity = Date.now() - lastActivityTime;
-            if (test && !test.blocked && timeSinceLastActivity >= INACTIVITY_TIMEOUT) {
-                showError("Тест заблокирован за бездействие!");
-                if (typeof callbackOnBlock === 'function') {
-                    callbackOnBlock();
-                } else {
-                    blockTest();
-                }
-            }
-        }, INACTIVITY_TIMEOUT + 10000);
-    }
-}
-
-function trackActivity() {
-    resetInactivityTimer(blockTest);
-}
-
-function showInactivityWarning() {
-    const timeLeft = INACTIVITY_TIMEOUT - (Date.now() - lastActivityTime);
-    if (timeLeft <= 5000 && !document.getElementById('inactivityWarning')) {
-        const warning = document.createElement('div');
-        warning.className = 'inactivity-warning';
-        warning.id = 'inactivityWarning';
-        warning.innerHTML = `⚠️ Бездействие! Тест будет заблокирован через ${Math.ceil(timeLeft/1000)} сек.`;
-        document.body.appendChild(warning);
-        setTimeout(() => {
-            const w = document.getElementById('inactivityWarning');
-            if (w) w.remove();
-        }, 5000);
-    }
-}
-
-function shuffleArray(arr) {
-    const newArr = [...arr];
-    for (let i = newArr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
-    }
-    return newArr;
-}
-
-function generateReadableCode() {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let code = '';
-    for (let i = 0; i < 8; i++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return code;
-}
-
-function getTestTypeName(type) {
-    switch(type) {
-        case 'exam': return 'Экзамен';
-        case 'retraining': return 'Переаттестация';
-        default: return 'Тест';
-    }
-}
-
-function escapeHtml(str) {
-    if (typeof str !== "string") return str;
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-}
-
-function arrayBufferToBase64(buffer) {
-    let binary = '';
-    const bytes = new Uint8Array(buffer);
-    for (let i = 0; i < bytes.byteLength; i++) {
-        binary += String.fromCharCode(bytes[i]);
-    }
-    return btoa(binary);
-}
-
-function showMessage(message, type = "info") {
-    const alertDiv = document.createElement("div");
-    alertDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 20px;
-        border-radius: 8px;
-        color: white;
-        font-weight: bold;
-        z-index: 10001;
-        max-width: 300px;
-    `;
-    if (type === "success") alertDiv.style.background = "#10b981";
-    else if (type === "error") alertDiv.style.background = "#ef4444";
-    else alertDiv.style.background = "#3b82f6";
-    alertDiv.textContent = message;
-    document.body.appendChild(alertDiv);
-    setTimeout(() => alertDiv.remove(), 3000);
-}
-
-function showError(message) {
-    showMessage(message, "error");
-}
-
-function loadEmployeesData() {
-    const saved = localStorage.getItem('fixedEmployees');
-    let employeesData;
-    
-    if (saved) {
-        employeesData = JSON.parse(saved);
-        
-        console.log('🔄 Проверка изменений в структуре сотрудников...');
-        
-        const usernameToNewPosition = {};
-        FIXED_EMPLOYEE_STRUCTURE.forEach(fixedEmp => {
-            if (fixedEmp.username !== 'Вакантно') {
-                usernameToNewPosition[fixedEmp.username] = {
-                    id: fixedEmp.id,
-                    position: fixedEmp.position,
-                    type: fixedEmp.type
-                };
-            }
-        });
-        
-        const movedEmployees = [];
-        
-        Object.values(employeesData).forEach(oldEmp => {
-            const oldUsername = oldEmp.username;
-            if (oldUsername !== 'Вакантно' && usernameToNewPosition[oldUsername]) {
-                const newPosition = usernameToNewPosition[oldUsername];
-                
-                if (oldEmp.id !== newPosition.id) {
-                    movedEmployees.push({
-                        oldId: oldEmp.id,
-                        newId: newPosition.id,
-                        username: oldUsername,
-                        files: { ...oldEmp.files }
-                    });
-                    
-                    console.log(`🔄 Обнаружен перенос: ${oldUsername} с ${oldEmp.position} на ${newPosition.position}`);
-                }
-            }
-        });
-        
-        movedEmployees.forEach(move => {
-            const oldEmp = employeesData[move.oldId];
-            const newEmpSlot = employeesData[move.newId];
-            
-            if (oldEmp && newEmpSlot) {
-                console.log(`📁 Перенос файлов для ${move.username}:`);
-                console.log(`- Академия: ${move.files.academy.length} файлов`);
-                console.log(`- Экзамены: ${move.files.exam.length} файлов`);
-                console.log(`- Переатт.: ${move.files.retraining.length} файлов`);
-                
-                if (newEmpSlot.username !== 'Вакантно' && newEmpSlot.username !== move.username) {
-                    console.warn(`⚠️ ВНИМАНИЕ: Новая должность ${newEmpSlot.position} уже занята ${newEmpSlot.username}!`);
-                    
-                    const vacantSlot = Object.values(employeesData).find(emp => 
-                        emp.type === newEmpSlot.type && emp.username === 'Вакантно'
-                    );
-                    
-                    if (vacantSlot) {
-                        console.log(`🔁 Найден вакантный слот для ${move.username}: ${vacantSlot.position}`);
-                        vacantSlot.username = newEmpSlot.username;
-                        vacantSlot.files = { ...newEmpSlot.files };
-                        
-                        newEmpSlot.username = 'Вакантно';
-                        newEmpSlot.files = { academy: [], exam: [], retraining: [] };
-                    }
-                }
-                
-                newEmpSlot.files = { ...move.files };
-                newEmpSlot.username = move.username;
-                
-                oldEmp.username = 'Вакантно';
-                oldEmp.files = {
-                    academy: [],
-                    exam: [],
-                    retraining: []
-                };
-                
-                newEmpSlot.folders = {
-                    academy: `${move.username}_Академия`,
-                    exam: `${move.username}_Экзамен`,
-                    retraining: `${move.username}_Переаттестация`
-                };
-                
-                console.log(`✅ Файлы успешно перенесены на ${newEmpSlot.position}`);
-            }
-        });
-        
-        FIXED_EMPLOYEE_STRUCTURE.forEach(fixedEmp => {
-            if (employeesData[fixedEmp.id] && employeesData[fixedEmp.id].username !== fixedEmp.username) {
-                if (fixedEmp.username !== 'Вакантно') {
-                    const oldUsername = employeesData[fixedEmp.id].username;
-                    console.log(`🔄 Обновление username: ${oldUsername} -> ${fixedEmp.username}`);
-                    
-                    const existingFiles = employeesData[fixedEmp.id].files;
-                    
-                    employeesData[fixedEmp.id].username = fixedEmp.username;
-                    employeesData[fixedEmp.id].folders = {
-                        academy: `${fixedEmp.username}_Академия`,
-                        exam: `${fixedEmp.username}_Экзамен`,
-                        retraining: `${fixedEmp.username}_Переаттестация`
-                    };
-                    employeesData[fixedEmp.id].files = existingFiles;
-                }
-            }
-        });
-        
-        console.log('🧹 Проверка и очистка курсантских папок...');
-        Object.values(employeesData).forEach(emp => {
-            if (emp.id.includes('cadet') && emp.username === 'Вакантно') {
-                const totalFiles = (emp.files.academy?.length || 0) + 
-                                  (emp.files.exam?.length || 0) + 
-                                  (emp.files.retraining?.length || 0);
-                
-                if (totalFiles > 0) {
-                    console.log(`🧹 Очистка файлов у вакантного курсанта ${emp.position}: ${totalFiles} файлов`);
-                    
-                    const allFiles = [
-                        ...(emp.files.academy || []),
-                        ...(emp.files.exam || []),
-                        ...(emp.files.retraining || [])
-                    ];
-                    
-                    allFiles.forEach(file => {
-                        const fileContent = file.content || '';
-                        const nameMatch = fileContent.match(/Имя[:\s]+([^\n]+)/i) || 
-                                         fileContent.match(/Имя пользователя[:\s]+([^\n]+)/i);
-                        
-                        if (nameMatch) {
-                            const foundName = nameMatch[1].trim();
-                            console.log(`🔍 В файле ${file.name} найдено имя: ${foundName}`);
-                            
-                            const realOwner = Object.values(employeesData).find(e => 
-                                e.username !== 'Вакантно' && 
-                                e.username.toLowerCase() === foundName.toLowerCase()
-                            );
-                            
-                            if (realOwner) {
-                                console.log(`✅ Найден реальный владелец: ${realOwner.username} (${realOwner.position})`);
-                                const fileType = file.name.toLowerCase().includes('академи') ? 'academy' :
-                                               file.name.toLowerCase().includes('экзамен') ? 'exam' :
-                                               file.name.toLowerCase().includes('переатт') ? 'retraining' : 'academy';
-                                
-                                if (!realOwner.files[fileType]) {
-                                    realOwner.files[fileType] = [];
-                                }
-                                
-                                realOwner.files[fileType].push(file);
-                                console.log(`📦 Файл ${file.name} перенесен ${realOwner.username}`);
-                            }
-                        }
-                    });
-                    
-                    emp.files = {
-                        academy: [],
-                        exam: [],
-                        retraining: []
-                    };
-                    
-                    console.log(`✅ Папка курсанта ${emp.position} очищена`);
-                }
-            }
-        });
-        
-    } else {
-        employeesData = {};
-        FIXED_EMPLOYEE_STRUCTURE.forEach(emp => {
-            employeesData[emp.id] = {
-                ...emp,
-                username: emp.username,
-                folders: {
-                    academy: `${emp.username !== 'Вакантно' ? emp.username : emp.position}_Академия`,
-                    exam: `${emp.username !== 'Вакантно' ? emp.username : emp.position}_Экзамен`,
-                    retraining: `${emp.username !== 'Вакантно' ? emp.username : emp.position}_Переаттестация`
-                },
-                files: {
-                    academy: [],
-                    exam: [],
-                    retraining: []
-                }
-            };
-        });
-    }
-    
-    saveEmployeesData(employeesData);
-    return employeesData;
-}
-
-function saveEmployeesData(employeesData) {
-    localStorage.setItem('fixedEmployees', JSON.stringify(employeesData));
-}
-
-function getEmployeeByUsername(username, employeesData) {
-    return Object.values(employeesData).find(emp => 
-        emp.username.toLowerCase() === username.toLowerCase() && emp.username !== 'Вакантно'
-    );
-}
-
-function addFileToEmployeeFolder(username, folderType, fileName, content) {
-    console.log('🔍 ПОИСК СОТРУДНИКА:', username, 'тип папки:', folderType);
-    
-    const employeesData = loadEmployeesData();
-    let employee = getEmployeeByUsername(username, employeesData);
-    
-    if (!employee) {
-        employee = Object.values(employeesData).find(emp => 
-            emp.username !== 'Вакантно' && 
-            username.toLowerCase().includes(emp.username.toLowerCase())
-        );
-        
-        if (!employee) {
-            employee = Object.values(employeesData).find(emp => 
-                emp.username !== 'Вакантно' && 
-                emp.username.toLowerCase().includes(username.toLowerCase())
-            );
-        }
-        
-        if (!employee) {
-            employee = Object.values(employeesData).find(emp => 
-                emp.username !== 'Вакантно' && 
-                emp.username.toLowerCase().startsWith(username.toLowerCase().split('_')[0])
-            );
-        }
-    }
-    
-    if (!employee) {
-        console.error(`❌ Сотрудник с именем ${username} не найден`);
-        return false;
-    }
-    
-    console.log('✅ Найден сотрудник:', employee.username, employee.position);
-
-    const file = {
-        id: Date.now().toString(),
-        name: fileName,
-        content: content,
-        date: new Date().toLocaleString('ru-RU'),
-        type: 'document',
-        graded: fileName.includes('оценка') || fileName.includes('разблокировка'),
-        score: content.match(/Оценка: (\d+)%/)?.[1] || 0,
-        isUnlockFile: fileName.includes('разблокировка'),
-        isGraded: fileName.includes('оценка'),
-        isNew: true
-    };
-
-    if (!employee.files[folderType]) {
-        employee.files[folderType] = [];
-    }
-
-    employee.files[folderType].push(file);
-    saveEmployeesData(employeesData);
-    
-    console.log(`✅ Файл ${fileName} сохранен в папку ${folderType} сотрудника ${employee.username}`);
-    return true;
-}
+// === ФУНКЦИИ ДЛЯ РАБОТЫ С ФАЙЛАМИ И СОТРУДНИКАМИ ===
 
 function extractUsernameFromFilename(filename) {
-    console.log('🔍 Извлечение имени из файла:', filename);
-    
     const nameWithoutExt = filename.replace(/\.docx$/, '');
     
     const patterns = [
@@ -1829,9 +500,7 @@ function extractUsernameFromFilename(filename) {
     for (const pattern of patterns) {
         const match = nameWithoutExt.match(pattern);
         if (match && match[1]) {
-            const extractedName = match[1];
-            console.log('✅ Извлечено полное имя:', extractedName, 'из', filename);
-            return extractedName;
+            return match[1];
         }
     }
     
@@ -1842,25 +511,20 @@ function extractUsernameFromFilename(filename) {
         const isTestType = ['academy', 'академия', 'exam', 'экзамен', 'retraining', 'переаттестация'].includes(secondPart);
         
         if (!isTestType && /^[a-zA-Z]+$/.test(parts[0]) && /^[a-zA-Z]+$/.test(parts[1])) {
-            const fullName = `${parts[0]}_${parts[1]}`;
-            console.log('✅ Извлечено полное имя (разделитель):', fullName, 'из', filename);
-            return fullName;
+            return `${parts[0]}_${parts[1]}`;
         }
     }
     
     if (parts.length >= 1 && /^[a-zA-Z]+$/.test(parts[0])) {
-        console.log('⚠️ Извлечено только имя:', parts[0], 'из', filename);
         return parts[0];
     }
     
-    console.error('❌ Не удалось извлечь имя из файла:', filename);
     return null;
 }
 
 function extractTestTypeFromFilename(filename) {
     const lowerName = filename.toLowerCase();
     
-    if (lowerName.includes('академия') || lowerName.includes('academy')) return 'academy';
     if (lowerName.includes('экзамен') || lowerName.includes('exam')) return 'exam';
     if (lowerName.includes('переаттестация') || lowerName.includes('retraining')) return 'retraining';
     
@@ -1868,7 +532,6 @@ function extractTestTypeFromFilename(filename) {
     if (parts.length >= 2) {
         const possibleType = parts[1].toLowerCase();
         if (possibleType.includes('exam') || possibleType.includes('экзамен')) return 'exam';
-        if (possibleType.includes('academy') || possibleType.includes('академия')) return 'academy';
         if (possibleType.includes('retraining') || possibleType.includes('переатт')) return 'retraining';
     }
     
@@ -1881,8 +544,6 @@ function extractTimeFromFilename(filename) {
 }
 
 function findPossibleEmployees(username) {
-    console.log('🔍 Поиск сотрудников для:', username);
-    
     const employeesData = loadEmployeesData();
     
     if (!username || username.trim() === '') {
@@ -1936,10 +597,102 @@ function findPossibleEmployees(username) {
     
     return results;
 }
+function showAvailableTabs() {
+    const userRole = currentUser?.type || '';
+    const tabs = {
+        exam: document.querySelector('.tab[data-tab="exam"]'),
+        retraining: document.querySelector('.tab[data-tab="retraining"]'),
+        admin: document.querySelector('.tab[data-tab="admin"]'),
+        decree: document.querySelector('.tab[data-tab="decree"]')
+    };
 
+    // === КУРСАНТ — только Экзамен ===
+    if (userRole === 'cadet') {
+        tabs.exam.style.display = 'inline-block';
+        tabs.retraining.style.display = 'none';
+        tabs.admin.style.display = 'none';
+        tabs.decree.style.display = 'none';
+    }
+    // === ОФИЦЕР — только Переаттестация ===
+    else if (userRole === 'officer') {
+        tabs.exam.style.display = 'none';
+        tabs.retraining.style.display = 'inline-block';
+        tabs.admin.style.display = 'inline-block';
+        tabs.decree.style.display = 'inline-block';
+    }
+    // === СТАРШИЙ ОФИЦЕР — только Переаттестация ===
+    else if (userRole === 'senior_officer') {
+        tabs.exam.style.display = 'none';
+        tabs.retraining.style.display = 'inline-block';
+        tabs.admin.style.display = 'inline-block';
+        tabs.decree.style.display = 'inline-block';
+    }
+    // === КУРАТОР — всё ===
+    else if (userRole === 'curator') {
+        tabs.exam.style.display = 'inline-block';
+        tabs.retraining.style.display = 'inline-block';
+        tabs.admin.style.display = 'inline-block';
+        tabs.decree.style.display = 'inline-block';
+    }
+    // === НЕИЗВЕСТНЫЙ РОЛЬ ===
+    else {
+        tabs.exam.style.display = 'none';
+        tabs.retraining.style.display = 'none';
+        tabs.admin.style.display = 'none';
+        tabs.decree.style.display = 'none';
+    }
+
+    // Если текущая вкладка скрыта - переключаем на доступную
+    if (currentUser) {
+        const activeTab = document.querySelector('.tab.active');
+        if (activeTab) {
+            const tabName = activeTab.dataset.tab;
+            if (tabName === 'exam' && tabs.exam.style.display === 'none') {
+                // Переключаем на retraining если оно доступно
+                if (tabs.retraining.style.display !== 'none') {
+                    document.querySelector('.tab[data-tab="retraining"]')?.classList.add('active');
+                    document.querySelector('.tab[data-tab="exam"]')?.classList.remove('active');
+                    currentTestType = 'retraining';
+                    renderCurrentTest();
+                }
+            } else if (tabName === 'retraining' && tabs.retraining.style.display === 'none') {
+                // Переключаем на exam если оно доступно
+                if (tabs.exam.style.display !== 'none') {
+                    document.querySelector('.tab[data-tab="exam"]')?.classList.add('active');
+                    document.querySelector('.tab[data-tab="retraining"]')?.classList.remove('active');
+                    currentTestType = 'exam';
+                    renderCurrentTest();
+                }
+            } else if (tabName === 'admin' && tabs.admin.style.display === 'none') {
+                // Переключаем на exam или retraining
+                if (tabs.exam.style.display !== 'none') {
+                    document.querySelector('.tab[data-tab="exam"]')?.classList.add('active');
+                    document.querySelector('.tab[data-tab="admin"]')?.classList.remove('active');
+                    currentTestType = 'exam';
+                    renderCurrentTest();
+                } else if (tabs.retraining.style.display !== 'none') {
+                    document.querySelector('.tab[data-tab="retraining"]')?.classList.add('active');
+                    document.querySelector('.tab[data-tab="admin"]')?.classList.remove('active');
+                    currentTestType = 'retraining';
+                    renderCurrentTest();
+                }
+            } else if (tabName === 'decree' && tabs.decree.style.display === 'none') {
+                if (tabs.exam.style.display !== 'none') {
+                    document.querySelector('.tab[data-tab="exam"]')?.classList.add('active');
+                    document.querySelector('.tab[data-tab="decree"]')?.classList.remove('active');
+                    currentTestType = 'exam';
+                    renderCurrentTest();
+                } else if (tabs.retraining.style.display !== 'none') {
+                    document.querySelector('.tab[data-tab="retraining"]')?.classList.add('active');
+                    document.querySelector('.tab[data-tab="decree"]')?.classList.remove('active');
+                    currentTestType = 'retraining';
+                    renderCurrentTest();
+                }
+            }
+        }
+    }
+}
 function showEmployeeSelectionModal(filename, username, testType, gradedFile, gradedAnswers, fileIndex) {
-    console.log('📁 Открытие модального окна для файла:', filename);
-    
     const possibleEmployees = findPossibleEmployees(username);
     
     if (possibleEmployees.length === 0) {
@@ -1948,7 +701,6 @@ function showEmployeeSelectionModal(filename, username, testType, gradedFile, gr
     }
     
     if (possibleEmployees.length === 1) {
-        console.log('✅ Найден один сотрудник, сохраняем автоматически:', possibleEmployees[0].username);
         const employee = possibleEmployees[0];
         saveGradedResultsToEmployee(employee, gradedFile, gradedAnswers, fileIndex);
         return;
@@ -2007,7 +759,6 @@ function showEmployeeSelectionModal(filename, username, testType, gradedFile, gr
             const selectedEmployee = employeesData[employeeId];
             
             if (selectedEmployee) {
-                console.log('✅ Выбран сотрудник:', selectedEmployee.username);
                 saveGradedResultsToEmployee(selectedEmployee, currentGradingFile, currentGradingAnswers, currentFileIndex);
                 modal.style.display = 'none';
             }
@@ -2023,8 +774,6 @@ function showEmployeeSelectionModal(filename, username, testType, gradedFile, gr
 }
 
 function saveGradedResultsToEmployee(employee, gradedFile, gradedAnswers, fileIndex) {
-    console.log('💾 СОХРАНЕНИЕ для сотрудника:', employee.username);
-    
     const username = employee.username;
     const testType = gradedFile.testType || extractTestTypeFromFilename(gradedFile.name);
     const timeSpent = gradedFile.timeSpent || extractTimeFromFilename(gradedFile.name) || 15;
@@ -2092,8 +841,6 @@ Arizona RP | Военная Полиция
         fileName = `${username}_${testTypeName}_${timeSpent}мин_оценка_${score}%.docx`;
     }
     
-    console.log('📝 Сохраняем файл:', fileName, 'для сотрудника:', username, 'тип:', testType);
-    
     const success = addFileToEmployeeFolder(
         username,
         testType,
@@ -2154,631 +901,1594 @@ Arizona RP | Военная Полиция
         renderFiles();
         renderAdmin();
     } else {
-        console.error('❌ Ошибка сохранения файла');
         showError(`❌ Не удалось сохранить файл в папку сотрудника ${username}.`);
     }
 }
 
-function authenticateAdmin() {
-    if (isAdminAuthenticated && adminAuthDate) {
-        const daysPassed = (Date.now() - parseInt(adminAuthDate)) / (1000 * 60 * 60 * 24);
-        if (daysPassed < ADMIN_SESSION_DAYS) {
-            return true;
+// === ОСНОВНЫЕ ФУНКЦИИ СИСТЕМЫ ===
+
+function loadEmployeesData() {
+    const saved = localStorage.getItem('fixedEmployees');
+    let employeesData;
+    
+    if (saved) {
+        employeesData = JSON.parse(saved);
+        
+        const usernameToNewPosition = {};
+        FIXED_EMPLOYEE_STRUCTURE.forEach(fixedEmp => {
+            if (fixedEmp.username !== 'Вакантно') {
+                usernameToNewPosition[fixedEmp.username] = {
+                    id: fixedEmp.id,
+                    position: fixedEmp.position,
+                    type: fixedEmp.type
+                };
+            }
+        });
+        
+        const movedEmployees = [];
+        
+        Object.values(employeesData).forEach(oldEmp => {
+            const oldUsername = oldEmp.username;
+            if (oldUsername !== 'Вакантно' && usernameToNewPosition[oldUsername]) {
+                const newPosition = usernameToNewPosition[oldUsername];
+                
+                if (oldEmp.id !== newPosition.id) {
+                    movedEmployees.push({
+                        oldId: oldEmp.id,
+                        newId: newPosition.id,
+                        username: oldUsername,
+                        files: { ...oldEmp.files }
+                    });
+                }
+            }
+        });
+        
+        movedEmployees.forEach(move => {
+            const oldEmp = employeesData[move.oldId];
+            const newEmpSlot = employeesData[move.newId];
+            
+            if (oldEmp && newEmpSlot) {
+                if (newEmpSlot.username !== 'Вакантно' && newEmpSlot.username !== move.username) {
+                    const vacantSlot = Object.values(employeesData).find(emp => 
+                        emp.type === newEmpSlot.type && emp.username === 'Вакантно'
+                    );
+                    
+                    if (vacantSlot) {
+                        vacantSlot.username = newEmpSlot.username;
+                        vacantSlot.files = { ...newEmpSlot.files };
+                        
+                        newEmpSlot.username = 'Вакантно';
+                        newEmpSlot.files = { academy: [], exam: [], retraining: [] };
+                    }
+                }
+                
+                newEmpSlot.files = { ...move.files };
+                newEmpSlot.username = move.username;
+                
+                oldEmp.username = 'Вакантно';
+                oldEmp.files = {
+                    academy: [],
+                    exam: [],
+                    retraining: []
+                };
+                
+                newEmpSlot.folders = {
+                    academy: `${move.username}_Академия`,
+                    exam: `${move.username}_Экзамен`,
+                    retraining: `${move.username}_Переаттестация`
+                };
+            }
+        });
+        
+        FIXED_EMPLOYEE_STRUCTURE.forEach(fixedEmp => {
+            if (employeesData[fixedEmp.id] && employeesData[fixedEmp.id].username !== fixedEmp.username) {
+                if (fixedEmp.username !== 'Вакантно') {
+                    const existingFiles = employeesData[fixedEmp.id].files;
+                    
+                    employeesData[fixedEmp.id].username = fixedEmp.username;
+                    employeesData[fixedEmp.id].folders = {
+                        academy: `${fixedEmp.username}_Академия`,
+                        exam: `${fixedEmp.username}_Экзамен`,
+                        retraining: `${fixedEmp.username}_Переаттестация`
+                    };
+                    employeesData[fixedEmp.id].files = existingFiles;
+                }
+            }
+        });
+        
+        Object.values(employeesData).forEach(emp => {
+            if (emp.id.includes('cadet') && emp.username === 'Вакантно') {
+                const totalFiles = (emp.files.academy?.length || 0) + 
+                                  (emp.files.exam?.length || 0) + 
+                                  (emp.files.retraining?.length || 0);
+                
+                if (totalFiles > 0) {
+                    const allFiles = [
+                        ...(emp.files.academy || []),
+                        ...(emp.files.exam || []),
+                        ...(emp.files.retraining || [])
+                    ];
+                    
+                    allFiles.forEach(file => {
+                        const fileContent = file.content || '';
+                        const nameMatch = fileContent.match(/Имя[:\s]+([^\n]+)/i) || 
+                                         fileContent.match(/Имя пользователя[:\s]+([^\n]+)/i);
+                        
+                        if (nameMatch) {
+                            const foundName = nameMatch[1].trim();
+                            
+                            const realOwner = Object.values(employeesData).find(e => 
+                                e.username !== 'Вакантно' && 
+                                e.username.toLowerCase() === foundName.toLowerCase()
+                            );
+                            
+                            if (realOwner) {
+                                const fileType = file.name.toLowerCase().includes('академи') ? 'academy' :
+                                               file.name.toLowerCase().includes('экзамен') ? 'exam' :
+                                               file.name.toLowerCase().includes('переатт') ? 'retraining' : 'academy';
+                                
+                                if (!realOwner.files[fileType]) {
+                                    realOwner.files[fileType] = [];
+                                }
+                                
+                                realOwner.files[fileType].push(file);
+                            }
+                        }
+                    });
+                    
+                    emp.files = {
+                        academy: [],
+                        exam: [],
+                        retraining: []
+                    };
+                }
+            }
+        });
+        
+    } else {
+        employeesData = {};
+        FIXED_EMPLOYEE_STRUCTURE.forEach(emp => {
+            employeesData[emp.id] = {
+                ...emp,
+                username: emp.username,
+                folders: {
+                    academy: `${emp.username !== 'Вакантно' ? emp.username : emp.position}_Академия`,
+                    exam: `${emp.username !== 'Вакантно' ? emp.username : emp.position}_Экзамен`,
+                    retraining: `${emp.username !== 'Вакантно' ? emp.username : emp.position}_Переаттестация`
+                },
+                files: {
+                    academy: [],
+                    exam: [],
+                    retraining: []
+                }
+            };
+        });
+    }
+    
+    saveEmployeesData(employeesData);
+    return employeesData;
+}
+
+function saveEmployeesData(employeesData) {
+    localStorage.setItem('fixedEmployees', JSON.stringify(employeesData));
+}
+
+function getEmployeeByUsername(username, employeesData) {
+    return Object.values(employeesData).find(emp => 
+        emp.username.toLowerCase() === username.toLowerCase() && emp.username !== 'Вакантно'
+    );
+}
+
+function addFileToEmployeeFolder(username, folderType, fileName, content) {
+    const employeesData = loadEmployeesData();
+    let employee = getEmployeeByUsername(username, employeesData);
+    
+    if (!employee) {
+        employee = Object.values(employeesData).find(emp => 
+            emp.username !== 'Вакантно' && 
+            username.toLowerCase().includes(emp.username.toLowerCase())
+        );
+        
+        if (!employee) {
+            employee = Object.values(employeesData).find(emp => 
+                emp.username !== 'Вакантно' && 
+                emp.username.toLowerCase().includes(username.toLowerCase())
+            );
+        }
+        
+        if (!employee) {
+            employee = Object.values(employeesData).find(emp => 
+                emp.username !== 'Вакантно' && 
+                emp.username.toLowerCase().startsWith(username.toLowerCase().split('_')[0])
+            );
         }
     }
     
-    const pwd = prompt("Введите пароль для Админки:");
-    if (pwd === ADMIN_PASSWORD) {
-        isAdminAuthenticated = true;
-        adminAuthDate = String(Date.now());
-        localStorage.setItem('adminAuthenticated', 'true');
-        localStorage.setItem('adminAuthDate', adminAuthDate);
-        return true;
-    } else {
-        alert("Неверный пароль!");
+    if (!employee) {
         return false;
+    }
+
+    const file = {
+        id: Date.now().toString(),
+        name: fileName,
+        content: content,
+        date: new Date().toLocaleString('ru-RU'),
+        type: 'document',
+        graded: fileName.includes('оценка') || fileName.includes('разблокировка'),
+        score: content.match(/Оценка: (\d+)%/)?.[1] || 0,
+        isUnlockFile: fileName.includes('разблокировка'),
+        isGraded: fileName.includes('оценка'),
+        isNew: true
+    };
+
+    if (!employee.files[folderType]) {
+        employee.files[folderType] = [];
+    }
+
+    employee.files[folderType].push(file);
+    saveEmployeesData(employeesData);
+    
+    return true;
+}
+
+function getTestTypeName(type) {
+    switch(type) {
+        case 'exam': return 'Экзамен';
+        case 'retraining': return 'Переаттестация';
+        default: return 'Тест';
     }
 }
 
-function logoutAdmin() {
-    isAdminAuthenticated = false;
-    localStorage.setItem('adminAuthenticated', 'false');
-    showMessage("Выход из админ-панели выполнен", "info");
-    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-    document.querySelector(".tab[data-tab='exam']").classList.add("active");
-    currentTestType = 'exam';
+function parseAnswersFromReport(reportText) {
+    const lines = reportText.split('\n');
+    const answers = [];
+    let currentQuestion = null;
+    let currentAnswer = null;
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        
+        if (line.match(/^\d+\./)) {
+            if (currentQuestion && currentAnswer !== null) {
+                answers.push({
+                    question: currentQuestion,
+                    answer: currentAnswer,
+                    correct: false
+                });
+            }
+            currentQuestion = line.replace(/^\d+\.\s*/, '');
+            currentAnswer = null;
+        } else if (line.startsWith('Ответ:') && currentQuestion) {
+            currentAnswer = line.replace('Ответ:', '').trim();
+        }
+    }
+
+    if (currentQuestion && currentAnswer !== null) {
+        answers.push({
+            question: currentQuestion,
+            answer: currentAnswer,
+            correct: false
+        });
+    }
+
+    return answers;
+}
+
+function escapeHtml(str) {
+    if (typeof str !== "string") return str;
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+function arrayBufferToBase64(buffer) {
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+}
+
+function showMessage(message, type = "info") {
+    const alertDiv = document.createElement("div");
+    alertDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: bold;
+        z-index: 10001;
+        max-width: 300px;
+    `;
+    
+    if (type === "success") {
+        alertDiv.style.background = "#10b981";
+    } else if (type === "error") {
+        alertDiv.style.background = "#ef4444";
+    } else {
+        alertDiv.style.background = "#3b82f6";
+    }
+    
+    alertDiv.textContent = message;
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 3000);
+}
+
+function showError(message) {
+    showMessage(message, "error");
+}
+
+// === ФУНКЦИИ ТЕСТИРОВАНИЯ ===
+
+function resetInactivityTimer() {
+    lastActivityTime = Date.now();
+    if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+    }
+    
+    if (test && !test.blocked) {
+        const bufferTime = test.current === 0 ? 10000 : 0;
+        
+        inactivityTimer = setTimeout(() => {
+            const timeSinceLastActivity = Date.now() - lastActivityTime;
+            if (test && !test.blocked && timeSinceLastActivity >= INACTIVITY_TIMEOUT) {
+                showError("Тест заблокирован за бездействие!");
+                blockTest();
+            }
+        }, INACTIVITY_TIMEOUT + bufferTime);
+    }
+}
+
+function trackActivity() {
+    resetInactivityTimer();
+}
+
+function showInactivityWarning() {
+    const timeLeft = INACTIVITY_TIMEOUT - (Date.now() - lastActivityTime);
+    if (timeLeft <= 5000 && !document.getElementById('inactivityWarning')) {
+        const warning = document.createElement('div');
+        warning.className = 'inactivity-warning';
+        warning.id = 'inactivityWarning';
+        warning.innerHTML = `⚠️ Внимание! Бездействие обнаружено!<br>Тест будет заблокирован через ${Math.ceil(timeLeft/1000)} сек.`;
+        document.body.appendChild(warning);
+        
+        setTimeout(() => {
+            const w = document.getElementById('inactivityWarning');
+            if (w) w.remove();
+        }, 5000);
+    }
+}
+
+function shuffleArray(arr) {
+    const newArr = [...arr];
+    for (let i = newArr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+    }
+    return newArr;
+}
+
+function getQuestionsByType(type) {
+    switch(type) {
+        case 'exam': return examQuestions;
+        case 'retraining': return retrainingQuestions;
+        default: return examQuestions;
+    }
+}
+
+function getTestForUserType(userType) {
+    if (userType === 'cadet') {
+        return 'exam';
+    } else if (userType === 'officer' || userType === 'senior_officer') {
+        return 'retraining';
+    } else if (userType === 'curator') {
+        return null; // Куратор выбирает сам через вкладки
+    }
+    return null;
+}
+
+function showDisclaimer() {
+    const username = document.getElementById("username").value.trim();
+    if (!username) {
+        showError("Введите имя перед началом теста!");
+        return;
+    }
+    
+    if (!currentUser) {
+        showError("Авторизуйтесь!");
+        return;
+    }
+    
+    // Проверяем, что введённый ник совпадает с авторизованным
+    if (username.toLowerCase() !== currentUser.username.toLowerCase()) {
+        showError(`Вы авторизованы как ${currentUser.username}. Введите свой ник!`);
+        return;
+    }
+    
+    // Проверяем, какой тест должен проходить пользователь
+    const testType = getTestForUserType(currentUser.type);
+    if (!testType) {
+        showError("Ваш статус не позволяет проходить тестирование.");
+        return;
+    }
+    
+    // Для куратора - проверяем, что он выбрал тип теста на вкладке
+    if (currentUser.type === 'curator') {
+        const selectedType = localStorage.getItem('curatorSelectedTest');
+        if (!selectedType) {
+            showError("Сначала выберите тип теста на вкладке!");
+            return;
+        }
+        currentTestType = selectedType;
+    } else {
+        currentTestType = testType;
+    }
+    
+    const modal = document.getElementById("disclaimerModal");
+    modal.style.display = "flex";
+    document.getElementById("closeDisclaimerBtn").onclick = closeDisclaimer;
+    document.getElementById("confirmStartBtn").onclick = confirmStartTest;
+}
+
+function closeDisclaimer() {
+    const modal = document.getElementById("disclaimerModal");
+    modal.style.display = "none";
+}
+
+function confirmStartTest() {
+    const modal = document.getElementById("disclaimerModal");
+    modal.style.display = "none";
+    actuallyStartTest();
+}
+
+function actuallyStartTest() {
+    const username = document.getElementById("username").value.trim();
+    if (!username) {
+        showError("Введите имя!");
+        return;
+    }
+    
+    if (!currentUser) {
+        showError("Авторизуйтесь!");
+        return;
+    }
+    
+    if (username.toLowerCase() !== currentUser.username.toLowerCase()) {
+        showError(`Вы авторизованы как ${currentUser.username}. Введите свой ник!`);
+        return;
+    }
+    
+    // Для куратора - проверяем выбранный тип через активную вкладку
+    if (currentUser.type === 'curator') {
+        const activeTab = document.querySelector('.tab.active');
+        if (activeTab) {
+            currentTestType = activeTab.dataset.tab;
+        } else {
+            currentTestType = 'exam';
+        }
+    } else {
+        const testType = getTestForUserType(currentUser.type);
+        if (!testType) {
+            showError("Ваш статус не позволяет проходить тестирование.");
+            return;
+        }
+        currentTestType = testType;
+    }
+    
+    // Проверяем доступ к тесту
+    if (currentTestType === 'exam' && currentUser.type !== 'cadet' && currentUser.type !== 'curator') {
+        showError("Экзамен доступен только курсантам!");
+        return;
+    }
+    
+    if (currentTestType === 'retraining' && currentUser.type !== 'officer' && currentUser.type !== 'senior_officer' && currentUser.type !== 'curator') {
+        showError("Переаттестация доступна только офицерам и выше!");
+        return;
+    }
+    
+    if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = null;
+    }
+    
+    const questions = getQuestionsByType(currentTestType);
+    const shuffledQuestions = shuffleArray([...questions]).slice(0, TEST_COUNT);
+    
+    // Генерируем код разблокировки
+    const unlockCode = generateReadableCode();
+    
+    test = {
+        username: currentUser.username,
+        userType: currentUser.type,
+        current: 0,
+        answers: {},
+        shuffledQuestions,
+        startTime: new Date(),
+        blocked: true, // Сразу блокируем тест
+        testType: currentTestType,
+        unlockCode: unlockCode,
+        blockReason: 'Ожидание разблокировки'
+    };
+    
+    // Создаём файл с кодом разблокировки
+    createUnlockFile();
+    
+    saveTestState();
+    document.getElementById("unlockBtn").style.display = "inline-block";
+    document.getElementById("adminUnlockBtn").style.display = "inline-block";
+    document.getElementById("finishBtn").style.display = "none"; // Скрываем до разблокировки
+    
+    showMessage(`📄 Код разблокировки выдан! Файл скачан. Отправьте код администратору.`, "success");
+    
+    // Блокируем элементы теста
+    document.querySelectorAll("input, button, textarea, select").forEach(el => {
+        if (el.id === "username") {
+            el.disabled = false;
+            el.style.pointerEvents = 'auto';
+            el.style.opacity = '1';
+            return;
+        }
+        if (el.id === "logoutBtn") {
+            el.disabled = false;
+            el.style.pointerEvents = 'auto';
+            el.style.opacity = '1';
+            return;
+        }
+        if (el.id.includes("unlock") || el.id.includes("adminUnlock")) {
+            el.disabled = false;
+            el.style.pointerEvents = 'auto';
+            el.style.opacity = '1';
+            return;
+        }
+        if (el.closest(".tabs")) {
+            el.disabled = false;
+            el.style.pointerEvents = 'auto';
+            el.style.opacity = '1';
+            return;
+        }
+        if (el.closest('#authModal')) {
+            el.disabled = false;
+            el.style.pointerEvents = 'auto';
+            el.style.opacity = '1';
+            return;
+        }
+        el.disabled = true;
+        el.style.pointerEvents = 'none';
+        el.style.opacity = '0.5';
+    });
+    
+    renderBlockedScreen();
+}
+
+function adminUnblockTest() {
+    if (!test) {
+        showError("Нет активного теста для разблокировки!");
+        return;
+    }
+    
+    if (!authenticateAdmin()) {
+        showError("Только для администратора!");
+        return;
+    }
+    
+    if (test.blocked) {
+        blocked = false;
+        test.blocked = false;
+        delete test.unlockCode;
+        
+        document.querySelectorAll("input, button").forEach(el => {
+            if (!el.id.includes("admin") && el.id !== "username" && !el.closest(".tabs")) {
+                el.disabled = false;
+            }
+        });
+        
+        saveTestState();
+        showMessage("Тест успешно разблокирован администратором!", "success");
+        resetInactivityTimer();
+        renderCurrentTest();
+    } else {
+        showError("Тест не заблокирован!", "info");
+    }
+}
+
+function unblockTest() {
+    const code = document.getElementById("username").value.trim().toUpperCase();
+    if (!test) {
+        showError("Нет активного теста для разблокировки!");
+        return;
+    }
+    
+    if (code === test.unlockCode) {
+        blocked = false;
+        test.blocked = false;
+        document.querySelectorAll("input, button").forEach(el => el.disabled = false);
+        saveTestState();
+        showMessage("Тест успешно разблокирован!", "success");
+        resetInactivityTimer();
+        renderCurrentTest();
+    } else {
+        showError("Неверный код разблокировки!");
+    }
+}
+
+function blockTest() {
+    if (blocked || !test) return;
+    
+    blocked = true;
+    test.blocked = true;
+
+    // БЛОКИРУЕМ ТОЛЬКО ЭЛЕМЕНТЫ ТЕСТА
+    document.querySelectorAll("input, button, textarea, select").forEach(el => {
+        // === НИКОГДА НЕ БЛОКИРУЕМ АВТОРИЗАЦИЮ ===
+        if (el.closest('#authModal')) {
+            el.disabled = false;
+            el.style.pointerEvents = 'auto';
+            el.style.opacity = '1';
+            return;
+        }
+        // === НИКОГДА НЕ БЛОКИРУЕМ ЭЛЕМЕНТЫ АВТОРИЗАЦИИ ПО ID ===
+        if (el.id === 'authUsername' || el.id === 'authPassword' || el.id === 'authActionBtn' || el.id === 'authStatus') {
+            el.disabled = false;
+            el.style.pointerEvents = 'auto';
+            el.style.opacity = '1';
+            return;
+        }
+        // === НИКОГДА НЕ БЛОКИРУЕМ ПОЛЕ ВВОДА НИКА ===
+        if (el.id === "username") {
+            el.disabled = false;
+            el.style.pointerEvents = 'auto';
+            el.style.opacity = '1';
+            return;
+        }
+        if (el.id === "logoutBtn") {
+            el.disabled = false;
+            el.style.pointerEvents = 'auto';
+            el.style.opacity = '1';
+            return;
+        }
+        if (el.id.includes("unlock") || el.id.includes("adminUnlock")) {
+            el.disabled = false;
+            el.style.pointerEvents = 'auto';
+            el.style.opacity = '1';
+            return;
+        }
+        if (el.closest(".tabs")) {
+            el.disabled = false;
+            el.style.pointerEvents = 'auto';
+            el.style.opacity = '1';
+            return;
+        }
+        if (el.closest('.auth-tabs')) {
+            el.disabled = false;
+            el.style.pointerEvents = 'auto';
+            el.style.opacity = '1';
+            return;
+        }
+        
+        el.disabled = true;
+        el.style.pointerEvents = 'none';
+        el.style.opacity = '0.5';
+    });
+
+    if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = null;
+    }
+
+    if (!test.unlockCode) {
+        test.unlockCode = generateReadableCode();
+        createUnlockFile();
+    }
+
+    saveTestState();
+    renderBlockedScreen();
+}
+
+function unblockTestSuccess() {
+    blocked = false;
+    test.blocked = false;
+    test.blockReason = null;
+    
+    document.querySelectorAll("input, button, textarea, select").forEach(el => {
+        el.disabled = false;
+        el.style.pointerEvents = 'auto';
+        el.style.opacity = '1';
+    });
+    
+    document.getElementById("finishBtn").style.display = "inline-block";
+    document.getElementById("unlockBtn").style.display = "none";
+    document.getElementById("adminUnlockBtn").style.display = "none";
+    
+    saveTestState();
+    showMessage("Тест разблокирован!", "success");
+    resetInactivityTimer();
     renderCurrentTest();
 }
 
-function handleFileUpload(e) {
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
+function adminUnblockTest() {
+    if (!test) {
+        showError("Нет активного теста для разблокировки!");
+        return;
+    }
     
-    let savedFiles = JSON.parse(localStorage.getItem("adminFiles") || "[]");
+    if (!authenticateAdmin()) {
+        showError("Только для администратора!");
+        return;
+    }
     
-    files.forEach(file => {
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-            const base64 = arrayBufferToBase64(evt.target.result);
+    if (test.blocked) {
+        blocked = false;
+        test.blocked = false;
+        test.blockReason = null;
+        delete test.unlockCode;
+        
+        document.querySelectorAll("input, button, textarea, select").forEach(el => {
+            el.disabled = false;
+            el.style.pointerEvents = 'auto';
+            el.style.opacity = '1';
+        });
+        
+        document.getElementById("finishBtn").style.display = "inline-block";
+        document.getElementById("unlockBtn").style.display = "none";
+        document.getElementById("adminUnlockBtn").style.display = "none";
+        
+        saveTestState();
+        showMessage("Тест успешно разблокирован администратором!", "success");
+        resetInactivityTimer();
+        renderCurrentTest();
+    } else {
+        showError("Тест не заблокирован!", "info");
+    }
+}
+
+function createUnlockFile() {
+    if (!test) return;
+    
+    const testTypeName = getTestTypeName(test.testType);
+    const unlockContent = `ЕДИНОРАЗОВЫЙ КОД РАЗБЛОКИРОВКИ ТЕСТА
+=================================
+
+Тип теста: ${testTypeName}
+Имя пользователя: ${test.username}
+Должность: ${currentUser ? currentUser.position : 'Неизвестно'}
+Код разблокировки: ${test.unlockCode}
+
+Дата выдачи: ${new Date().toLocaleString('ru-RU')}
+
+Инструкция:
+1. Этот код является ЕДИНОРАЗОВЫМ.
+2. Скопируйте код и отправьте его администратору.
+3. Администратор введёт код в системе для разблокировки.
+4. После разблокировки код становится недействительным.
+
+=================================
+Arizona RP | Военная Полиция`;
+
+    try {
+        const encrypted = CryptoJS.AES.encrypt(unlockContent, AES_KEY).toString();
+        const blob = new Blob([btoa(encrypted)], { 
+            type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
+        });
+        saveAs(blob, `${test.username}_${testTypeName}_код_разблокировки.docx`);
+        
+        // Сохраняем в папку сотрудника
+        saveUnlockFileToEmployeeFolder(test.username, test.testType, unlockContent);
+        
+        showMessage(`📄 Код разблокировки выдан! Файл скачан.`, "success");
+    } catch (e) {
+        showError('Ошибка создания файла разблокировки');
+    }
+}
+
+function saveUnlockFileToEmployeeFolder(username, testType, unlockContent) {
+    const testTypeName = getTestTypeName(testType);
+    const fileName = `${username}_${testTypeName}_разблокировка_${new Date().toLocaleDateString('ru-RU')}.docx`;
+    
+    addFileToEmployeeFolder(
+        username,
+        testType,
+        fileName,
+        unlockContent
+    );
+}
+
+function renderBlockedScreen() {
+    const testTypeName = getTestTypeName(test.testType);
+    const area = document.getElementById("mainArea");
+    const isWaitingUnlock = test.blockReason === 'Ожидание разблокировки';
+    
+    area.innerHTML = `
+        <div class="blocked-note ${isWaitingUnlock ? 'test-blocked-neutral' : ''}" 
+             style="${isWaitingUnlock ? 'background: rgba(255,255,255,0.03); border: 2px solid rgba(255,255,255,0.1); color: var(--text-muted);' : ''}">
+            <h2 style="${isWaitingUnlock ? 'color: var(--text-muted);' : ''}">
+                ${isWaitingUnlock ? '🔒' : '🚫'} ${testTypeName} ${isWaitingUnlock ? 'заблокирован. Требуется разблокировка!' : 'заблокирован за бездействие!'}
+            </h2>
+            ${isWaitingUnlock ? `
+                <p>Для начала теста необходим <strong>единоразовый код разблокировки</strong>.</p>
+                <p>Файл с кодом был скачан. Отправьте его администратору.</p>
+            ` : `
+                <p>Система зафиксировала отсутствие активности более 20 секунд.</p>
+                <p>Файл с кодом разблокировки был скачан и сохранен в вашу папку.</p>
+            `}
+            <p>Отправьте файл <strong>${test.username}_${testTypeName}_код_разблокировки.docx</strong> администратору.</p>
             
-            const extractedUsername = extractUsernameFromFilename(file.name);
-            const testType = extractTestTypeFromFilename(file.name);
+            <div style="margin: 20px 0;">
+                <button class="btn ghost" id="resendCodeBtn">📧 Получить код повторно</button>
+            </div>
             
-            const existingFileIndex = savedFiles.findIndex(f => f.name === file.name);
-            if (existingFileIndex !== -1) {
-                savedFiles[existingFileIndex] = {
-                    ...savedFiles[existingFileIndex],
-                    content: base64,
-                    size: file.size,
-                    uploaded: new Date().toLocaleString('ru-RU')
-                };
-                showMessage(`Файл "${file.name}" обновлен!`, "success");
-            } else {
-                savedFiles.push({
-                    name: file.name,
-                    size: file.size,
-                    type: file.type,
-                    uploaded: new Date().toLocaleString('ru-RU'),
-                    passed: false,
-                    content: base64,
-                    graded: false,
-                    score: 0,
-                    correctAnswers: 0,
-                    totalAnswers: 0,
-                    gradingData: null,
-                    username: extractedUsername,
-                    testType: testType,
-                    isUnlockFile: file.name.toLowerCase().includes('разблокировк')
-                });
-                showMessage(`Файл "${file.name}" загружен! ${extractedUsername ? `Определен сотрудник: ${extractedUsername}` : 'Сотрудник не определен'}`, "success");
-            }
+            <div style="margin-top: 20px;">
+                <input type="text" id="unlockCodeInput" placeholder="Введите код от администратора" style="margin: 10px 0; width: 100%; max-width: 400px;">
+                <button class="btn" id="submitUnlockBtn">🔓 Разблокировать тест</button>
+            </div>
             
-            localStorage.setItem("adminFiles", JSON.stringify(savedFiles));
-            renderFiles();
-        };
-        reader.readAsArrayBuffer(file);
+            <div style="margin-top: 15px;">
+                <button class="btn warning" id="adminUnlockBtn" style="background: var(--warning); color: black;">
+                    🔓 Админ-разблокировка
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.getElementById("resendCodeBtn").addEventListener("click", () => {
+        createUnlockFile();
+        showMessage("Файл с кодом разблокировки отправлен на скачивание!", "success");
+    });
+
+    document.getElementById("submitUnlockBtn").addEventListener("click", () => {
+        const enteredCode = document.getElementById("unlockCodeInput").value.trim().toUpperCase();
+        if (enteredCode === test.unlockCode) {
+            unblockTestSuccess();
+        } else {
+            showError("Неверный код разблокировки!");
+        }
     });
     
-    e.target.value = "";
+    document.getElementById("adminUnlockBtn").addEventListener("click", adminUnblockTest);
 }
 
-function initAdminPanel() {
-    const fileInput = document.getElementById("fileInput");
-    const chooseFileBtn = document.getElementById("chooseFileBtn");
-    
-    if (chooseFileBtn) {
-        chooseFileBtn.addEventListener("click", () => fileInput.click());
+function renderCurrentTest() {
+    // Принудительно устанавливаем тип теста для курсантов и офицеров
+    if (currentUser) {
+        if (currentUser.type === 'cadet') {
+            currentTestType = 'exam';
+        } else if (currentUser.type === 'officer' || currentUser.type === 'senior_officer') {
+            currentTestType = 'retraining';
+        }
     }
-    if (fileInput) {
-        fileInput.addEventListener("change", handleFileUpload);
+    
+    if (test && test.testType) {
+        currentTestType = test.testType;
     }
     
-    renderFiles();
+    // Показываем/скрываем кнопки в зависимости от состояния теста
+    if (test && test.blocked) {
+        document.getElementById("unlockBtn").style.display = "inline-block";
+        document.getElementById("adminUnlockBtn").style.display = "inline-block";
+        document.getElementById("finishBtn").style.display = "none";
+    } else if (test && !test.blocked) {
+        document.getElementById("unlockBtn").style.display = "none";
+        document.getElementById("adminUnlockBtn").style.display = "none";
+        document.getElementById("finishBtn").style.display = "inline-block";
+    } else {
+        document.getElementById("unlockBtn").style.display = "none";
+        document.getElementById("adminUnlockBtn").style.display = "none";
+        document.getElementById("finishBtn").style.display = "none";
+    }
+    
+    // Показываем приветствие
+    if (currentUser && currentUser.type) {
+        renderGreeting();
+    }
+    
+    if (currentTestType === 'exam') {
+        renderExam();
+    } else if (currentTestType === 'retraining') {
+        renderRetraining();
+    } else {
+        renderExam();
+    }
 }
 
-function renderFiles() {
-    const fileList = document.getElementById("fileList");
-    if (!fileList) return;
+function clearTestIfDifferent(testType) {
+    if (test && test.testType !== testType) {
+        if (confirm(`У вас активен тест "${getTestTypeName(test.testType)}". Переключиться на "${getTestTypeName(testType)}"? Текущий тест будет потерян.`)) {
+            clearTestState();
+            return true;
+        }
+        return false;
+    }
+    return true;
+}
+// === ФУНКЦИИ ДЛЯ ОТОБРАЖЕНИЯ ТЕСТОВ ===
+
+function renderExam() {
+    currentTestType = 'exam';
+    if (test && test.testType) {
+        currentTestType = test.testType;
+    }
     
-    const savedFiles = JSON.parse(localStorage.getItem("adminFiles") || "[]");
+    const area = document.getElementById("mainArea");
     
-    if (savedFiles.length === 0) {
-        fileList.innerHTML = '<li style="text-align: center; color: var(--text-muted);">Нет загруженных файлов</li>';
+    // Если тест создан для другого типа - показываем сообщение
+    if (test && test.testType !== 'exam') {
+        area.innerHTML = `
+            <div class="question-box">
+                <div id="testGreeting"></div>
+                <h2>🎓 Экзамен Военной Полиции</h2>
+                <p><strong>⛔ Активный тест другого типа!</strong></p>
+                <p>Сейчас активен тест: <strong>${getTestTypeName(test.testType)}</strong></p>
+                <p>Завершите текущий тест или переключитесь на соответствующую вкладку.</p>
+                <div style="margin-top: 15px;">
+                    <button class="btn ghost" id="clearTestBtn">🗑️ Очистить тест</button>
+                </div>
+            </div>
+        `;
+        document.getElementById("clearTestBtn")?.addEventListener("click", () => {
+            if (confirm("Очистить текущий тест? Все ответы будут потеряны.")) {
+                clearTestState();
+                renderCurrentTest();
+            }
+        });
+        return;
+    }
+    
+    if (!test) {
+        if (!currentUser) {
+            area.innerHTML = `
+                <div class="question-box">
+                    <div id="testGreeting"></div>
+                    <h2>🎓 Экзамен Военной Полиции</h2>
+                    <p><strong>🔒 Для доступа к тесту необходимо авторизоваться.</strong></p>
+                    <p>Экзамен доступен только курсантам.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        if (currentUser.type !== 'cadet' && currentUser.type !== 'curator') {
+            area.innerHTML = `
+                <div class="question-box">
+                    <div id="testGreeting"></div>
+                    <h2>🎓 Экзамен Военной Полиции</h2>
+                    <p><strong>⛔ Доступ запрещён!</strong></p>
+                    <p>Экзамен доступен только <strong>курсантам</strong>.</p>
+                    <p>Ваш статус: <strong>${currentUser.position}</strong></p>
+                </div>
+            `;
+            return;
+        }
+        
+        area.innerHTML = `
+            <div class="question-box">
+                <div id="testGreeting"></div>
+                <h2>🎓 Экзамен Военной Полиции</h2>
+                <p><strong>${currentUser.username}</strong> (${currentUser.position})</p>
+                <p>Тест состоит из <strong>15 вопросов</strong> по основной деятельности ВП.</p>
+                <p><strong>Для начала теста потребуется единоразовый код разблокировки.</strong></p>
+                <p>После нажатия "Начать тест" файл с кодом будет скачан.</p>
+                <div style="margin-top: 15px; color: var(--warning); font-size: 0.9em;">
+                    ⚠️ Система отслеживает активность! Бездействие >20 секунд — блокировка.
+                </div>
+            </div>
+        `;
         return;
     }
 
-    fileList.innerHTML = savedFiles.map((f, i) => `
-        <li>
-            <div class="file-info">
-                <strong>${escapeHtml(f.name)}</strong>
-                <span class="small">${(f.size / 1024).toFixed(1)} KB</span>
-            </div>
-            <div class="small">Загружен: ${f.uploaded}</div>
-            ${f.name.toLowerCase().includes('разблокировк') ? `
-                <div class="small" style="color: var(--warning); font-weight: bold;">
-                    🔓 Файл разблокировки
-                </div>
-            ` : f.graded ? `
-                <div class="small" style="color: ${f.score >= 70 ? 'var(--success)' : 'var(--error)'}; font-weight: bold;">
-                    Оценка: ${f.score}% (${f.correctAnswers}/${f.totalAnswers})
-                </div>
-            ` : ''}
-            
-            <div class="file-actions">
-                <label style="display: flex; align-items: center; gap: 5px;">
-                    <input type="checkbox" class="pass-checkbox" data-index="${i}" ${f.passed ? "checked" : ""}>
-                    <span class="small">Пройден</span>
-                </label>
-                
-                <button class="btn small open-btn" data-index="${i}">👁️ Просмотр</button>
-                
-                ${f.name.toLowerCase().includes('разблокировк') ? `
-                    <button class="btn small unlock-save-btn" data-index="${i}">📁 Сохранить в папку</button>
-                ` : `
-                    <button class="btn small grade-btn" data-index="${i}">📝 ${f.graded ? 'Изменить оценку' : 'Оценить'}</button>
-                `}
-                
-                <button class="btn small ghost del-btn" data-index="${i}">❌ Удалить</button>
-            </div>
-        </li>
-    `).join("");
-
-    document.querySelectorAll(".pass-checkbox").forEach(cb => {
-        cb.addEventListener("change", (e) => {
-            const index = parseInt(e.target.dataset.index);
-            savedFiles[index].passed = e.target.checked;
-            localStorage.setItem("adminFiles", JSON.stringify(savedFiles));
-        });
-    });
-
-    document.querySelectorAll(".open-btn").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-            const index = parseInt(e.target.dataset.index);
-            openFileViewer(savedFiles[index]);
-        });
-    });
-
-    document.querySelectorAll(".grade-btn").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-            const index = parseInt(e.target.dataset.index);
-            openGradingPanel(savedFiles[index], index);
-        });
-    });
-
-    document.querySelectorAll(".unlock-save-btn").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-            const index = parseInt(e.target.dataset.index);
-            saveUnlockFileToEmployee(savedFiles[index], index);
-        });
-    });
-
-    document.querySelectorAll(".del-btn").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-            const index = parseInt(e.target.dataset.index);
-            deleteFile(index);
-        });
-    });
-}
-
-function saveUnlockFileToEmployee(file, fileIndex) {
-    try {
-        const storedBase64 = file.content;
-        const fileText = atob(storedBase64);
-        let decryptedContent = null;
-        
-        try {
-            const encrypted = atob(fileText);
-            decryptedContent = CryptoJS.AES.decrypt(encrypted, AES_KEY).toString(CryptoJS.enc.Utf8);
-        } catch (err) {
-            decryptedContent = fileText;
-        }
-
-        const unlockMatch = decryptedContent?.match(/Имя пользователя:\s*([^\n]+)/i);
-        const username = unlockMatch ? unlockMatch[1].trim() : extractUsernameFromFilename(file.name);
-        
-        const typeMatch = decryptedContent?.match(/Тип теста:\s*([^\n]+)/i);
-        const testType = typeMatch ? typeMatch[1].toLowerCase().includes('академи') ? 'academy' : 
-                               typeMatch[1].toLowerCase().includes('экзамен') ? 'exam' : 
-                               typeMatch[1].toLowerCase().includes('переаттестац') ? 'retraining' : 'academy' 
-                         : extractTestTypeFromFilename(file.name);
-        
-        if (!username || username === '' || username === 'Вакантно') {
-            showError("Не удалось определить имя сотрудника из файла!");
-            return;
-        }
-
-        showEmployeeSelectionModal(
-            file.name,
-            username,
-            testType,
-            {
-                ...file,
-                isUnlockFile: true,
-                testType: testType,
-                passed: true,
-                score: 100,
-                correctAnswers: 1,
-                totalAnswers: 1,
-                timeSpent: extractTimeFromFilename(file.name) || 15
-            },
-            [{ question: "Файл разблокировки", answer: "Код разблокировки теста", correct: true }],
-            fileIndex
-        );
-        
-    } catch (error) {
-        console.error("Ошибка при обработке файла разблокировки:", error);
-        showError("Ошибка при обработке файла разблокировки");
+    if (test.blocked) {
+        renderBlockedScreen();
+        return;
     }
+
+    renderTestQuestions();
 }
 
-function openGradingPanel(file, fileIndex) {
-    const gradingPanel = document.getElementById("gradingPanel");
-    const gradingStats = document.getElementById("gradingStats");
-    const answersList = document.getElementById("answersList");
+function renderRetraining() {
+    currentTestType = 'retraining';
+    if (test && test.testType) {
+        currentTestType = test.testType;
+    }
     
-    if (!gradingPanel || !gradingStats || !answersList) return;
+    const area = document.getElementById("mainArea");
     
-    try {
-        const storedBase64 = file.content;
-        const fileText = atob(storedBase64);
-        let decryptedPlain = null;
-        
-        try {
-            const encrypted = atob(fileText);
-            decryptedPlain = CryptoJS.AES.decrypt(encrypted, AES_KEY).toString(CryptoJS.enc.Utf8);
-        } catch (err) {
-            decryptedPlain = null;
-        }
-
-        if (decryptedPlain) {
-            let answers = file.gradingData || parseAnswersFromReport(decryptedPlain);
-            const totalCount = answers.length;
-            let correctCount = answers.filter(a => a.correct).length;
-            
-            const updateStats = () => {
-                correctCount = answers.filter(a => a.correct).length;
-                const score = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
-                
-                gradingStats.innerHTML = `
-                    <div class="live-stats">
-                        <div class="live-counter">
-                            <div class="counter-item">
-                                <div class="counter-value">${correctCount}</div>
-                                <div class="counter-label">Правильно</div>
-                            </div>
-                            <div class="counter-item">
-                                <div class="counter-value">${totalCount - correctCount}</div>
-                                <div class="counter-label">Неправильно</div>
-                            </div>
-                            <div class="counter-item">
-                                <div class="counter-value">${totalCount}</div>
-                                <div class="counter-label">Всего</div>
-                            </div>
-                        </div>
-                        <div class="progress-circle" style="--progress: ${score}%">
-                            <div class="progress-percent">${score}%</div>
-                        </div>
-                    </div>
-                    ${file.graded ? '<div style="text-align: center; color: var(--success); margin-top: 10px;">✓ Оценка сохранена</div>' : ''}
-                `;
-                
-                return score;
-            };
-            
-            updateStats();
-            
-            const extractedUsername = extractUsernameFromFilename(file.name);
-            const testType = extractTestTypeFromFilename(file.name);
-            
-            answersList.innerHTML = `
-                <div class="grading-container">
-                    <div class="quick-grading-actions">
-                        <button class="bulk-action-btn bulk-correct" id="markAllCorrect">
-                            <span>✅</span>
-                            <span>Отметить все как правильные</span>
-                        </button>
-                        <button class="bulk-action-btn bulk-incorrect" id="markAllIncorrect">
-                            <span>❌</span>
-                            <span>Отметить все как неправильные</span>
-                        </button>
-                        <button class="bulk-action-btn bulk-reset" id="resetAll">
-                            <span>🔄</span>
-                            <span>Сбросить все</span>
-                        </button>
-                    </div>
-                    
-                    <div class="grading-hint">
-                        💡 <strong>Подсказка:</strong> Кликните по любому ответу, чтобы изменить его статус. 
-                        Используйте <span class="hotkey">Space</span> для быстрого переключения.
-                    </div>
-                    
-                    ${answers.map((answer, index) => {
-                        const statusClass = answer.correct ? 'correct' : 'incorrect';
-                        const statusText = answer.correct ? 'Правильный' : 'Неправильный';
-                        const statusColor = answer.correct ? 'status-correct' : 'status-incorrect';
-                        
-                        return `
-                            <div class="answer-full-card ${statusClass}" 
-                                 data-index="${index}"
-                                 tabindex="0"
-                                 role="button"
-                                 aria-label="Ответ ${index + 1}: ${statusText}. Нажмите, чтобы изменить статус">
-                                 
-                                <div class="answer-header">
-                                    <div class="question-number">Вопрос ${index + 1}</div>
-                                    <div class="status-indicator ${statusColor}">
-                                        <span>${answer.correct ? '✅' : '❌'}</span>
-                                        <span>${statusText}</span>
-                                    </div>
-                                </div>
-                                
-                                <div class="question-text">${escapeHtml(answer.question)}</div>
-                                
-                                <div class="answer-text">${escapeHtml(answer.answer || 'Нет ответа')}</div>
-                                
-                                <div class="answer-actions">
-                                    <label class="toggle-label" onclick="event.stopPropagation()">
-                                        <input type="checkbox" 
-                                               class="toggle-checkbox" 
-                                               data-index="${index}" 
-                                               ${answer.correct ? 'checked' : ''}>
-                                        <span>✅ Правильный ответ</span>
-                                    </label>
-                                    
-                                    <div class="quick-actions">
-                                        <button class="quick-btn quick-correct" data-index="${index}" data-action="correct">
-                                            ✅ Правильно
-                                        </button>
-                                        <button class="quick-btn quick-incorrect" data-index="${index}" data-action="incorrect">
-                                            ❌ Неправильно
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div class="click-feedback"></div>
-                            </div>
-                        `;
-                    }).join('')}
-                    
-                    <div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
-                        <h4>👤 Определение сотрудника</h4>
-                        <p>Автоматически определено: <strong>${extractedUsername || "Не определено"}</strong></p>
-                        <p>Тип теста: <strong>${getTestTypeName(testType)}</strong></p>
-                        <div style="margin-top: 10px;">
-                            <label style="display: block; margin-bottom: 5px;">Введите имя сотрудника вручную:</label>
-                            <input type="text" id="manualUsernameInput" 
-                                   style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white;"
-                                   placeholder="Введите ник сотрудника"
-                                   value="${extractedUsername || ''}">
-                        </div>
-                    </div>
+    if (!test) {
+        if (!currentUser) {
+            area.innerHTML = `
+                <div class="question-box">
+                    <div id="testGreeting"></div>
+                    <h2>🔄 Переаттестация Военной Полиции</h2>
+                    <p><strong>🔒 Для доступа к тесту необходимо авторизоваться.</strong></p>
+                    <p>Переаттестация доступна офицерам и выше.</p>
                 </div>
             `;
-
-            const createClickEffect = (element, x, y) => {
-                const feedback = element.querySelector('.click-feedback');
-                feedback.style.left = `${x}px`;
-                feedback.style.top = `${y}px`;
-                feedback.classList.remove('click-animation');
-                void feedback.offsetWidth;
-                feedback.classList.add('click-animation');
-                
-                setTimeout(() => {
-                    feedback.classList.remove('click-animation');
-                }, 500);
-            };
-
-            document.querySelectorAll('.answer-full-card').forEach(card => {
-                card.addEventListener('click', (e) => {
-                    if (e.target.closest('.toggle-label') || e.target.closest('.quick-btn')) {
-                        return;
-                    }
-                    
-                    const index = parseInt(card.dataset.index);
-                    answers[index].correct = !answers[index].correct;
-                    
-                    const rect = card.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-                    createClickEffect(card, x, y);
-                    
-                    updateAnswerCard(index, answers[index].correct);
-                    updateStats();
-                    
-                    if (answers[index].correct) {
-                        playSuccessSound();
-                    }
-                });
-                
-                card.addEventListener('keydown', (e) => {
-                    if (e.key === ' ' || e.key === 'Spacebar') {
-                        e.preventDefault();
-                        const index = parseInt(card.dataset.index);
-                        answers[index].correct = !answers[index].correct;
-                        
-                        const rect = card.getBoundingClientRect();
-                        createClickEffect(card, rect.width / 2, rect.height / 2);
-                        
-                        updateAnswerCard(index, answers[index].correct);
-                        updateStats();
-                    }
-                });
-            });
-
-            document.querySelectorAll('.toggle-checkbox').forEach(cb => {
-                cb.addEventListener('change', (e) => {
-                    e.stopPropagation();
-                    const index = parseInt(e.target.dataset.index);
-                    answers[index].correct = e.target.checked;
-                    updateAnswerCard(index, answers[index].correct);
-                    updateStats();
-                });
-            });
-
-            document.querySelectorAll('.quick-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const index = parseInt(e.target.dataset.index);
-                    const action = e.target.dataset.action;
-                    answers[index].correct = (action === 'correct');
-                    
-                    const card = document.querySelector(`.answer-full-card[data-index="${index}"]`);
-                    const rect = card.getBoundingClientRect();
-                    createClickEffect(card, rect.width / 2, rect.height / 2);
-                    
-                    updateAnswerCard(index, answers[index].correct);
-                    updateStats();
-                });
-            });
-
-            document.getElementById('markAllCorrect')?.addEventListener('click', () => {
-                answers.forEach((answer, index) => {
-                    answer.correct = true;
-                    updateAnswerCard(index, true);
-                });
-                updateStats();
-                showMessage('Все ответы отмечены как правильные', 'success');
-            });
-
-            document.getElementById('markAllIncorrect')?.addEventListener('click', () => {
-                answers.forEach((answer, index) => {
-                    answer.correct = false;
-                    updateAnswerCard(index, false);
-                });
-                updateStats();
-                showMessage('Все ответы отмечены как неправильные', 'warning');
-            });
-
-            document.getElementById('resetAll')?.addEventListener('click', () => {
-                answers.forEach((answer, index) => {
-                    answer.correct = false;
-                    updateAnswerCard(index, false);
-                });
-                updateStats();
-                showMessage('Все ответы сброшены', 'info');
-            });
-
-            function updateAnswerCard(index, isCorrect) {
-                const card = document.querySelector(`.answer-full-card[data-index="${index}"]`);
-                const checkbox = document.querySelector(`.toggle-checkbox[data-index="${index}"]`);
-                const statusIndicator = card.querySelector('.status-indicator');
-                
-                if (isCorrect) {
-                    card.classList.remove('incorrect');
-                    card.classList.add('correct');
-                    statusIndicator.classList.remove('status-incorrect');
-                    statusIndicator.classList.add('status-correct');
-                    statusIndicator.innerHTML = '<span>✅</span><span>Правильный</span>';
-                } else {
-                    card.classList.remove('correct');
-                    card.classList.add('incorrect');
-                    statusIndicator.classList.remove('status-correct');
-                    statusIndicator.classList.add('status-incorrect');
-                    statusIndicator.innerHTML = '<span>❌</span><span>Неправильный</span>';
-                }
-                
-                if (checkbox) {
-                    checkbox.checked = isCorrect;
-                }
-            }
-
-            function playSuccessSound() {
-                console.log('✅ Правильный ответ отмечен');
-            }
-
-            const saveGradingBtn = document.getElementById("saveGradingBtn");
-            const closeGradingBtn = document.getElementById("closeGradingBtn");
-            
-            if (saveGradingBtn) {
-                saveGradingBtn.onclick = () => {
-                    file.gradingData = answers;
-                    file.correctAnswers = answers.filter(a => a.correct).length;
-                    file.totalAnswers = answers.length;
-                    file.score = Math.round((file.correctAnswers / file.totalAnswers) * 100);
-                    file.passed = file.score >= 70;
-                    file.testType = testType;
-                    
-                    const manualUsername = document.getElementById('manualUsernameInput')?.value.trim();
-                    const username = manualUsername || extractedUsername;
-                    
-                    if (!username) {
-                        showError("Введите имя сотрудника!");
-                        return;
-                    }
-                    
-                    showEmployeeSelectionModal(file.name, username, testType, file, answers, fileIndex);
-                };
-            }
-            
-            if (closeGradingBtn) {
-                closeGradingBtn.onclick = () => {
-                    gradingPanel.style.display = 'none';
-                };
-            }
-
-            gradingPanel.style.display = 'block';
-            
-            setTimeout(() => {
-                const firstCard = document.querySelector('.answer-full-card');
-                if (firstCard) {
-                    firstCard.focus();
-                }
-            }, 100);
+            return;
         }
-    } catch (error) {
-        console.error('Ошибка при загрузке ответов:', error);
-        showError("Ошибка при загрузке ответов для оценки");
+        
+        if (currentUser.type !== 'officer' && currentUser.type !== 'senior_officer' && currentUser.type !== 'curator') {
+            area.innerHTML = `
+                <div class="question-box">
+                    <div id="testGreeting"></div>
+                    <h2>🔄 Переаттестация Военной Полиции</h2>
+                    <p><strong>⛔ Доступ запрещён!</strong></p>
+                    <p>Переаттестация доступна только <strong>офицерам и выше</strong>.</p>
+                    <p>Ваш статус: <strong>${currentUser.position}</strong></p>
+                </div>
+            `;
+            return;
+        }
+        
+        area.innerHTML = `
+            <div class="question-box">
+                <div id="testGreeting"></div>
+                <h2>🔄 Переаттестация Военной Полиции</h2>
+                <p><strong>${currentUser.username}</strong> (${currentUser.position})</p>
+                <p>Тест состоит из <strong>15 вопросов</strong> для обновления знаний и навыков.</p>
+                <p><strong>Для начала теста потребуется единоразовый код разблокировки.</strong></p>
+                <p>После нажатия "Начать тест" файл с кодом будет скачан.</p>
+                <div style="margin-top: 15px; color: var(--warning); font-size: 0.9em;">
+                    ⚠️ Система отслеживает активность! Бездействие >20 секунд — блокировка.
+                </div>
+            </div>
+        `;
+        return;
     }
+
+    if (test.blocked) {
+        renderBlockedScreen();
+        return;
+    }
+
+    renderTestQuestions();
 }
 
-function openFileViewer(file) {
-    const fileViewer = document.getElementById("fileViewer");
-    if (!fileViewer) return;
+function renderMultipleChoiceQuestion(q, currentIndex) {
+    const savedAnswers = test.answers[currentIndex];
+    let selectedOptions = [];
     
-    fileViewer.style.display = "block";
-
-    try {
-        const storedBase64 = file.content;
-        const fileText = atob(storedBase64);
-        let decryptedPlain = null;
-        
-        try {
-            const encrypted = atob(fileText);
-            decryptedPlain = CryptoJS.AES.decrypt(encrypted, AES_KEY).toString(CryptoJS.enc.Utf8);
-        } catch (err) {
-            decryptedPlain = null;
-        }
-
-        let contentHTML = '';
-        if (decryptedPlain && decryptedPlain.length > 0) {
-            let reportWithGrading = decryptedPlain;
-            if (file.graded) {
-                reportWithGrading += `\n\n=== ОЦЕНКА АДМИНИСТРАТОРА ===\n`;
-                reportWithGrading += `Оценка: ${file.score}%\n`;
-                reportWithGrading += `Правильных ответов: ${file.correctAnswers}/${file.totalAnswers}\n`;
-                reportWithGrading += `Статус: ${file.passed ? '✅ ПРОЙДЕН' : '❌ НЕ ПРОЙДЕН'}\n`;
-            }
-            
-            contentHTML = `<pre>${escapeHtml(reportWithGrading)}</pre>`;
-        } else {
-            contentHTML = `<pre style="color: var(--error);">Не удалось расшифровать файл.</pre>`;
-        }
-
-        fileViewer.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <strong>${escapeHtml(file.name)}</strong>
-                <button class="btn small" id="closeViewerBtn">✖ Закрыть</button>
+    if (savedAnswers && Array.isArray(savedAnswers)) {
+        selectedOptions = savedAnswers;
+    } else if (savedAnswers && typeof savedAnswers === 'string') {
+        selectedOptions = [savedAnswers];
+    } else {
+        selectedOptions = [];
+    }
+    
+    const maxSelections = q.maxSelections || 2;
+    
+    return `
+        <div class="question-box">
+            <div class="question-header">
+                <span class="question-counter">Вопрос ${test.current + 1} из ${TEST_COUNT}</span>
+                <span class="selection-limit">✅ Выберите до ${maxSelections} вариантов</span>
             </div>
-            ${contentHTML}
-        `;
+            
+            <div class="question-text-large">${escapeHtml(q.text)}</div>
+            
+            <div class="options-grid">
+                ${q.options.map((option) => {
+                    const isSelected = selectedOptions.includes(option);
+                    return `
+                        <div class="option-card ${isSelected ? 'selected' : ''}" data-option-value="${escapeHtml(option)}">
+                            <div class="option-check">
+                                <span class="checkmark">${isSelected ? '✓' : ''}</span>
+                            </div>
+                            <div class="option-text">${escapeHtml(option)}</div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+            
+            <div class="selected-info">
+                <span>📋 Выбрано: <strong id="selectedCount">${selectedOptions.length}</strong> / ${maxSelections}</span>
+            </div>
+            
+            <div class="question-actions">
+                <button class="btn btn-primary" id="nextBtn">
+                    ${test.current < TEST_COUNT - 1 ? "Следующий вопрос →" : "✓ Завершить тест"}
+                </button>
+            </div>
+            
+            <div class="activity-warning">
+                ⚠️ Система отслеживает активность!
+            </div>
+        </div>
+    `;
+}
+
+function renderTextQuestion(q, currentIndex) {
+    return `
+        <div class="question-box">
+            <h3>Вопрос ${test.current + 1} из ${TEST_COUNT}</h3>
+            <p><strong>${q.text}</strong></p>
+            <input type="text" id="answerInput" placeholder="Введите ваш ответ здесь..." 
+                   value="${test.answers[test.current] || ''}" autocomplete="off">
+            <div style="margin-top: 20px;">
+                <button class="btn" id="nextBtn">
+                    ${test.current < TEST_COUNT - 1 ? "Следующий вопрос" : "Завершить тест"}
+                </button>
+            </div>
+            <div class="small" style="margin-top: 15px; color: var(--warning);">
+                ⚠️ Система отслеживает активность!
+            </div>
+        </div>
+    `;
+}
+
+function renderTestQuestions() {
+    const q = test.shuffledQuestions[test.current];
+    const area = document.getElementById("mainArea");
+    
+    if (q.type === 'multiple' && q.options && q.options.length > 0) {
+        area.innerHTML = renderMultipleChoiceQuestion(q, test.current);
         
-        document.getElementById("closeViewerBtn").addEventListener("click", () => {
-            fileViewer.style.display = "none";
+        const optionCards = document.querySelectorAll('.option-card');
+        const selectedCountSpan = document.getElementById('selectedCount');
+        const maxSelections = q.maxSelections || 2;
+        
+        const updateSelection = () => {
+            const selectedOptions = Array.from(document.querySelectorAll('.option-card.selected'))
+                .map(card => card.dataset.optionValue);
+            
+            test.answers[test.current] = selectedOptions;
+            saveTestState();
+            
+            if (selectedCountSpan) {
+                selectedCountSpan.textContent = selectedOptions.length;
+            }
+        };
+        
+        optionCards.forEach(card => {
+            card.addEventListener('click', (e) => {
+                e.stopPropagation();
+                
+                const isSelected = card.classList.contains('selected');
+                const currentSelected = document.querySelectorAll('.option-card.selected').length;
+                
+                if (!isSelected && currentSelected >= maxSelections) {
+                    showError(`Можно выбрать не более ${maxSelections} вариантов!`);
+                    return;
+                }
+                
+                if (isSelected) {
+                    card.classList.remove('selected');
+                    card.querySelector('.checkmark').textContent = '';
+                } else {
+                    card.classList.add('selected');
+                    card.querySelector('.checkmark').textContent = '✓';
+                }
+                
+                updateSelection();
+                trackActivity();
+            });
         });
         
-    } catch (error) {
-        fileViewer.innerHTML = `<div style="color: var(--error);">Ошибка при чтении файла</div>`;
+        const nextBtn = document.getElementById("nextBtn");
+        if (nextBtn) {
+            nextBtn.addEventListener("click", () => {
+                const selectedOptions = test.answers[test.current];
+                if (!selectedOptions || selectedOptions.length === 0) {
+                    showError("Пожалуйста, выберите хотя бы один вариант ответа!");
+                    return;
+                }
+                nextQuestion();
+            });
+        }
+        
+    } else {
+        area.innerHTML = renderTextQuestion(q, test.current);
+        
+        const answerInput = document.getElementById("answerInput");
+        if (answerInput) {
+            answerInput.addEventListener("input", (e) => {
+                trackActivity();
+                test.answers[test.current] = e.target.value.trim();
+                saveTestState();
+            });
+            
+            answerInput.addEventListener("keypress", (e) => {
+                trackActivity();
+                if (e.key === "Enter") {
+                    nextQuestion();
+                }
+            });
+            
+            answerInput.addEventListener("mousedown", trackActivity);
+            answerInput.focus();
+        }
+        
+        const nextBtn = document.getElementById("nextBtn");
+        if (nextBtn) {
+            nextBtn.addEventListener("click", () => {
+                trackActivity();
+                nextQuestion();
+            });
+        }
     }
 }
 
-function deleteFile(index) {
-    const savedFiles = JSON.parse(localStorage.getItem("adminFiles") || "[]");
-    const fileName = savedFiles[index].name;
+function renderReviewPage() {
+    const area = document.getElementById("mainArea");
+    const testTypeName = getTestTypeName(test.testType);
     
-    if (confirm(`Удалить файл "${fileName}"?`)) {
-        savedFiles.splice(index, 1);
-        localStorage.setItem("adminFiles", JSON.stringify(savedFiles));
-        renderFiles();
+    let answersHtml = '';
+    
+    test.shuffledQuestions.forEach((q, index) => {
+        const userAnswer = test.answers[index];
+        let answerDisplay = '';
         
-        const fileViewer = document.getElementById("fileViewer");
-        const gradingPanel = document.getElementById("gradingPanel");
+        if (q.type === 'multiple' && q.options) {
+            const selectedOptions = Array.isArray(userAnswer) ? userAnswer : [];
+            answerDisplay = `
+                <div class="review-multiple-answers">
+                    ${q.options.map(option => {
+                        const isSelected = selectedOptions.includes(option);
+                        return `
+                            <span class="review-option ${isSelected ? 'review-option-selected' : 'review-option-unselected'}">
+                                ${isSelected ? '✓' : '○'} ${escapeHtml(option)}
+                            </span>
+                        `;
+                    }).join('')}
+                </div>
+                <div class="review-edit">
+                    <button class="btn small review-edit-btn" data-question-index="${index}">✏️ Редактировать</button>
+                </div>
+            `;
+        } else {
+            const answerText = userAnswer || "Нет ответа";
+            answerDisplay = `
+                <div class="review-answer-text">${escapeHtml(answerText)}</div>
+                <div class="review-edit">
+                    <button class="btn small review-edit-btn" data-question-index="${index}">✏️ Редактировать</button>
+                </div>
+            `;
+        }
         
-        if (fileViewer) fileViewer.style.display = "none";
-        if (gradingPanel) gradingPanel.style.display = "none";
-        
-        showMessage(`Файл "${fileName}" удален`, "success");
+        answersHtml += `
+            <div class="review-item" data-question-index="${index}">
+                <div class="review-question-header">
+                    <span class="review-question-number">Вопрос ${index + 1}</span>
+                    <span class="review-question-text">${escapeHtml(q.text)}</span>
+                </div>
+                <div class="review-answer">
+                    ${answerDisplay}
+                </div>
+            </div>
+        `;
+    });
+    
+    area.innerHTML = `
+        <div class="review-container">
+            <div class="review-header">
+                <h2>📋 Предварительный просмотр ответов</h2>
+                <p>Проверьте все свои ответы перед завершением ${testTypeName.toLowerCase()}</p>
+                <div class="review-stats">
+                    <div class="review-stat">
+                        <span>📝 Всего вопросов:</span>
+                        <strong>${TEST_COUNT}</strong>
+                    </div>
+                    <div class="review-stat">
+                        <span>✅ Отвечено:</span>
+                        <strong>${Object.keys(test.answers).length}</strong>
+                    </div>
+                    <div class="review-stat">
+                        <span>❌ Без ответа:</span>
+                        <strong>${TEST_COUNT - Object.keys(test.answers).length}</strong>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="review-answers-list">
+                ${answersHtml}
+            </div>
+            
+            <div class="review-actions">
+                <button class="btn ghost" id="backToTestBtn">← Вернуться к тесту</button>
+                <button class="btn" id="confirmFinishBtn">
+                    ✅ Завершить тест
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById("backToTestBtn").addEventListener("click", () => {
+        renderCurrentTest();
+    });
+    
+    document.querySelectorAll(".review-edit-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            const questionIndex = parseInt(btn.dataset.questionIndex);
+            test.current = questionIndex;
+            saveTestState();
+            renderCurrentTest();
+        });
+    });
+    
+    const confirmFinishBtn = document.getElementById("confirmFinishBtn");
+    if (confirmFinishBtn) {
+        confirmFinishBtn.addEventListener("click", () => {
+            finishTest();
+        });
     }
 }
+
+function nextQuestion() {
+    if (test.current < TEST_COUNT - 1) {
+        test.current++;
+        saveTestState();
+        renderCurrentTest();
+    } else {
+        renderReviewPage();
+    }
+}
+
+function finishTestManually() {
+    if (confirm("Вы уверены, что хотите завершить тест? Все ответы будут сохранены, но файл не будет скачан.")) {
+        renderReviewPage();
+    }
+}
+
+function finishTest() {
+    if (!test) {
+        showError("Нет активного теста.");
+        return;
+    }
+
+    const endTime = new Date();
+    const timeSpent = Math.round((endTime - test.startTime) / 1000 / 60);
+    const testTypeName = getTestTypeName(test.testType);
+    
+    let correctCount = 0;
+    const answeredQuestions = Object.keys(test.answers).length;
+
+    test.shuffledQuestions.forEach((q, i) => {
+        const userAnswer = test.answers[i];
+        if (!userAnswer) return;
+        
+        if (q.type === 'multiple') {
+            if (q.correctAnswers && Array.isArray(q.correctAnswers) && userAnswer && Array.isArray(userAnswer)) {
+                const sortedUser = [...userAnswer].sort();
+                const sortedCorrect = [...q.correctAnswers].sort();
+                if (sortedUser.length === sortedCorrect.length && 
+                    sortedUser.every((val, index) => val === sortedCorrect[index])) {
+                    correctCount++;
+                }
+            }
+        } else {
+            if (userAnswer && userAnswer.trim() !== '') correctCount++;
+        }
+    });
+
+    const score = test.shuffledQuestions.length > 0 ? Math.round((correctCount / TEST_COUNT) * 100) : 0;
+    const passed = score >= 70;
+
+    // Сохраняем результат
+    saveTestResultForStatistics(test, timeSpent, score, correctCount, passed);
+
+    // Генерируем файл с результатами
+    let reportText = `${testTypeName.toUpperCase()} ВОЕННОЙ ПОЛИЦИИ - РЕЗУЛЬТАТЫ
+=================================
+
+Общая информация:
+----------------
+Имя: ${test.username}
+Тип теста: ${testTypeName}
+Дата: ${new Date().toLocaleString('ru-RU')}
+Время выполнения: ${timeSpent} минут
+Всего вопросов: ${TEST_COUNT}
+Правильных ответов: ${correctCount}
+Оценка: ${score}%
+Статус: ${passed ? '✅ ПРОЙДЕН' : '❌ НЕ ПРОЙДЕН'}
+
+Ответы:
+----------------
+`;
+
+    test.shuffledQuestions.forEach((q, i) => {
+        let answerText = test.answers[i];
+        if (Array.isArray(answerText)) {
+            answerText = answerText.join(', ');
+        } else if (!answerText) {
+            answerText = "Нет ответа";
+        }
+        
+        reportText += `\n${i + 1}. ${q.text}\n`;
+        reportText += `Ответ: ${answerText}\n`;
+        reportText += `---------------------------------\n`;
+    });
+
+    reportText += `
+
+=================================
+Arizona RP | Военная Полиция
+Тест завершен.`;
+
+    // Сохраняем файл с результатами
+    try {
+        const encrypted = CryptoJS.AES.encrypt(reportText, AES_KEY).toString();
+        const blob = new Blob([btoa(encrypted)], { 
+            type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
+        });
+        saveAs(blob, `${test.username}_${testTypeName}_${timeSpent}мин_результаты.docx`);
+        showMessage("Файл с результатами скачан!", "success");
+    } catch (e) {
+        showError("Ошибка сохранения результатов");
+    }
+
+    // Сохраняем в статистику
+    saveTestResultForStatistics(test, timeSpent, score, correctCount, passed);
+
+    if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = null;
+    }
+
+    // Очищаем состояние теста
+    const testUsername = test.username;
+    const testType = test.testType;
+    clearTestState();
+    
+    document.getElementById("unlockBtn").style.display = "none";
+    document.getElementById("adminUnlockBtn").style.display = "none";
+    document.getElementById("finishBtn").style.display = "none";
+    document.getElementById("startBtn").disabled = false;
+
+    document.getElementById("mainArea").innerHTML = `
+        <div class="question-box">
+            <h2>✅ ${testTypeName} завершён!</h2>
+            <p><strong>${escapeHtml(testUsername)}</strong>, ваш ${testTypeName.toLowerCase()} успешно завершён.</p>
+            <p><strong>Результат: ${score}% (${correctCount}/${TEST_COUNT})</strong></p>
+            <p>${passed ? '🎉 Поздравляем! Тест пройден успешно!' : '😔 К сожалению, тест не пройден.'}</p>
+            <p><strong>Вы ответили на ${answeredQuestions} из ${TEST_COUNT} вопросов.</strong></p>
+            <p>Файл с результатами был автоматически скачан.</p>
+            <div style="margin-top: 20px;">
+                <button class="btn" id="restartBtn">🔄 Пройти тест снова</button>
+            </div>
+        </div>
+    `;
+
+    document.getElementById("restartBtn").addEventListener("click", () => {
+        document.getElementById("username").value = "";
+        document.querySelectorAll("input, button").forEach(el => el.disabled = false);
+        showMessage("Готово к новому тесту!", "success");
+        renderCurrentTest();
+    });
+}
+
+function saveTestResultForStatistics(testData, timeSpent, score, correctCount, passed) {
+    const testResult = {
+        id: Date.now().toString(),
+        username: testData.username,
+        testType: testData.testType,
+        score: score,
+        timeSpent: timeSpent,
+        totalQuestions: TEST_COUNT,
+        correctAnswers: correctCount,
+        date: new Date().toISOString(),
+        graded: false,
+        passed: passed
+    };
+    
+    const pendingResults = JSON.parse(localStorage.getItem('pendingTestResults') || '[]');
+    pendingResults.push(testResult);
+    localStorage.setItem('pendingTestResults', JSON.stringify(pendingResults));
+}
+
+function saveTestState() {
+    if (test) {
+        localStorage.setItem('currentTest', JSON.stringify({
+            username: test.username,
+            userType: test.userType,
+            current: test.current,
+            answers: test.answers,
+            shuffledQuestions: test.shuffledQuestions,
+            startTime: test.startTime,
+            blocked: test.blocked,
+            unlockCode: test.unlockCode,
+            testType: test.testType,
+            blockReason: test.blockReason
+        }));
+    }
+}
+
+function loadTestState() {
+    const saved = localStorage.getItem('currentTest');
+    if (saved) {
+        try {
+            const savedTest = JSON.parse(saved);
+            test = {
+                username: savedTest.username,
+                userType: savedTest.userType,
+                current: savedTest.current,
+                answers: savedTest.answers,
+                shuffledQuestions: savedTest.shuffledQuestions,
+                startTime: new Date(savedTest.startTime),
+                blocked: savedTest.blocked,
+                unlockCode: savedTest.unlockCode,
+                testType: savedTest.testType || 'exam',
+                blockReason: savedTest.blockReason || 'Бездействие'
+            };
+            blocked = savedTest.blocked;
+            currentTestType = savedTest.testType || 'exam';
+            
+            if (blocked) {
+                document.querySelectorAll("input, button, textarea, select").forEach(el => {
+                    if (el.closest('#authModal')) {
+                        el.disabled = false;
+                        el.style.pointerEvents = 'auto';
+                        el.style.opacity = '1';
+                        return;
+                    }
+                    if (el.id === 'authUsername' || el.id === 'authPassword' || el.id === 'authActionBtn' || el.id === 'authStatus') {
+                        el.disabled = false;
+                        el.style.pointerEvents = 'auto';
+                        el.style.opacity = '1';
+                        return;
+                    }
+                    if (el.id === "username") {
+                        el.disabled = false;
+                        el.style.pointerEvents = 'auto';
+                        el.style.opacity = '1';
+                        return;
+                    }
+                    if (el.id === "logoutBtn") {
+                        el.disabled = false;
+                        el.style.pointerEvents = 'auto';
+                        el.style.opacity = '1';
+                        return;
+                    }
+                    if (el.id.includes("unlock") || el.id.includes("adminUnlock")) {
+                        el.disabled = false;
+                        el.style.pointerEvents = 'auto';
+                        el.style.opacity = '1';
+                        return;
+                    }
+                    if (el.closest(".tabs")) {
+                        el.disabled = false;
+                        el.style.pointerEvents = 'auto';
+                        el.style.opacity = '1';
+                        return;
+                    }
+                    if (el.closest('.auth-tabs')) {
+                        el.disabled = false;
+                        el.style.pointerEvents = 'auto';
+                        el.style.opacity = '1';
+                        return;
+                    }
+                    
+                    el.disabled = true;
+                    el.style.pointerEvents = 'none';
+                    el.style.opacity = '0.5';
+                });
+            }
+        } catch (e) {
+            localStorage.removeItem('currentTest');
+            test = null;
+            blocked = false;
+        }
+    }
+}
+
+function clearTestState() {
+    localStorage.removeItem('currentTest');
+    test = null;
+    blocked = false;
+}
+
+function generateReadableCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    for (let i = 0; i < 8; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+}
+
+// === ФУНКЦИИ ДЛЯ СТАТИСТИКИ ===
 
 function calculateStats() {
     const statistics = JSON.parse(localStorage.getItem('testStatistics') || '[]');
@@ -2825,15 +2535,12 @@ function calculateStats() {
     const passRate = Math.round((passedTests / uniqueResults.length) * 100);
     
     const examResults = uniqueResults.filter(f => f.testType === 'exam');
-    const academyResults = uniqueResults.filter(f => f.testType === 'academy');
     const retrainingResults = uniqueResults.filter(f => f.testType === 'retraining');
     
     const examCount = examResults.length;
-    const academyCount = academyResults.length;
     const retrainingCount = retrainingResults.length;
     
     const examRanking = createSimpleRanking(examResults, 'Экзамен');
-    const academyRanking = createSimpleRanking(academyResults, 'Академия');
     const retrainingRanking = createSimpleRanking(retrainingResults, 'Переаттестация');
     
     const gradeDistribution = {
@@ -2875,7 +2582,6 @@ function calculateStats() {
         passRate,
         passRateTrend,
         examCount,
-        academyCount,
         retrainingCount,
         minScore,
         maxScore,
@@ -2885,10 +2591,8 @@ function calculateStats() {
         gradeDistribution,
         recentResults,
         examRanking,
-        academyRanking,
         retrainingRanking,
         examPassRate: examResults.length > 0 ? Math.round((examResults.filter(f => f.passed).length / examResults.length) * 100) : 0,
-        academyPassRate: academyResults.length > 0 ? Math.round((academyResults.filter(f => f.passed).length / academyResults.length) * 100) : 0,
         retrainingPassRate: retrainingResults.length > 0 ? Math.round((retrainingResults.filter(f => f.passed).length / retrainingResults.length) * 100) : 0,
         lastUpdated: new Date().toLocaleString('ru-RU'),
         allResults: uniqueResults.map(r => ({
@@ -2898,70 +2602,6 @@ function calculateStats() {
         }))
     };
 }
-
-function createTestWithType(testType) {
-    if (!currentUser) {
-        showError("Авторизуйтесь!");
-        return;
-    }
-    
-    const username = document.getElementById("username").value.trim();
-    if (!username) {
-        showError("Введите имя перед началом теста!");
-        return;
-    }
-    
-    // Проверяем, что введённый ник совпадает с авторизованным
-    if (username.toLowerCase() !== currentUser.username.toLowerCase()) {
-        showError(`Вы авторизованы как ${currentUser.username}. Введите свой ник!`);
-        return;
-    }
-    
-    const accessCode = issueAccessCode();
-    if (!accessCode) {
-        showError("Ошибка выдачи кода доступа!");
-        return;
-    }
-    
-    const needsUnlockCode = ['cadet', 'officer'].includes(currentUserType);
-    
-    if (inactivityTimer) {
-        clearTimeout(inactivityTimer);
-        inactivityTimer = null;
-    }
-    
-    const questions = testType === 'exam' ? examQuestions : retrainingQuestions;
-    const shuffledQuestions = shuffleArray([...questions]).slice(0, TEST_COUNT);
-    
-    window.test = {
-        username: currentUser.username,
-        userType: currentUserType,
-        current: 0,
-        answers: {},
-        shuffledQuestions: shuffledQuestions,
-        startTime: new Date(),
-        blocked: false,
-        testType: testType,
-        unlockCode: needsUnlockCode ? generateReadableCode() : null,
-        accessCode: accessCode,
-        blockReason: null
-    };
-    
-    if (needsUnlockCode && test.unlockCode) {
-        createUnlockFile();
-    }
-    
-    saveTestState();
-    document.getElementById("unlockBtn").style.display = "inline-block";
-    document.getElementById("adminUnlockBtn").style.display = "inline-block";
-    document.getElementById("finishBtn").style.display = "inline-block";
-    document.getElementById("startBtn").disabled = true;
-    
-    showMessage(`Тест начат!`, "success");
-    resetInactivityTimer(blockTest);
-    renderCurrentTest();
-}
-
 
 function createSimpleRanking(results, type) {
     if (results.length === 0) return [];
@@ -2999,7 +2639,6 @@ function getEmptyStats() {
         passRate: 0,
         passRateTrend: 'up',
         examCount: 0,
-        academyCount: 0,
         retrainingCount: 0,
         minScore: 0,
         maxScore: 0,
@@ -3009,10 +2648,8 @@ function getEmptyStats() {
         gradeDistribution: { excellent: 0, good: 0, satisfactory: 0, fail: 0 },
         recentResults: [],
         examRanking: [],
-        academyRanking: [],
         retrainingRanking: [],
         examPassRate: 0,
-        academyPassRate: 0,
         retrainingPassRate: 0,
         lastUpdated: new Date().toLocaleString('ru-RU'),
         allResults: []
@@ -3177,18 +2814,6 @@ function renderStatsProgress(stats) {
             
             <div class="progress-item">
                 <div class="progress-label">
-                    <span>📚 Академия</span>
-                    <span>${stats.academyPassRate}%</span>
-                </div>
-                <div class="progress-container">
-                    <div class="progress-bar" style="width: ${stats.academyPassRate}%; background: #f59e0b">
-                        <span class="progress-percent">${stats.academyPassRate}%</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="progress-item">
-                <div class="progress-label">
                     <span>🔄 Переаттестация</span>
                     <span>${stats.retrainingPassRate}%</span>
                 </div>
@@ -3325,8 +2950,6 @@ function deletePlayer(playerId) {
 
 function exportStatistics() {
     const stats = calculateStats();
-    const savedFiles = JSON.parse(localStorage.getItem("adminFiles") || "[]");
-    const gradedFiles = savedFiles.filter(f => f.graded);
     
     let csvContent = "Статистика тестирования\n\n";
     csvContent += "Общая статистика:\n";
@@ -3339,7 +2962,6 @@ function exportStatistics() {
     csvContent += `Минимальное время,${stats.minTime}\n`;
     csvContent += `Максимальное время,${stats.maxTime}\n`;
     csvContent += `Экзамены,${stats.examCount}\n`;
-    csvContent += `Академия,${stats.academyCount}\n`;
     csvContent += `Переаттестации,${stats.retrainingCount}\n\n`;
     
     csvContent += "Распределение оценок:\n";
@@ -3354,9 +2976,9 @@ function exportStatistics() {
         csvContent += `${result.rank},${result.username},${result.score}%,${result.time},${result.correctAnswers},${result.totalAnswers},${result.passed ? 'ПРОЙДЕН' : 'НЕ ПРОЙДЕН'}\n`;
     });
     
-    csvContent += "\nРейтинг академии (от худшего к лучшему):\n";
+    csvContent += "\nРейтинг переаттестации (от худшего к лучшему):\n";
     csvContent += "Место,Имя,Оценка,Время,Правильные ответы,Всего вопросов,Статус\n";
-    stats.academyRanking.forEach(result => {
+    stats.retrainingRanking.forEach(result => {
         csvContent += `${result.rank},${result.username},${result.score}%,${result.time},${result.correctAnswers},${result.totalAnswers},${result.passed ? 'ПРОЙДЕН' : 'НЕ ПРОЙДЕН'}\n`;
     });
     
@@ -3386,6 +3008,8 @@ function clearAllData() {
         renderAdmin();
     }
 }
+
+// === ФУНКЦИИ РАБОТЫ С СОТРУДНИКАМИ В АДМИНКЕ ===
 
 function renderFixedEmployees(employeesData) {
     return `
@@ -3940,6 +3564,8 @@ function deleteEmployeeFile(employeeId, folderType, fileId) {
     showMessage('Файл удален', 'success');
 }
 
+// === ФУНКЦИИ ДЛЯ АРХИВА ВСЕХ ФАЙЛОВ ===
+
 function getAllFilesFromEmployees() {
     const employeesData = loadEmployeesData();
     const allFiles = [];
@@ -4414,22 +4040,6 @@ function deleteSpecificTest(testId, username, testType) {
         localStorage.setItem('pendingTestResults', JSON.stringify(updatedPending));
     }
     
-    const adminFiles = JSON.parse(localStorage.getItem('adminFiles') || '[]');
-    const updatedAdminFiles = adminFiles.filter(file => {
-        const fileUsername = file.username || extractUsernameFromFilename(file.name);
-        const fileTestType = file.testType || extractTestTypeFromFilename(file.name);
-        
-        if (testId && file.gradingData && file.gradingData.id === testId) {
-            return false;
-        }
-        
-        return !(fileUsername === username && fileTestType === testType);
-    });
-    
-    if (updatedAdminFiles.length !== adminFiles.length) {
-        localStorage.setItem('adminFiles', JSON.stringify(updatedAdminFiles));
-    }
-    
     showMessage(`Тест сотрудника "${username}" удален из статистики`, 'success');
     
     renderAdmin();
@@ -4496,6 +4106,22 @@ function deleteAllTestsByEmployee(username) {
     return true;
 }
 
+function deleteAllTests() {
+    if (!confirm('ВНИМАНИЕ! Удалить ВСЕ тесты из статистики?\n\nЭто действие нельзя отменить!')) {
+        return;
+    }
+    
+    localStorage.setItem('testStatistics', JSON.stringify([]));
+    localStorage.setItem('pendingTestResults', JSON.stringify([]));
+    
+    showMessage('Все тесты удалены', 'success');
+    
+    const modal = document.querySelector('.modal-overlay[style*="z-index: 10003"]');
+    if (modal) modal.remove();
+    
+    renderAdmin();
+}
+
 function openTestManagementModal() {
     const statistics = JSON.parse(localStorage.getItem('testStatistics') || '[]');
     const gradedTests = statistics.filter(test => test.graded === true);
@@ -4529,14 +4155,11 @@ function openTestManagementModal() {
             <div style="margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
                 <h4 style="margin-top: 0;">⚡ Быстрые действия</h4>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button class="btn small danger" onclick="deleteAllTestsByType('all')">
+                    <button class="btn small danger" onclick="deleteAllTests()">
                         🗑️ Удалить все тесты
                     </button>
                     <button class="btn small warning" onclick="deleteAllTestsByType('exam')">
                         🎓 Удалить все экзамены
-                    </button>
-                    <button class="btn small warning" onclick="deleteAllTestsByType('academy')">
-                        📚 Удалить всю академию
                     </button>
                     <button class="btn small warning" onclick="deleteAllTestsByType('retraining')">
                         🔄 Удалить все переатт.
@@ -4556,7 +4179,6 @@ function openTestManagementModal() {
                 ${sortedEmployees.map(username => {
                     const tests = testsByEmployee[username];
                     const examTests = tests.filter(t => t.testType === 'exam');
-                    const academyTests = tests.filter(t => t.testType === 'academy');
                     const retrainingTests = tests.filter(t => t.testType === 'retraining');
                     
                     return `
@@ -4580,16 +4202,6 @@ function openTestManagementModal() {
                                         <span>${examTests.length} тестов</span>
                                     </div>
                                     ${renderTestListItems(examTests)}
-                                </div>
-                            ` : ''}
-                            
-                            ${academyTests.length > 0 ? `
-                                <div class="test-type-section">
-                                    <div class="test-type-header">
-                                        <span>📚 Академия</span>
-                                        <span>${academyTests.length} тестов</span>
-                                    </div>
-                                    ${renderTestListItems(academyTests)}
                                 </div>
                             ` : ''}
                             
@@ -4761,20 +4373,656 @@ function filterTestList() {
     });
 }
 
-function deleteAllTests() {
-    if (!confirm('ВНИМАНИЕ! Удалить ВСЕ тесты из статистики?\n\nЭто действие нельзя отменить!')) {
+// === ФУНКЦИИ ДЛЯ АДМИН-ПАНЕЛИ ===
+
+function handleFileUpload(e) {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+    
+    let savedFiles = JSON.parse(localStorage.getItem("adminFiles") || "[]");
+    
+    files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+            const base64 = arrayBufferToBase64(evt.target.result);
+            
+            const extractedUsername = extractUsernameFromFilename(file.name);
+            const testType = extractTestTypeFromFilename(file.name);
+            
+            const existingFileIndex = savedFiles.findIndex(f => f.name === file.name);
+            if (existingFileIndex !== -1) {
+                savedFiles[existingFileIndex] = {
+                    ...savedFiles[existingFileIndex],
+                    content: base64,
+                    size: file.size,
+                    uploaded: new Date().toLocaleString('ru-RU')
+                };
+                showMessage(`Файл "${file.name}" обновлен!`, "success");
+            } else {
+                savedFiles.push({
+                    name: file.name,
+                    size: file.size,
+                    type: file.type,
+                    uploaded: new Date().toLocaleString('ru-RU'),
+                    passed: false,
+                    content: base64,
+                    graded: false,
+                    score: 0,
+                    correctAnswers: 0,
+                    totalAnswers: 0,
+                    gradingData: null,
+                    username: extractedUsername,
+                    testType: testType,
+                    isUnlockFile: file.name.toLowerCase().includes('разблокировк')
+                });
+                showMessage(`Файл "${file.name}" загружен! ${extractedUsername ? `Определен сотрудник: ${extractedUsername}` : 'Сотрудник не определен'}`, "success");
+            }
+            
+            localStorage.setItem("adminFiles", JSON.stringify(savedFiles));
+            renderFiles();
+        };
+        reader.readAsArrayBuffer(file);
+    });
+    
+    e.target.value = "";
+}
+
+function initAdminPanel() {
+    const fileInput = document.getElementById("fileInput");
+    const chooseFileBtn = document.getElementById("chooseFileBtn");
+    
+    if (chooseFileBtn) {
+        chooseFileBtn.addEventListener("click", () => fileInput.click());
+    }
+    if (fileInput) {
+        fileInput.addEventListener("change", handleFileUpload);
+    }
+    
+    renderFiles();
+}
+
+function renderFiles() {
+    const fileList = document.getElementById("fileList");
+    if (!fileList) return;
+    
+    const savedFiles = JSON.parse(localStorage.getItem("adminFiles") || "[]");
+    
+    if (savedFiles.length === 0) {
+        fileList.innerHTML = '<li style="text-align: center; color: var(--text-muted);">Нет загруженных файлов</li>';
+        return;
+    }
+
+    fileList.innerHTML = savedFiles.map((f, i) => `
+        <li>
+            <div class="file-info">
+                <strong>${escapeHtml(f.name)}</strong>
+                <span class="small">${(f.size / 1024).toFixed(1)} KB</span>
+            </div>
+            <div class="small">Загружен: ${f.uploaded}</div>
+            ${f.name.toLowerCase().includes('разблокировк') ? `
+                <div class="small" style="color: var(--warning); font-weight: bold;">
+                    🔓 Файл разблокировки
+                </div>
+            ` : f.graded ? `
+                <div class="small" style="color: ${f.score >= 70 ? 'var(--success)' : 'var(--error)'}; font-weight: bold;">
+                    Оценка: ${f.score}% (${f.correctAnswers}/${f.totalAnswers})
+                </div>
+            ` : ''}
+            
+            <div class="file-actions">
+                <label style="display: flex; align-items: center; gap: 5px;">
+                    <input type="checkbox" class="pass-checkbox" data-index="${i}" ${f.passed ? "checked" : ""}>
+                    <span class="small">Пройден</span>
+                </label>
+                
+                <button class="btn small open-btn" data-index="${i}">👁️ Просмотр</button>
+                
+                ${f.name.toLowerCase().includes('разблокировк') ? `
+                    <button class="btn small unlock-save-btn" data-index="${i}">📁 Сохранить в папку</button>
+                ` : `
+                    <button class="btn small grade-btn" data-index="${i}">📝 ${f.graded ? 'Изменить оценку' : 'Оценить'}</button>
+                `}
+                
+                <button class="btn small ghost del-btn" data-index="${i}">❌ Удалить</button>
+            </div>
+        </li>
+    `).join("");
+
+    document.querySelectorAll(".pass-checkbox").forEach(cb => {
+        cb.addEventListener("change", (e) => {
+            const index = parseInt(e.target.dataset.index);
+            savedFiles[index].passed = e.target.checked;
+            localStorage.setItem("adminFiles", JSON.stringify(savedFiles));
+        });
+    });
+
+    document.querySelectorAll(".open-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            const index = parseInt(e.target.dataset.index);
+            openFileViewer(savedFiles[index]);
+        });
+    });
+
+    document.querySelectorAll(".grade-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            const index = parseInt(e.target.dataset.index);
+            openGradingPanel(savedFiles[index], index);
+        });
+    });
+
+    document.querySelectorAll(".unlock-save-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            const index = parseInt(e.target.dataset.index);
+            saveUnlockFileToEmployee(savedFiles[index], index);
+        });
+    });
+
+    document.querySelectorAll(".del-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            const index = parseInt(e.target.dataset.index);
+            deleteFile(index);
+        });
+    });
+}
+
+function saveUnlockFileToEmployee(file, fileIndex) {
+    try {
+        const storedBase64 = file.content;
+        const fileText = atob(storedBase64);
+        let decryptedContent = null;
+        
+        try {
+            const encrypted = atob(fileText);
+            decryptedContent = CryptoJS.AES.decrypt(encrypted, AES_KEY).toString(CryptoJS.enc.Utf8);
+        } catch (err) {
+            decryptedContent = fileText;
+        }
+
+        const unlockMatch = decryptedContent?.match(/Имя пользователя:\s*([^\n]+)/i);
+        const username = unlockMatch ? unlockMatch[1].trim() : extractUsernameFromFilename(file.name);
+        
+        const typeMatch = decryptedContent?.match(/Тип теста:\s*([^\n]+)/i);
+        const testType = typeMatch ? typeMatch[1].toLowerCase().includes('экзамен') ? 'exam' : 
+                               typeMatch[1].toLowerCase().includes('переаттестац') ? 'retraining' : 'exam' 
+                         : extractTestTypeFromFilename(file.name);
+        
+        if (!username || username === '' || username === 'Вакантно') {
+            showError("Не удалось определить имя сотрудника из файла!");
+            return;
+        }
+
+        showEmployeeSelectionModal(
+            file.name,
+            username,
+            testType,
+            {
+                ...file,
+                isUnlockFile: true,
+                testType: testType,
+                passed: true,
+                score: 100,
+                correctAnswers: 1,
+                totalAnswers: 1,
+                timeSpent: extractTimeFromFilename(file.name) || 15
+            },
+            [{ question: "Файл разблокировки", answer: "Код разблокировки теста", correct: true }],
+            fileIndex
+        );
+        
+    } catch (error) {
+        console.error("Ошибка при обработке файла разблокировки:", error);
+        showError("Ошибка при обработке файла разблокировки");
+    }
+}
+function updateRankMessage() {
+    const messageEl = document.getElementById('rankMessage');
+    const textEl = document.getElementById('rankMessageText');
+    const iconEl = document.getElementById('rankMessageIcon');
+    
+    if (!currentUser || !currentUser.type) {
+        if (messageEl) {
+            messageEl.className = 'rank-message';
+            textEl.textContent = 'Добро пожаловать в систему';
+            iconEl.textContent = '🖥️';
+        }
         return;
     }
     
-    localStorage.setItem('testStatistics', JSON.stringify([]));
-    localStorage.setItem('pendingTestResults', JSON.stringify([]));
+    // Берем случайное приветствие из GREETINGS
+    const greetings = GREETINGS[currentUser.type] || GREETINGS['cadet'];
+    const greetingText = greetings[Math.floor(Math.random() * greetings.length)];
     
-    showMessage('Все тесты удалены', 'success');
+    const icons = {
+        'cadet': '🎓',
+        'officer': '⚖️',
+        'senior_officer': '⭐',
+        'curator': '👑'
+    };
     
-    const modal = document.querySelector('.modal-overlay[style*="z-index: 10003"]');
-    if (modal) modal.remove();
+    if (messageEl) {
+        messageEl.className = `rank-message ${currentUser.type}`;
+    }
+    if (textEl) {
+        textEl.textContent = greetingText;
+    }
+    if (iconEl) {
+        iconEl.textContent = icons[currentUser.type] || '🖥️';
+    }
+}
+
+function openGradingPanel(file, fileIndex) {
+    const gradingPanel = document.getElementById("gradingPanel");
+    const gradingStats = document.getElementById("gradingStats");
+    const answersList = document.getElementById("answersList");
     
-    renderAdmin();
+    if (!gradingPanel || !gradingStats || !answersList) return;
+    
+    try {
+        const storedBase64 = file.content;
+        const fileText = atob(storedBase64);
+        let decryptedPlain = null;
+        
+        try {
+            const encrypted = atob(fileText);
+            decryptedPlain = CryptoJS.AES.decrypt(encrypted, AES_KEY).toString(CryptoJS.enc.Utf8);
+        } catch (err) {
+            decryptedPlain = null;
+        }
+
+        if (decryptedPlain) {
+            let answers = file.gradingData || parseAnswersFromReport(decryptedPlain);
+            const totalCount = answers.length;
+            let correctCount = answers.filter(a => a.correct).length;
+            
+            const updateStats = () => {
+                correctCount = answers.filter(a => a.correct).length;
+                const score = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+                
+                gradingStats.innerHTML = `
+                    <div class="live-stats">
+                        <div class="live-counter">
+                            <div class="counter-item">
+                                <div class="counter-value">${correctCount}</div>
+                                <div class="counter-label">Правильно</div>
+                            </div>
+                            <div class="counter-item">
+                                <div class="counter-value">${totalCount - correctCount}</div>
+                                <div class="counter-label">Неправильно</div>
+                            </div>
+                            <div class="counter-item">
+                                <div class="counter-value">${totalCount}</div>
+                                <div class="counter-label">Всего</div>
+                            </div>
+                        </div>
+                        <div class="progress-circle" style="--progress: ${score}%">
+                            <div class="progress-percent">${score}%</div>
+                        </div>
+                    </div>
+                    ${file.graded ? '<div style="text-align: center; color: var(--success); margin-top: 10px;">✓ Оценка сохранена</div>' : ''}
+                `;
+                
+                return score;
+            };
+            
+            updateStats();
+            
+            const extractedUsername = extractUsernameFromFilename(file.name);
+            const testType = extractTestTypeFromFilename(file.name);
+            
+            answersList.innerHTML = `
+                <div class="grading-container">
+                    <div class="quick-grading-actions">
+                        <button class="bulk-action-btn bulk-correct" id="markAllCorrect">
+                            <span>✅</span>
+                            <span>Отметить все как правильные</span>
+                        </button>
+                        <button class="bulk-action-btn bulk-incorrect" id="markAllIncorrect">
+                            <span>❌</span>
+                            <span>Отметить все как неправильные</span>
+                        </button>
+                        <button class="bulk-action-btn bulk-reset" id="resetAll">
+                            <span>🔄</span>
+                            <span>Сбросить все</span>
+                        </button>
+                    </div>
+                    
+                    <div class="grading-hint">
+                        💡 <strong>Подсказка:</strong> Кликните по любому ответу, чтобы изменить его статус. 
+                        Используйте <span class="hotkey">Space</span> для быстрого переключения.
+                    </div>
+                    
+                    ${answers.map((answer, index) => {
+                        const statusClass = answer.correct ? 'correct' : 'incorrect';
+                        const statusText = answer.correct ? 'Правильный' : 'Неправильный';
+                        const statusColor = answer.correct ? 'status-correct' : 'status-incorrect';
+                        
+                        return `
+                            <div class="answer-full-card ${statusClass}" 
+                                 data-index="${index}"
+                                 tabindex="0"
+                                 role="button"
+                                 aria-label="Ответ ${index + 1}: ${statusText}. Нажмите, чтобы изменить статус">
+                                 
+                                <div class="answer-header">
+                                    <div class="question-number">Вопрос ${index + 1}</div>
+                                    <div class="status-indicator ${statusColor}">
+                                        <span>${answer.correct ? '✅' : '❌'}</span>
+                                        <span>${statusText}</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="question-text">${escapeHtml(answer.question)}</div>
+                                
+                                <div class="answer-text">${escapeHtml(answer.answer || 'Нет ответа')}</div>
+                                
+                                <div class="answer-actions">
+                                    <label class="toggle-label" onclick="event.stopPropagation()">
+                                        <input type="checkbox" 
+                                               class="toggle-checkbox" 
+                                               data-index="${index}" 
+                                               ${answer.correct ? 'checked' : ''}>
+                                        <span>✅ Правильный ответ</span>
+                                    </label>
+                                    
+                                    <div class="quick-actions">
+                                        <button class="quick-btn quick-correct" data-index="${index}" data-action="correct">
+                                            ✅ Правильно
+                                        </button>
+                                        <button class="quick-btn quick-incorrect" data-index="${index}" data-action="incorrect">
+                                            ❌ Неправильно
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="click-feedback"></div>
+                            </div>
+                        `;
+                    }).join('')}
+                    
+                    <div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                        <h4>👤 Определение сотрудника</h4>
+                        <p>Автоматически определено: <strong>${extractedUsername || "Не определено"}</strong></p>
+                        <p>Тип теста: <strong>${getTestTypeName(testType)}</strong></p>
+                        <div style="margin-top: 10px;">
+                            <label style="display: block; margin-bottom: 5px;">Введите имя сотрудника вручную:</label>
+                            <input type="text" id="manualUsernameInput" 
+                                   style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white;"
+                                   placeholder="Введите ник сотрудника"
+                                   value="${extractedUsername || ''}">
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const createClickEffect = (element, x, y) => {
+                const feedback = element.querySelector('.click-feedback');
+                feedback.style.left = `${x}px`;
+                feedback.style.top = `${y}px`;
+                feedback.classList.remove('click-animation');
+                void feedback.offsetWidth;
+                feedback.classList.add('click-animation');
+                
+                setTimeout(() => {
+                    feedback.classList.remove('click-animation');
+                }, 500);
+            };
+
+            document.querySelectorAll('.answer-full-card').forEach(card => {
+                card.addEventListener('click', (e) => {
+                    if (e.target.closest('.toggle-label') || e.target.closest('.quick-btn')) {
+                        return;
+                    }
+                    
+                    const index = parseInt(card.dataset.index);
+                    answers[index].correct = !answers[index].correct;
+                    
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    createClickEffect(card, x, y);
+                    
+                    updateAnswerCard(index, answers[index].correct);
+                    updateStats();
+                    
+                    if (answers[index].correct) {
+                        playSuccessSound();
+                    }
+                });
+                
+                card.addEventListener('keydown', (e) => {
+                    if (e.key === ' ' || e.key === 'Spacebar') {
+                        e.preventDefault();
+                        const index = parseInt(card.dataset.index);
+                        answers[index].correct = !answers[index].correct;
+                        
+                        const rect = card.getBoundingClientRect();
+                        createClickEffect(card, rect.width / 2, rect.height / 2);
+                        
+                        updateAnswerCard(index, answers[index].correct);
+                        updateStats();
+                    }
+                });
+            });
+
+            document.querySelectorAll('.toggle-checkbox').forEach(cb => {
+                cb.addEventListener('change', (e) => {
+                    e.stopPropagation();
+                    const index = parseInt(e.target.dataset.index);
+                    answers[index].correct = e.target.checked;
+                    updateAnswerCard(index, answers[index].correct);
+                    updateStats();
+                });
+            });
+
+            document.querySelectorAll('.quick-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const index = parseInt(e.target.dataset.index);
+                    const action = e.target.dataset.action;
+                    answers[index].correct = (action === 'correct');
+                    
+                    const card = document.querySelector(`.answer-full-card[data-index="${index}"]`);
+                    const rect = card.getBoundingClientRect();
+                    createClickEffect(card, rect.width / 2, rect.height / 2);
+                    
+                    updateAnswerCard(index, answers[index].correct);
+                    updateStats();
+                });
+            });
+
+            document.getElementById('markAllCorrect')?.addEventListener('click', () => {
+                answers.forEach((answer, index) => {
+                    answer.correct = true;
+                    updateAnswerCard(index, true);
+                });
+                updateStats();
+                showMessage('Все ответы отмечены как правильные', 'success');
+            });
+
+            document.getElementById('markAllIncorrect')?.addEventListener('click', () => {
+                answers.forEach((answer, index) => {
+                    answer.correct = false;
+                    updateAnswerCard(index, false);
+                });
+                updateStats();
+                showMessage('Все ответы отмечены как неправильные', 'warning');
+            });
+
+            document.getElementById('resetAll')?.addEventListener('click', () => {
+                answers.forEach((answer, index) => {
+                    answer.correct = false;
+                    updateAnswerCard(index, false);
+                });
+                updateStats();
+                showMessage('Все ответы сброшены', 'info');
+            });
+
+            function updateAnswerCard(index, isCorrect) {
+                const card = document.querySelector(`.answer-full-card[data-index="${index}"]`);
+                const checkbox = document.querySelector(`.toggle-checkbox[data-index="${index}"]`);
+                const statusIndicator = card.querySelector('.status-indicator');
+                
+                if (isCorrect) {
+                    card.classList.remove('incorrect');
+                    card.classList.add('correct');
+                    statusIndicator.classList.remove('status-incorrect');
+                    statusIndicator.classList.add('status-correct');
+                    statusIndicator.innerHTML = '<span>✅</span><span>Правильный</span>';
+                } else {
+                    card.classList.remove('correct');
+                    card.classList.add('incorrect');
+                    statusIndicator.classList.remove('status-correct');
+                    statusIndicator.classList.add('status-incorrect');
+                    statusIndicator.innerHTML = '<span>❌</span><span>Неправильный</span>';
+                }
+                
+                if (checkbox) {
+                    checkbox.checked = isCorrect;
+                }
+            }
+
+            function playSuccessSound() {
+                console.log('✅ Правильный ответ отмечен');
+            }
+
+            const saveGradingBtn = document.getElementById("saveGradingBtn");
+            const closeGradingBtn = document.getElementById("closeGradingBtn");
+            
+            if (saveGradingBtn) {
+                saveGradingBtn.onclick = () => {
+                    file.gradingData = answers;
+                    file.correctAnswers = answers.filter(a => a.correct).length;
+                    file.totalAnswers = answers.length;
+                    file.score = Math.round((file.correctAnswers / file.totalAnswers) * 100);
+                    file.passed = file.score >= 70;
+                    file.testType = testType;
+                    
+                    const manualUsername = document.getElementById('manualUsernameInput')?.value.trim();
+                    const username = manualUsername || extractedUsername;
+                    
+                    if (!username) {
+                        showError("Введите имя сотрудника!");
+                        return;
+                    }
+                    
+                    showEmployeeSelectionModal(file.name, username, testType, file, answers, fileIndex);
+                };
+            }
+            
+            if (closeGradingBtn) {
+                closeGradingBtn.onclick = () => {
+                    gradingPanel.style.display = 'none';
+                };
+            }
+
+            gradingPanel.style.display = 'block';
+            
+            setTimeout(() => {
+                const firstCard = document.querySelector('.answer-full-card');
+                if (firstCard) {
+                    firstCard.focus();
+                }
+            }, 100);
+        }
+    } catch (error) {
+        console.error('Ошибка при загрузке ответов:', error);
+        showError("Ошибка при загрузке ответов для оценки");
+    }
+}
+
+function openFileViewer(file) {
+    const fileViewer = document.getElementById("fileViewer");
+    if (!fileViewer) return;
+    
+    fileViewer.style.display = "block";
+
+    try {
+        const storedBase64 = file.content;
+        const fileText = atob(storedBase64);
+        let decryptedPlain = null;
+        
+        try {
+            const encrypted = atob(fileText);
+            decryptedPlain = CryptoJS.AES.decrypt(encrypted, AES_KEY).toString(CryptoJS.enc.Utf8);
+        } catch (err) {
+            decryptedPlain = null;
+        }
+
+        let contentHTML = '';
+        if (decryptedPlain && decryptedPlain.length > 0) {
+            let reportWithGrading = decryptedPlain;
+            if (file.graded) {
+                reportWithGrading += `\n\n=== ОЦЕНКА АДМИНИСТРАТОРА ===\n`;
+                reportWithGrading += `Оценка: ${file.score}%\n`;
+                reportWithGrading += `Правильных ответов: ${file.correctAnswers}/${file.totalAnswers}\n`;
+                reportWithGrading += `Статус: ${file.passed ? '✅ ПРОЙДЕН' : '❌ НЕ ПРОЙДЕН'}\n`;
+            }
+            
+            contentHTML = `<pre>${escapeHtml(reportWithGrading)}</pre>`;
+        } else {
+            contentHTML = `<pre style="color: var(--error);">Не удалось расшифровать файл.</pre>`;
+        }
+
+        fileViewer.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <strong>${escapeHtml(file.name)}</strong>
+                <button class="btn small" id="closeViewerBtn">✖ Закрыть</button>
+            </div>
+            ${contentHTML}
+        `;
+        
+        document.getElementById("closeViewerBtn").addEventListener("click", () => {
+            fileViewer.style.display = "none";
+        });
+        
+    } catch (error) {
+        fileViewer.innerHTML = `<div style="color: var(--error);">Ошибка при чтении файла</div>`;
+    }
+}
+
+function deleteFile(index) {
+    const savedFiles = JSON.parse(localStorage.getItem("adminFiles") || "[]");
+    const fileName = savedFiles[index].name;
+    
+    if (confirm(`Удалить файл "${fileName}"?`)) {
+        savedFiles.splice(index, 1);
+        localStorage.setItem("adminFiles", JSON.stringify(savedFiles));
+        renderFiles();
+        
+        const fileViewer = document.getElementById("fileViewer");
+        const gradingPanel = document.getElementById("gradingPanel");
+        
+        if (fileViewer) fileViewer.style.display = "none";
+        if (gradingPanel) gradingPanel.style.display = "none";
+        
+        showMessage(`Файл "${fileName}" удален`, "success");
+    }
+}
+
+function authenticateAdmin() {
+    if (isAdminAuthenticated) {
+        return true;
+    }
+    
+    const pwd = prompt("Введите пароль для Админки:");
+    if (pwd === ADMIN_PASSWORD) {
+        isAdminAuthenticated = true;
+        localStorage.setItem('adminAuthenticated', 'true');
+        return true;
+    } else {
+        alert("Неверный пароль!");
+        return false;
+    }
+}
+
+function logoutAdmin() {
+    isAdminAuthenticated = false;
+    localStorage.setItem('adminAuthenticated', 'false');
+    showMessage("Выход из админ-панели выполнен", "info");
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelector(".tab[data-tab='exam']").classList.add("active");
+    currentTestType = 'exam';
+    renderCurrentTest();
 }
 
 function renderAdmin() {
@@ -4882,7 +5130,6 @@ function renderAdmin() {
                                 <h4>🏆 Топ-10 результатов</h4>
                                 <div class="ranking-tabs">
                                     <button class="btn small active" onclick="switchRankingTab('exam')">🎓 Экзамены</button>
-                                    <button class="btn small" onclick="switchRankingTab('academy')">📚 Академия</button>
                                     <button class="btn small" onclick="switchRankingTab('retraining')">🔄 Переатт.</button>
                                 </div>
                                 <div id="rankingContent">
@@ -4987,13 +5234,31 @@ function renderAdmin() {
         tab.addEventListener('click', function() {
             rankingTabs.forEach(t => t.classList.remove('active'));
             this.classList.add('active');
-            const type = this.textContent.includes('Экзамен') ? 'exam' : 
-                        this.textContent.includes('Академия') ? 'academy' : 'retraining';
+            const type = this.textContent.includes('Экзамен') ? 'exam' : 'retraining';
             switchRankingTab(type);
         });
     });
 }
-
+function updatePlayersDatalist() {
+    const datalist = document.getElementById('playersList');
+    if (datalist) {
+        // Заполняем список игроков из базы
+        const players = JSON.parse(localStorage.getItem('playersDatabase') || '[]');
+        datalist.innerHTML = players.map(player => 
+            `<option value="${player.username}">`
+        ).join('');
+    }
+    
+    // Также обновляем список в модалке авторизации
+    const authDatalist = document.getElementById('authPlayersList');
+    if (authDatalist) {
+        const employeesData = loadEmployeesData();
+        const names = Object.values(employeesData)
+            .filter(emp => emp.username && emp.username !== 'Вакантно')
+            .map(emp => emp.username);
+        authDatalist.innerHTML = names.map(name => `<option value="${name}">`).join('');
+    }
+}
 function switchRankingTab(type) {
     const stats = calculateStats();
     let ranking;
@@ -5001,9 +5266,6 @@ function switchRankingTab(type) {
     switch(type) {
         case 'exam':
             ranking = stats.examRanking;
-            break;
-        case 'academy':
-            ranking = stats.academyRanking;
             break;
         case 'retraining':
             ranking = stats.retrainingRanking;
@@ -5025,14 +5287,113 @@ function switchRankingTab(type) {
     }
 }
 
+// === ИНИЦИАЛИЗАЦИЯ ===
+
 function initUI() {
     if (inactivityTimer) {
         clearTimeout(inactivityTimer);
         inactivityTimer = null;
     }
     
+    // === РАЗБЛОКИРУЕМ АВТОРИЗАЦИЮ ПЕРЕД ВСЕМ ===
+    document.querySelectorAll('#authModal input, #authModal button, #authModal select, #authModal textarea').forEach(el => {
+        el.disabled = false;
+        el.style.pointerEvents = 'auto';
+        el.style.opacity = '1';
+    });
+    
+    // === РАЗБЛОКИРУЕМ ПОЛЕ ВВОДА НИКА ===
+    const usernameInput = document.getElementById('username');
+    if (usernameInput) {
+        usernameInput.disabled = false;
+        usernameInput.style.pointerEvents = 'auto';
+        usernameInput.style.opacity = '1';
+    }
+    
+    // === РАЗБЛОКИРУЕМ КНОПКУ ВЫХОДА ===
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.disabled = false;
+        logoutBtn.style.pointerEvents = 'auto';
+        logoutBtn.style.opacity = '1';
+    }
+    
     loadTestState();
-    updatePlayersDatalist();
+    
+    // === ОБНОВЛЯЕМ СПИСКИ ===
+    const datalist = document.getElementById('playersList');
+    if (datalist) {
+        const players = JSON.parse(localStorage.getItem('playersDatabase') || '[]');
+        datalist.innerHTML = players.map(player => 
+            `<option value="${player.username}">`
+        ).join('');
+    }
+    
+    const authDatalist = document.getElementById('authPlayersList');
+    if (authDatalist) {
+        const employeesData = loadEmployeesData();
+        const names = Object.values(employeesData)
+            .filter(emp => emp.username && emp.username !== 'Вакантно')
+            .map(emp => emp.username);
+        authDatalist.innerHTML = names.map(name => `<option value="${name}">`).join('');
+    }
+    
+    // === ПРОВЕРКА АВТОРИЗАЦИИ ===
+    if (checkAuth()) {
+        const authModal = document.getElementById('authModal');
+        const app = document.getElementById('app');
+        const userNameDisplay = document.getElementById('userNameDisplay');
+        const userRoleDisplay = document.getElementById('userRoleDisplay');
+        const usernameInput2 = document.getElementById('username');
+        const avatar = document.getElementById('userAvatar');
+        const currentUsernameDisplay = document.getElementById('currentUsernameDisplay');
+        const currentUserRoleDisplay = document.getElementById('currentUserRoleDisplay');
+        
+        if (authModal) {
+            authModal.style.opacity = '0';
+            authModal.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => {
+                authModal.style.display = 'none';
+            }, 500);
+        }
+        if (app) {
+            app.style.display = 'block';
+            app.style.opacity = '0';
+            app.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => {
+                app.style.opacity = '1';
+            }, 100);
+        }
+        
+        if (userNameDisplay) userNameDisplay.textContent = currentUser.username;
+        if (userRoleDisplay) userRoleDisplay.textContent = currentUser.position;
+        if (currentUsernameDisplay) currentUsernameDisplay.textContent = currentUser.username;
+        if (currentUserRoleDisplay) currentUserRoleDisplay.textContent = `— ${currentUser.position}`;
+        
+        if (avatar) {
+            const icons = {
+                'curator': '👑',
+                'senior_officer': '⭐',
+                'officer': '⚖️',
+                'cadet': '🎓'
+            };
+            avatar.textContent = icons[currentUser.type] || '👤';
+        }
+        
+        if (usernameInput2) {
+            usernameInput2.disabled = false;
+            usernameInput2.style.pointerEvents = 'auto';
+            usernameInput2.style.opacity = '1';
+        }
+        
+        updateRankMessage();
+        renderGreeting();
+        renderCurrentTest();
+    } else {
+        document.getElementById('authModal').style.display = 'flex';
+        document.getElementById('authModal').style.opacity = '1';
+        document.getElementById('app').style.display = 'none';
+    }
     
     // === ВКЛАДКИ АВТОРИЗАЦИИ (ВХОД / РЕГИСТРАЦИЯ) ===
     let authMode = 'login';
@@ -5071,93 +5432,11 @@ function initUI() {
         }
     });
     
-    // === ПРОВЕРКА АВТОРИЗАЦИИ ===
-    if (checkAuth()) {
-        const authModal = document.getElementById('authModal');
-        const app = document.getElementById('app');
-        const userNameDisplay = document.getElementById('userNameDisplay');
-        const userRoleDisplay = document.getElementById('userRoleDisplay');
-        const usernameInput = document.getElementById('username');
-        const avatar = document.getElementById('userAvatar');
-        const currentUsernameDisplay = document.getElementById('currentUsernameDisplay');
-        const currentUserRoleDisplay = document.getElementById('currentUserRoleDisplay');
-        
-        if (authModal) {
-            authModal.style.opacity = '0';
-            authModal.style.transition = 'opacity 0.5s ease';
-            setTimeout(() => {
-                authModal.style.display = 'none';
-            }, 500);
-        }
-        if (app) {
-            app.style.display = 'block';
-            app.style.opacity = '0';
-            app.style.transition = 'opacity 0.5s ease';
-            setTimeout(() => {
-                app.style.opacity = '1';
-            }, 100);
-        }
-        
-        if (userNameDisplay) userNameDisplay.textContent = currentUser.username;
-        if (userRoleDisplay) userRoleDisplay.textContent = currentUser.position;
-        if (currentUsernameDisplay) currentUsernameDisplay.textContent = currentUser.username;
-        if (currentUserRoleDisplay) currentUserRoleDisplay.textContent = `— ${currentUser.position}`;
-        
-        if (avatar) {
-            const icons = {
-                'curator': '👑',
-                'senior_officer': '⭐',
-                'officer': '⚖️',
-                'cadet': '🎓'
-            };
-            avatar.textContent = icons[currentUserType] || '👤';
-        }
-        
-        if (usernameInput) {
-            usernameInput.disabled = false;
-            usernameInput.style.pointerEvents = 'auto';
-            usernameInput.style.opacity = '1';
-        }
-        
-        // === УБЕЖДАЕМСЯ, ЧТО ЭЛЕМЕНТ testGreeting СУЩЕСТВУЕТ ===
-        let greetingEl = document.getElementById('testGreeting');
-        if (!greetingEl) {
-            const mainArea = document.getElementById('mainArea');
-            if (mainArea) {
-                const greetingContainer = document.createElement('div');
-                greetingContainer.id = 'testGreeting';
-                mainArea.prepend(greetingContainer);
-            }
-        }
-        
-        renderAIGreeting();
-        renderCurrentTest();
-    } else {
-        document.getElementById('authModal').style.display = 'flex';
-        document.getElementById('authModal').style.opacity = '1';
-        document.getElementById('app').style.display = 'none';
-    }
-    
-    const employeesData = loadEmployeesData();
-    const authDatalist = document.getElementById('authPlayersList');
-    if (authDatalist) {
-        const names = Object.values(employeesData)
-            .filter(emp => emp.username && emp.username !== 'Вакантно')
-            .map(emp => emp.username);
-        authDatalist.innerHTML = names.map(name => `<option value="${name}">`).join('');
-    }
-    
-    document.addEventListener('mousemove', trackActivity);
-    document.addEventListener('mousedown', trackActivity);
-    document.addEventListener('keypress', trackActivity);
-    document.addEventListener('keydown', trackActivity);
-    document.addEventListener('scroll', trackActivity);
-    document.addEventListener('click', trackActivity);
-    
     document.addEventListener('visibilitychange', () => {
         if (document.hidden && test && !test.blocked) {
-            showError("Тест заблокирован! Не переключайте вкладки.");
-            blockTest('Бездействие');
+            console.log('🚫 Пользователь покинул вкладку!');
+            showError("Тест заблокирован! Не переключайте вкладки во время теста.");
+            blockTest();
         }
     });
     
@@ -5165,12 +5444,18 @@ function initUI() {
         if (test && !test.blocked) {
             setTimeout(() => {
                 if (document.hidden && test && !test.blocked) {
-                    showError("Тест заблокирован! Не переключайтесь.");
-                    blockTest('Бездействие');
+                    console.log('🚫 Окно потеряло фокус!');
+                    showError("Тест заблокирован! Не переключайтесь в другие окна.");
+                    blockTest();
                 }
             }, 500);
         }
     });
+    
+    document.addEventListener('mousemove', trackActivity);
+    document.addEventListener('mousedown', trackActivity);
+    document.addEventListener('keypress', trackActivity);
+    document.addEventListener('keydown', trackActivity);
     
     document.querySelectorAll(".tab").forEach(tab => {
         tab.addEventListener("click", () => {
@@ -5191,6 +5476,7 @@ function initUI() {
                     document.querySelector(".tab[data-tab='exam']").classList.add("active");
                     document.getElementById("mainArea").style.display = "block";
                     document.getElementById("adminArea").style.display = "none";
+                    document.getElementById("decreeArea").style.display = "none";
                     contentArea.classList.remove("admin-active");
                     currentTestType = 'exam';
                     renderCurrentTest();
@@ -5202,7 +5488,6 @@ function initUI() {
                 document.getElementById("mainArea").style.display = "none";
                 document.getElementById("adminArea").style.display = "none";
                 document.getElementById("decreeArea").style.display = "block";
-                currentTestType = tabName;
                 if (typeof renderDecree === 'function') {
                     renderDecree();
                 }
@@ -5217,20 +5502,9 @@ function initUI() {
         });
     });
 
-    const startBtn = document.getElementById("startBtn");
-    if (startBtn) {
-        startBtn.addEventListener("click", showDisclaimer);
-    }
-    
-    const finishBtn = document.getElementById("finishBtn");
-    if (finishBtn) {
-        finishBtn.addEventListener("click", finishTestManually);
-    }
-    
-    const unlockBtn = document.getElementById("unlockBtn");
-    if (unlockBtn) {
-        unlockBtn.addEventListener("click", unblockTest);
-    }
+    document.getElementById("startBtn").addEventListener("click", showDisclaimer);
+    document.getElementById("finishBtn").addEventListener("click", finishTestManually);
+    document.getElementById("unlockBtn").addEventListener("click", unblockTest);
     
     const adminUnlockBtn = document.getElementById("adminUnlockBtn");
     if (adminUnlockBtn) {
@@ -5240,6 +5514,12 @@ function initUI() {
     document.getElementById("unlockBtn").style.display = "none";
     if (adminUnlockBtn) adminUnlockBtn.style.display = "none";
 
+    // === КНОПКА ВЫХОДА ===
+    const logoutBtn2 = document.getElementById('logoutBtn');
+    if (logoutBtn2) {
+        logoutBtn2.addEventListener('click', logoutUser);
+    }
+
     setInterval(() => {
         if (test && !test.blocked) {
             const timeSinceLastActivity = Date.now() - lastActivityTime;
@@ -5248,11 +5528,6 @@ function initUI() {
             }
         }
     }, 1000);
-    
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', logoutUser);
-    }
 
     // === РАЗБЛОКИРУЕМ ПОЛЯ ВВОДА ===
     ['username', 'authUsername'].forEach(id => {
@@ -5261,7 +5536,6 @@ function initUI() {
             el.disabled = false;
             el.style.pointerEvents = 'auto';
             el.style.opacity = '1';
-            el.style.display = 'block';
         }
     });
 
