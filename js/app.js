@@ -346,9 +346,7 @@ function resetPassword() {
     document.getElementById('authActionBtn').textContent = '🔑 Войти в систему';
 }
 
-// === ФУНКЦИЯ ДЛЯ АДМИНИСТРАТОРА - ВЫДАТЬ КОД СБРОСА ===
 function adminGenerateResetCode() {
-    // Проверяем, авторизован ли админ
     if (!isAdminAuthenticated) {
         if (!authenticateAdmin()) {
             showError('Только для администратора!');
@@ -356,25 +354,43 @@ function adminGenerateResetCode() {
         }
     }
     
-    const username = prompt('Введите ник сотрудника для сброса пароля (например: Jan_Abobbi):');
+    const username = prompt('Введите ник сотрудника для сброса пароля:');
     if (!username || username.trim() === '') return;
     
-    const trimmedUsername = username.trim();
-    const userData = usersDatabase[trimmedUsername.toLowerCase()];
-    if (!userData) {
-        showError(`❌ Пользователь "${trimmedUsername}" не найден!`);
+    const trimmedUsername = username.trim().toLowerCase();
+    
+    // Проверяем, есть ли пользователь в FIXED_EMPLOYEE_STRUCTURE
+    const employeesData = loadEmployeesData();
+    const employee = Object.values(employeesData).find(emp => 
+        emp.username.toLowerCase() === trimmedUsername && emp.username !== 'Вакантно'
+    );
+    
+    if (!employee) {
+        showError(`❌ Сотрудник "${trimmedUsername}" не найден в системе!`);
         return;
+    }
+    
+    // Если пользователь не зарегистрирован - создаём
+    if (!usersDatabase[trimmedUsername]) {
+        usersDatabase[trimmedUsername] = {
+            username: trimmedUsername,
+            password: hashPassword(generateReadableCode()),
+            callsign: '',
+            registeredAt: Date.now(),
+            lastLogin: Date.now()
+        };
+        localStorage.setItem('usersDatabase', JSON.stringify(usersDatabase));
+        showMessage(`✅ Аккаунт для ${trimmedUsername} создан!`, 'success');
     }
     
     const resetCode = generateReadableCode();
     const resetData = JSON.parse(localStorage.getItem('tempResetCodes') || '{}');
-    resetData[trimmedUsername.toLowerCase()] = {
+    resetData[trimmedUsername] = {
         code: resetCode,
         expires: Date.now() + 86400000 // 24 часа
     };
     localStorage.setItem('tempResetCodes', JSON.stringify(resetData));
     
-    // Создаем файл с кодом сброса
     const resetContent = `КОД СБРОСА ПАРОЛЯ
 =================================
 
