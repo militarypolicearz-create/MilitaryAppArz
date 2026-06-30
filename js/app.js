@@ -340,6 +340,17 @@ function resetPassword() {
     document.getElementById('authActionBtn').textContent = '🔑 Войти в систему';
 }
 // === ФУНКЦИЯ ЗАПРОСА КОДА СБРОСА (для пользователя) ===
+// === ФУНКЦИЯ ДЛЯ ПРИВЕДЕНИЯ ИМЕНИ К ПРАВИЛЬНОМУ ФОРМАТУ ===
+function formatUsername(username) {
+    const parts = username.split(/[_\s-]/);
+    const formattedParts = parts.map(part => {
+        if (part.length === 0) return part;
+        return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+    });
+    return formattedParts.join('_');
+}
+
+// === ФУНКЦИЯ ЗАПРОСА КОДА СБРОСА (для пользователя) ===
 function requestResetCode() {
     const username = document.getElementById('resetUsername').value.trim();
     if (!username) {
@@ -347,7 +358,9 @@ function requestResetCode() {
         return;
     }
     
-    const trimmedUsername = username.trim().toLowerCase();
+    // Приводим к правильному формату
+    const formattedUsername = formatUsername(username);
+    const trimmedUsername = formattedUsername.toLowerCase();
     
     const employeesData = loadEmployeesData();
     const employee = Object.values(employeesData).find(emp => 
@@ -355,13 +368,13 @@ function requestResetCode() {
     );
     
     if (!employee) {
-        showAuthStatus('❌ Сотрудник с таким ником не найден в системе!', 'error');
+        showAuthStatus(`❌ Сотрудник "${formattedUsername}" не найден в системе!`, 'error');
         return;
     }
     
     if (!usersDatabase[trimmedUsername]) {
         usersDatabase[trimmedUsername] = {
-            username: trimmedUsername,
+            username: formattedUsername,
             password: hashPassword(generateReadableCode()),
             callsign: '',
             registeredAt: Date.now(),
@@ -381,13 +394,14 @@ function requestResetCode() {
     const resetContent = `КОД СБРОСА ПАРОЛЯ
 =================================
 
-Имя пользователя: ${trimmedUsername}
+Имя пользователя: ${formattedUsername}
 Код сброса: ${resetCode}
 
 Инструкция:
-1. Скопируйте этот код
-2. Вставьте его в поле "Код сброса"
-3. Придумайте новый пароль и подтвердите его
+1. Отправьте этот файл администратору
+2. Администратор расшифрует файл и сообщит вам код
+3. Введите полученный код в поле "Код сброса"
+4. Придумайте новый пароль и подтвердите его
 
 Код действителен 24 часа.
 
@@ -395,16 +409,125 @@ function requestResetCode() {
 Arizona RP | Военная Полиция`;
 
     try {
-        // ШИФРУЕМ КАК В РАЗБЛОКИРОВОЧНОМ КОДЕ
         const encrypted = CryptoJS.AES.encrypt(resetContent, AES_KEY).toString();
         const blob = new Blob([btoa(encrypted)], { 
             type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
         });
-        saveAs(blob, `${trimmedUsername}_код_сброса_пароля.docx`);
-        showAuthStatus(`✅ Код сброса скачан!`, 'success');
+        saveAs(blob, `${formattedUsername}_код_сброса_пароля.docx`);
+        showAuthStatus(`✅ Файл с кодом сброса скачан! Отправьте его администратору.`, 'success');
     } catch (e) {
         showAuthStatus('❌ Ошибка создания файла!', 'error');
     }
+}
+
+// === ФУНКЦИЯ ДЛЯ АДМИНИСТРАТОРА - РАСШИФРОВАТЬ ФАЙЛ С КОДОМ ===
+function adminDecryptResetFile() {
+    if (!isAdminAuthenticated) {
+        if (!authenticateAdmin()) {
+            showError('Только для администратора!');
+            return;
+        }
+    }
+    
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.docx';
+    fileInput.onchange = function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            try {
+                const fileText = atob(evt.target.result);
+                const decrypted = CryptoJS.AES.decrypt(fileText, AES_KEY).toString(CryptoJS.enc.Utf8);
+                
+                const codeMatch = decrypted.match(/Код сброса:\s*([^\n]+)/i);
+                const usernameMatch = decrypted.match(/Имя пользователя:\s*([^\n]+)/i);
+                
+                if (codeMatch && usernameMatch) {
+                    alert(`🔑 Расшифрованный код:\n\nПользователь: ${usernameMatch[1].trim()}\nКод сброса: ${codeMatch[1].trim()}\n\nПередайте этот код пользователю.`);
+                } else {
+                    alert('❌ Не удалось найти код в файле!\n\nРасшифрованный текст:\n' + decrypted);
+                }
+            } catch (err) {
+                alert('❌ Ошибка расшифровки файла! Убедитесь, что файл зашифрован правильно.');
+                console.error(err);
+            }
+        };
+        reader.readAsText(file);
+    };
+    fileInput.click();
+}
+
+// === ФУНКЦИЯ СБРОСА ПАРОЛЯ (для пользователя) ===
+function resetPassword() {
+    const username = document.getElementById('resetUsername').value.trim().toLowerCase();
+    const code = document.getElementById('resetCode').value.trim().toUpperCase();
+    const newPassword = document.getElementById('resetNewPassword').value;
+    const confirmPassword = document.getElementById('resetConfirmPassword').value;
+    
+    if (!username || !code || !newPassword || !confirmPassword) {
+        showAuthStatus('❌ Заполните все поля!', 'error');
+        return;
+    }
+    
+    if (newPassword.length < 6) {
+        showAuthStatus('❌ Пароль должен быть минимум 6 символов!', 'error');
+        return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+        showAuthStatus('❌ Пароли не совпадают!', 'error');
+        return;
+    }
+    
+    const userData = usersDatabase[username];
+    if (!userData) {
+        showAuthStatus('❌ Пользователь не найден!', 'error');
+        return;
+    }
+    
+    const resetData = JSON.parse(localStorage.getItem('tempResetCodes') || '{}');
+    const userReset = resetData[username];
+    
+    if (!userReset) {
+        showAuthStatus('❌ Код сброса не найден. Нажмите "Запросить код сброса".', 'error');
+        return;
+    }
+    
+    if (Date.now() > userReset.expires) {
+        showAuthStatus('❌ Код сброса истек. Запросите новый код.', 'error');
+        delete resetData[username];
+        localStorage.setItem('tempResetCodes', JSON.stringify(resetData));
+        return;
+    }
+    
+    if (userReset.code !== code) {
+        showAuthStatus('❌ Неверный код сброса!', 'error');
+        return;
+    }
+    
+    userData.password = hashPassword(newPassword);
+    userData.lastLogin = Date.now();
+    localStorage.setItem('usersDatabase', JSON.stringify(usersDatabase));
+    
+    delete resetData[username];
+    localStorage.setItem('tempResetCodes', JSON.stringify(resetData));
+    
+    showAuthStatus(`✅ Пароль успешно изменен!`, 'success');
+    
+    document.getElementById('resetUsername').value = '';
+    document.getElementById('resetCode').value = '';
+    document.getElementById('resetNewPassword').value = '';
+    document.getElementById('resetConfirmPassword').value = '';
+    
+    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector('.auth-tab[data-tab="login"]').classList.add('active');
+    document.getElementById('loginPanel').style.display = 'block';
+    document.getElementById('registerPanel').style.display = 'none';
+    document.getElementById('resetPanel').style.display = 'none';
+    document.getElementById('authActionBtn').textContent = '🔑 Войти в систему';
 }
 function adminGenerateResetCode() {
     if (!isAdminAuthenticated) {
@@ -5080,7 +5203,6 @@ function renderAdmin() {
                         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                             <button class="btn small" onclick="exportStatistics()">📈 Экспорт статистики</button>
                             <button class="btn small" onclick="openTestManagementModal()">🗑️ Управление тестами</button>
-                            <button class="btn small" onclick="adminGenerateResetCode()" style="background: var(--warning); color: black;">🔑 Выдать код сброса пароля</button>
                             <button class="btn small ghost" onclick="logoutAdmin()">🚪 Выйти</button>
                         </div>
                     </div>
@@ -5278,6 +5400,307 @@ function switchRankingTab(type) {
 // === ИНИЦИАЛИЗАЦИЯ ===
 
 function initUI() {
+    if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = null;
+    }
+    
+    // === РАЗБЛОКИРУЕМ АВТОРИЗАЦИЮ ПЕРЕД ВСЕМ ===
+    document.querySelectorAll('#authModal input, #authModal button, #authModal select, #authModal textarea').forEach(el => {
+        el.disabled = false;
+        el.style.pointerEvents = 'auto';
+        el.style.opacity = '1';
+    });
+    
+    // === РАЗБЛОКИРУЕМ ПОЛЕ ВВОДА НИКА ===
+    const usernameInput = document.getElementById('username');
+    if (usernameInput) {
+        usernameInput.disabled = false;
+        usernameInput.style.pointerEvents = 'auto';
+        usernameInput.style.opacity = '1';
+    }
+    
+    // === РАЗБЛОКИРУЕМ КНОПКУ ВЫХОДА ===
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.disabled = false;
+        logoutBtn.style.pointerEvents = 'auto';
+        logoutBtn.style.opacity = '1';
+    }
+    
+    loadTestState();
+    
+    // === ОБНОВЛЯЕМ СПИСКИ ===
+    const datalist = document.getElementById('playersList');
+    if (datalist) {
+        const players = JSON.parse(localStorage.getItem('playersDatabase') || '[]');
+        datalist.innerHTML = players.map(player => 
+            `<option value="${player.username}">`
+        ).join('');
+    }
+    
+    const authDatalist = document.getElementById('authPlayersList');
+    if (authDatalist) {
+        const employeesData = loadEmployeesData();
+        const names = Object.values(employeesData)
+            .filter(emp => emp.username && emp.username !== 'Вакантно')
+            .map(emp => emp.username);
+        authDatalist.innerHTML = names.map(name => `<option value="${name}">`).join('');
+    }
+    
+    // === ПРОВЕРКА АВТОРИЗАЦИИ ===
+    if (checkAuth()) {
+        const authModal = document.getElementById('authModal');
+        const app = document.getElementById('app');
+        const userNameDisplay = document.getElementById('userNameDisplay');
+        const userRoleDisplay = document.getElementById('userRoleDisplay');
+        const usernameInput2 = document.getElementById('username');
+        const avatar = document.getElementById('userAvatar');
+        const currentUsernameDisplay = document.getElementById('currentUsernameDisplay');
+        const currentUserRoleDisplay = document.getElementById('currentUserRoleDisplay');
+        
+        if (authModal) {
+            authModal.style.opacity = '0';
+            authModal.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => {
+                authModal.style.display = 'none';
+            }, 500);
+        }
+        if (app) {
+            app.style.display = 'block';
+            app.style.opacity = '0';
+            app.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => {
+                app.style.opacity = '1';
+            }, 100);
+        }
+        
+        if (userNameDisplay) userNameDisplay.textContent = currentUser.username;
+        if (userRoleDisplay) userRoleDisplay.textContent = currentUser.position;
+        if (currentUsernameDisplay) currentUsernameDisplay.textContent = currentUser.username;
+        if (currentUserRoleDisplay) currentUserRoleDisplay.textContent = `— ${currentUser.position}`;
+        
+        if (avatar) {
+            const icons = {
+                'curator': '👑',
+                'senior_officer': '⭐',
+                'officer': '⚖️',
+                'cadet': '🎓'
+            };
+            avatar.textContent = icons[currentUser.type] || '👤';
+        }
+        
+        if (usernameInput2) {
+            usernameInput2.disabled = false;
+            usernameInput2.style.pointerEvents = 'auto';
+            usernameInput2.style.opacity = '1';
+        }
+        
+        updateRankMessage();
+        renderGreeting();
+        renderCurrentTest();
+    } else {
+        document.getElementById('authModal').style.display = 'flex';
+        document.getElementById('authModal').style.opacity = '1';
+        document.getElementById('app').style.display = 'none';
+    }
+    
+    // === ВКЛАДКИ АВТОРИЗАЦИИ (ВХОД / РЕГИСТРАЦИЯ / СБРОС) ===
+    let authMode = 'login';
+    
+    document.querySelectorAll('.auth-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            authMode = this.dataset.tab;
+            
+            document.getElementById('loginPanel').style.display = authMode === 'login' ? 'block' : 'none';
+            document.getElementById('registerPanel').style.display = authMode === 'register' ? 'block' : 'none';
+            document.getElementById('resetPanel').style.display = authMode === 'reset' ? 'block' : 'none';
+            
+            const btn = document.getElementById('authActionBtn');
+            if (authMode === 'login') {
+                btn.textContent = '🔑 Войти в систему';
+            } else if (authMode === 'register') {
+                btn.textContent = '📝 Зарегистрироваться';
+            } else {
+                btn.textContent = '🔒 Сбросить пароль';
+            }
+            
+            document.getElementById('authStatus').style.display = 'none';
+        });
+    });
+    
+    document.getElementById('authActionBtn').addEventListener('click', function() {
+        if (authMode === 'login') {
+            const username = document.getElementById('authUsername').value.trim();
+            const password = document.getElementById('authPassword').value;
+            loginUser(username, password);
+        } else if (authMode === 'register') {
+            const username = document.getElementById('regUsername').value.trim();
+            const callsign = document.getElementById('regCallsign').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('regConfirmPassword').value;
+            registerUser(username, password, confirmPassword, callsign);
+        } else {
+            resetPassword();
+        }
+    });
+    
+    // === ЗАПРОС КОДА СБРОСА ===
+    document.getElementById('requestResetBtn')?.addEventListener('click', function() {
+        requestResetCode();
+    });
+    
+    document.getElementById('authPassword').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('authActionBtn').click();
+        }
+    });
+    
+    document.getElementById('regPassword').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('regConfirmPassword').focus();
+        }
+    });
+    
+    document.getElementById('regConfirmPassword').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('authActionBtn').click();
+        }
+    });
+    
+    document.getElementById('resetCode').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('resetNewPassword').focus();
+        }
+    });
+    
+    document.getElementById('resetNewPassword').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('resetConfirmPassword').focus();
+        }
+    });
+    
+    document.getElementById('resetConfirmPassword').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('authActionBtn').click();
+        }
+    });
+    
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden && test && !test.blocked) {
+            console.log('🚫 Пользователь покинул вкладку!');
+            showError("Тест заблокирован! Не переключайте вкладки во время теста.");
+            blockTest();
+        }
+    });
+    
+    window.addEventListener('blur', () => {
+        if (test && !test.blocked) {
+            setTimeout(() => {
+                if (document.hidden && test && !test.blocked) {
+                    console.log('🚫 Окно потеряло фокус!');
+                    showError("Тест заблокирован! Не переключайтесь в другие окна.");
+                    blockTest();
+                }
+            }, 500);
+        }
+    });
+    
+    document.addEventListener('mousemove', trackActivity);
+    document.addEventListener('mousedown', trackActivity);
+    document.addEventListener('keypress', trackActivity);
+    document.addEventListener('keydown', trackActivity);
+    
+    document.querySelectorAll(".tab").forEach(tab => {
+        tab.addEventListener("click", () => {
+            trackActivity();
+            const tabName = tab.dataset.tab;
+            
+            document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+            tab.classList.add("active");
+            
+            const contentArea = document.getElementById("contentArea");
+            if (tabName === "admin") {
+                contentArea.classList.add("admin-active");
+                document.getElementById("mainArea").style.display = "none";
+                document.getElementById("adminArea").style.display = "block";
+                document.getElementById("decreeArea").style.display = "none";
+                if (!authenticateAdmin()) {
+                    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+                    document.querySelector(".tab[data-tab='exam']").classList.add("active");
+                    document.getElementById("mainArea").style.display = "block";
+                    document.getElementById("adminArea").style.display = "none";
+                    document.getElementById("decreeArea").style.display = "none";
+                    contentArea.classList.remove("admin-active");
+                    currentTestType = 'exam';
+                    renderCurrentTest();
+                    return;
+                }
+                renderAdmin();
+            } else if (tabName === "decree") {
+                contentArea.classList.remove("admin-active");
+                document.getElementById("mainArea").style.display = "none";
+                document.getElementById("adminArea").style.display = "none";
+                document.getElementById("decreeArea").style.display = "block";
+                if (typeof renderDecree === 'function') {
+                    renderDecree();
+                }
+            } else {
+                contentArea.classList.remove("admin-active");
+                document.getElementById("mainArea").style.display = "block";
+                document.getElementById("adminArea").style.display = "none";
+                document.getElementById("decreeArea").style.display = "none";
+                currentTestType = tabName;
+                renderCurrentTest();
+            }
+        });
+    });
+
+    document.getElementById("startBtn").addEventListener("click", showDisclaimer);
+    document.getElementById("finishBtn").addEventListener("click", finishTestManually);
+    document.getElementById("unlockBtn").addEventListener("click", unblockTest);
+    
+    const adminUnlockBtn = document.getElementById("adminUnlockBtn");
+    if (adminUnlockBtn) {
+        adminUnlockBtn.addEventListener("click", adminUnblockTest);
+    }
+
+    document.getElementById("unlockBtn").style.display = "none";
+    if (adminUnlockBtn) adminUnlockBtn.style.display = "none";
+
+    // === КНОПКА ВЫХОДА ===
+    const logoutBtn2 = document.getElementById('logoutBtn');
+    if (logoutBtn2) {
+        logoutBtn2.addEventListener('click', logoutUser);
+    }
+
+    // === КНОПКИ УПРАВЛЕНИЯ ПОЛЬЗОВАТЕЛЕМ ===
+    document.getElementById('showUserInfoBtn')?.addEventListener('click', showUserInfo);
+    document.getElementById('changePasswordBtn')?.addEventListener('click', openChangePasswordModal);
+
+    setInterval(() => {
+        if (test && !test.blocked) {
+            const timeSinceLastActivity = Date.now() - lastActivityTime;
+            if (timeSinceLastActivity >= INACTIVITY_TIMEOUT - 5000) {
+                showInactivityWarning();
+            }
+        }
+    }, 1000);
+
+    // === РАЗБЛОКИРУЕМ ПОЛЯ ВВОДА ===
+    ['username', 'authUsername'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.disabled = false;
+            el.style.pointerEvents = 'auto';
+            el.style.opacity = '1';
+        }
+    });
+
+    renderCurrentTest();
+}function initUI() {
     if (inactivityTimer) {
         clearTimeout(inactivityTimer);
         inactivityTimer = null;
