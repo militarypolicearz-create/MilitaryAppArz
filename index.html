@@ -15,7 +15,7 @@
                 <h2>🔐 Авторизация</h2>
                 <p class="auth-subtitle">Войдите в систему тестирования Военной Полиции</p>
             </div>
-             
+            
             <div class="auth-body">
                 <div id="authStatus" class="auth-status" style="display: none;"></div>
                 
@@ -71,8 +71,8 @@
                     
                     <div class="auth-input-group">
                         <label>📧 Код сброса</label>
-                        <input type="text" id="resetCode" placeholder="Введите код от администратора" autocomplete="off">
-                        <div class="auth-hint">Получите код у администратора</div>
+                        <input type="text" id="resetCode" placeholder="Введите код из файла" autocomplete="off">
+                        <div class="auth-hint">Не знаете код? Нажмите "Запросить код сброса"</div>
                     </div>
                     
                     <div class="auth-input-group">
@@ -83,6 +83,10 @@
                     <div class="auth-input-group">
                         <label>✅ Подтвердите пароль</label>
                         <input type="password" id="resetConfirmPassword" placeholder="Повторите пароль" autocomplete="off">
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                        <button class="btn small" id="requestResetBtn" style="flex: 1; background: var(--info);">📧 Запросить код сброса</button>
                     </div>
                 </div>
                 
@@ -231,6 +235,10 @@
                     <button class="btn warning" id="adminUnlockBtn" style="display: none; background: var(--warning); color: black;">🔓 Админ-разблокировка</button>
                 </div>
                 
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                    <button class="btn small ghost" id="showUserInfoBtn">👤 Информация</button>
+                    <button class="btn small ghost" id="changePasswordBtn">🔑 Сменить пароль</button>
+                </div>
             </div>
         </div>
 
