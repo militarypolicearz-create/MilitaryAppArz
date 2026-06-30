@@ -19,22 +19,71 @@
             <div class="auth-body">
                 <div id="authStatus" class="auth-status" style="display: none;"></div>
                 
-                <div class="auth-input-group">
-                    <label>👤 Ваш ник</label>
-                    <input type="text" id="authUsername" placeholder="Имя_Фамилия (например: Jan_Abobbi)" list="authPlayersList" autocomplete="off">
-                    <datalist id="authPlayersList"></datalist>
-                    <div class="auth-hint">Введите ник в формате: Имя_Фамилия</div>
-                </div>
-                
-                <div class="auth-input-group">
-                    <label>🔑 Пароль</label>
-                    <input type="password" id="authPassword" placeholder="Введите пароль" autocomplete="off">
-                    <div class="auth-hint">Минимум 6 символов</div>
-                </div>
-                
                 <div class="auth-tabs">
                     <button class="auth-tab active" data-tab="login">🔑 Вход</button>
                     <button class="auth-tab" data-tab="register">📝 Регистрация</button>
+                    <button class="auth-tab" data-tab="reset">🔒 Сброс пароля</button>
+                </div>
+                
+                <!-- ВХОД -->
+                <div id="loginPanel">
+                    <div class="auth-input-group">
+                        <label>👤 Ваш ник</label>
+                        <input type="text" id="authUsername" placeholder="Имя_Фамилия" list="authPlayersList" autocomplete="off">
+                        <datalist id="authPlayersList"></datalist>
+                    </div>
+                    
+                    <div class="auth-input-group">
+                        <label>🔑 Пароль</label>
+                        <input type="password" id="authPassword" placeholder="Введите пароль" autocomplete="off">
+                    </div>
+                </div>
+                
+                <!-- РЕГИСТРАЦИЯ -->
+                <div id="registerPanel" style="display: none;">
+                    <div class="auth-input-group">
+                        <label>👤 Ваш ник</label>
+                        <input type="text" id="regUsername" placeholder="Имя_Фамилия" list="authPlayersList" autocomplete="off">
+                    </div>
+                    
+                    <div class="auth-input-group">
+                        <label>📢 Позывной (опционально)</label>
+                        <input type="text" id="regCallsign" placeholder="Например: Alpha-1" autocomplete="off">
+                    </div>
+                    
+                    <div class="auth-input-group">
+                        <label>🔑 Пароль</label>
+                        <input type="password" id="regPassword" placeholder="Минимум 6 символов" autocomplete="off">
+                    </div>
+                    
+                    <div class="auth-input-group">
+                        <label>✅ Подтвердите пароль</label>
+                        <input type="password" id="regConfirmPassword" placeholder="Повторите пароль" autocomplete="off">
+                    </div>
+                </div>
+                
+                <!-- СБРОС ПАРОЛЯ -->
+                <div id="resetPanel" style="display: none;">
+                    <div class="auth-input-group">
+                        <label>👤 Ваш ник</label>
+                        <input type="text" id="resetUsername" placeholder="Имя_Фамилия" autocomplete="off">
+                    </div>
+                    
+                    <div class="auth-input-group">
+                        <label>📧 Код сброса</label>
+                        <input type="text" id="resetCode" placeholder="Введите код от администратора" autocomplete="off">
+                        <div class="auth-hint">Получите код у администратора</div>
+                    </div>
+                    
+                    <div class="auth-input-group">
+                        <label>🔑 Новый пароль</label>
+                        <input type="password" id="resetNewPassword" placeholder="Минимум 6 символов" autocomplete="off">
+                    </div>
+                    
+                    <div class="auth-input-group">
+                        <label>✅ Подтвердите пароль</label>
+                        <input type="password" id="resetConfirmPassword" placeholder="Повторите пароль" autocomplete="off">
+                    </div>
                 </div>
                 
                 <button class="btn auth-btn" id="authActionBtn">🔑 Войти в систему</button>
@@ -129,7 +178,6 @@
                     </div>
                     <button class="btn small ghost logout-btn" id="logoutBtn">🚪 Выйти</button>
                 </div>
-                <!-- СООБЩЕНИЕ ДЛЯ РАНГА (приветствие) -->
                 <div class="rank-message" id="rankMessage">
                     <span class="rank-message-icon" id="rankMessageIcon">🖥️</span>
                     <span class="rank-message-text" id="rankMessageText">Добро пожаловать в систему</span>
@@ -176,10 +224,13 @@
                     <br><strong>Курсанты</strong> → Экзамен | <strong>Офицеры и выше</strong> → Переаттестация
                 </p>
 
-                <button class="btn" id="startBtn">🚀 Начать тест</button>
-                <button class="btn ghost" id="finishBtn" style="display: none;">✅ Завершить тест</button>
-                <button class="btn ghost" id="unlockBtn" style="display: none;">🔓 Разблокировать</button>
-                <button class="btn warning" id="adminUnlockBtn" style="display: none; background: var(--warning); color: black;">🔓 Админ-разблокировка</button>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn" id="startBtn">🚀 Начать тест</button>
+                    <button class="btn ghost" id="finishBtn" style="display: none;">✅ Завершить тест</button>
+                    <button class="btn ghost" id="unlockBtn" style="display: none;">🔓 Разблокировать</button>
+                    <button class="btn warning" id="adminUnlockBtn" style="display: none; background: var(--warning); color: black;">🔓 Админ-разблокировка</button>
+                </div>
+                
             </div>
         </div>
 
