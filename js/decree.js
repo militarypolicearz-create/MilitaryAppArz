@@ -443,20 +443,44 @@ function openArticlesModal() {
             const container = document.getElementById('popularArticlesList');
             if (!container) return;
             
-            container.innerHTML = popularArticles.map(art => {
+            const categoryColor = {
+                'устав': '#4fc3f7',
+                'фп': '#ffb74d',
+                'ук': '#ef5350'
+            };
+            
+            const categoryLabel = {
+                'устав': '📘 Устав МО',
+                'фп': '📗 ФП',
+                'ук': '📕 УК'
+            };
+            
+            // Сортируем популярные пункты по категориям
+            const sortedPopular = [...popularArticles].sort((a, b) => {
+                const order = { 'устав': 0, 'фп': 1, 'ук': 2 };
+                return (order[a.category] || 99) - (order[b.category] || 99);
+            });
+            
+            container.innerHTML = sortedPopular.map(art => {
                 const isSelected = selectedArticles.some(a => a.id === art.id);
                 return `
                     <div class="popular-article-item ${isSelected ? 'selected' : ''}" 
                          data-id="${art.id}"
                          style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin-bottom: 8px;
                                 border-radius: 8px; background: ${isSelected ? 'rgba(14, 165, 164, 0.15)' : 'rgba(255,255,255,0.03)'};
-                                border-left: 3px solid ${isSelected ? 'var(--accent)' : 'transparent'};
+                                border-left: 4px solid ${isSelected ? 'var(--accent)' : categoryColor[art.category]};
                                 cursor: pointer; transition: all 0.2s;">
                         <input type="checkbox" ${isSelected ? 'checked' : ''} 
                                style="flex-shrink: 0; transform: scale(1.1);">
                         <div style="flex: 1; min-width: 0;">
-                            <div style="font-size: 0.85em; font-weight: 700; color: var(--accent); margin-bottom: 2px;">
-                                ${art.law} — ${art.chapter}, п.${art.point}
+                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 2px;">
+                                <span style="font-size: 0.85em; font-weight: 700; color: var(--accent);">
+                                    ${art.law} — ${art.chapter}, п.${art.point}
+                                </span>
+                                <span style="font-size: 0.6em; background: ${categoryColor[art.category]}33; color: ${categoryColor[art.category]}; 
+                                             padding: 1px 8px; border-radius: 10px; font-weight: 600;">
+                                    ${categoryLabel[art.category]}
+                                </span>
                             </div>
                             <div style="font-size: 0.8em; color: var(--text-muted); line-height: 1.3;">
                                 ${art.text}
@@ -477,13 +501,13 @@ function openArticlesModal() {
                         selectedArticles.push(article);
                         this.classList.add('selected');
                         this.style.background = 'rgba(14, 165, 164, 0.15)';
-                        this.style.borderLeft = '3px solid var(--accent)';
+                        this.style.borderLeft = '4px solid var(--accent)';
                         this.querySelector('input[type="checkbox"]').checked = true;
                     } else {
                         selectedArticles.splice(index, 1);
                         this.classList.remove('selected');
                         this.style.background = 'rgba(255,255,255,0.03)';
-                        this.style.borderLeft = '3px solid transparent';
+                        this.style.borderLeft = `4px solid ${categoryColor[article.category]}`;
                         this.querySelector('input[type="checkbox"]').checked = false;
                     }
                     
