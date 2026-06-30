@@ -968,7 +968,6 @@ function renderDecree() {
                 const points = arts.map(a => `[COLOR=rgb(250,197,28)]Пункт №${a.point}:[/COLOR] [COLOR=rgb(255,255,255)]${a.text}[/COLOR]`).join('\n');
                 lawBlocks.push(`
 [COLOR=rgb(250,197,28)][B]${law}:[/B][/COLOR]
-[COLOR=rgb(255,255,255)]${arts[0].chapter}.[/COLOR]
 ${points}
 `);
             }
