@@ -381,60 +381,95 @@ function openArticlesModal() {
         modal.id = 'articlesModal';
         modal.style.display = 'flex';
         modal.innerHTML = `
-            <div class="modal-content" style="max-width: 700px; max-height: 90vh;">
-                <h2 style="color: var(--warning); margin-top: 0;">📜 Выбор пунктов нарушений</h2>
-                <p style="color: var(--text-muted);">Выберите категорию, затем отметьте нужные пункты:</p>
+            <div class="modal-content" style="max-width: 1600px; max-height: 98vh; width: 98vw; display: flex; gap: 30px; padding: 30px;">
                 
-                <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-                    <button class="btn small category-btn" data-category="устав" style="flex: 1;">📘 Устав МО</button>
-                    <button class="btn small category-btn" data-category="фп" style="flex: 1;">📗 ФП</button>
-                    <button class="btn small category-btn" data-category="ук" style="flex: 1;">📕 УК</button>
+                <!-- ЛЕВАЯ ПАНЕЛЬ - ПОПУЛЯРНЫЕ ПУНКТЫ -->
+                <div style="flex: 0 0 450px; min-width: 350px; max-height: 90vh; overflow-y: auto; 
+                            border-right: 1px solid rgba(255,255,255,0.1); padding-right: 25px;">
+                    <h3 style="color: var(--warning); margin-top: 0; font-size: 1.2em;">⭐ Популярные пункты</h3>
+                    <p style="color: var(--text-muted); font-size: 0.85em; margin-bottom: 15px;">
+                        Нажмите на пункт чтобы добавить/убрать
+                    </p>
+                    <div id="popularArticlesList"></div>
                 </div>
                 
-                <input type="text" id="articlesSearchInput" placeholder="Поиск по тексту..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white; margin-bottom: 15px;">
-                
-                <div id="articlesListContainer" style="max-height: 350px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; background: rgba(0,0,0,0.2);">
-                    <div id="articlesList"></div>
-                </div>
-                
-                <div style="margin-top: 15px; display: flex; gap: 10px;">
-                    <button class="btn" id="confirmArticlesBtn" style="flex: 1;">✅ Подтвердить выбор (0)</button>
-                    <button class="btn ghost" id="cancelArticlesBtn" style="flex: 1;">❌ Отмена</button>
+                <!-- ПРАВАЯ ПАНЕЛЬ - ПОИСК И ВСЕ СТАТЬИ -->
+                <div style="flex: 1; min-width: 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+                        <h2 style="color: var(--warning); margin: 0;">📜 Все пункты нарушений</h2>
+                        <button class="btn small ghost" id="clearAllBtn" style="color: var(--error); border-color: var(--error);">
+                            🗑️ Очистить всё
+                        </button>
+                    </div>
+                    <p style="color: var(--text-muted); margin-top: 0;">Поиск по всем категориям: Устав МО, Федеральное постановление, Уголовный кодекс</p>
+                    
+                    <input type="text" id="articlesSearchInput" placeholder="🔍 Поиск по тексту (работает как Ctrl+F)..." 
+                           style="width: 100%; padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); 
+                                  background: rgba(255,255,255,0.05); color: white; margin-bottom: 15px; font-size: 1em;">
+                    
+                    <div id="articlesListContainer" style="max-height: 70vh; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); 
+                                                            border-radius: 8px; padding: 10px; background: rgba(0,0,0,0.2);">
+                        <div id="articlesList"></div>
+                    </div>
+                    
+                    <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;">
+                        <button class="btn" id="confirmArticlesBtn">✅ Подтвердить выбор (0)</button>
+                        <button class="btn ghost" id="cancelArticlesBtn">❌ Отмена</button>
+                    </div>
                 </div>
             </div>
         `;
         document.body.appendChild(modal);
 
-        let currentCategory = 'устав';
         let selectedArticles = [];
-        let filteredArticles = [];
 
-        function renderArticles() {
-            const container = document.getElementById('articlesList');
-            const list = filteredArticles.length > 0 ? filteredArticles : articlesDB.filter(a => a.category === currentCategory);
+        // === ПОПУЛЯРНЫЕ ПУНКТЫ ===
+        const popularArticles = [
+            { id: 23, law: "Устав МО", chapter: "Глава II. Основные обязанности", point: "2.1", text: "Каждый военнослужащий обязан знать и соблюдать Конституцию, Федеральное постановление, воинский устав, трудовой, административный кодексы. Незнание устава не освобождает Вас от ответственности.", category: "устав" },
+            { id: 24, law: "Устав МО", chapter: "Глава II. Основные обязанности", point: "2.2", text: "Каждый военнослужащий/сотрудник обязан выполнять законные приказы старшего по должности/званию.", category: "устав" },
+            { id: 114, law: "Устав МО", chapter: "Глава VIII. Запреты для военнослужащих", point: "8.12", text: "Нарушать Конституцию, Федеральное постановление, воинский устав, трудовой, уголовный и административный кодексы.", category: "устав" },
+            { id: 95, law: "Устав МО", chapter: "Глава VIII. Запреты для военнослужащих", point: "8.1", text: "Во время рабочего дня использовать личный транспорт (Исключение: сотрудники спец. отряда Delta, сотрудники Военной Полиции, Руководство МО).", category: "устав" },
+            { id: 58, law: "Устав МО", chapter: "Глава IV. Субординация и общение военнослужащих Министерства Обороны", point: "4.1", text: "Стиль общения в Министерстве обороны - деловой.", category: "устав" },
+            { id: 111, law: "Устав МО", chapter: "Глава VIII. Запреты для военнослужащих", point: "8.9", text: "Снимать военную форму во время рабочего времени.", category: "устав" },
+            { id: 304, law: "Федеральное постановление", chapter: "Раздел 2", point: "2.1", text: "Запрещено использовать служебное положение в личных целях. (Увольнение/Понижение)", category: "фп" },
+            { id: 305, law: "Федеральное постановление", chapter: "Раздел 2", point: "2.2", text: "Запрещено использовать нецензурную брань, а также оскорблять кого либо. (Предупреждение/Выговор/Понижение/Увольнение)", category: "фп" },
+            { id: 306, law: "Федеральное постановление", chapter: "Раздел 2", point: "2.3", text: "Запрещено открывать огонь из огнестрельного оружия без видимой на то причины. (Понижение/Выговор)", category: "фп" },
+            { id: 318, law: "Федеральное постановление", chapter: "Раздел 2", point: "2.15", text: "Служащим армий/сотрудникам ТСР запрещено находится за пределами мест постоянной дислокации своей воинской части. Иск: Разрешение руководства, тренировка, спец.Операция, поставка БП, деятельность Военной Полиции/Спец.Отряда 'Delta', участие в 'Битва за завод'. (Увольнение)", category: "фп" },
+            { id: 247, law: "Уголовный кодекс", chapter: "Раздел 1. Общие положения", point: "1", text: "Уголовный кодекс штата Ред-Рок — письменный нормативно-правовой акт, который определяет уголовно-противоправность деяния.", category: "ук" }
+        ];
+
+        // === РЕНДЕРИНГ ПОПУЛЯРНЫХ ПУНКТОВ ===
+        function renderPopularArticles() {
+            const container = document.getElementById('popularArticlesList');
+            if (!container) return;
             
-            if (list.length === 0) {
-                container.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-muted);">Нет пунктов в этой категории</div>';
-                return;
-            }
-
-            container.innerHTML = list.map(art => {
+            container.innerHTML = popularArticles.map(art => {
                 const isSelected = selectedArticles.some(a => a.id === art.id);
                 return `
-                    <div class="article-select-item ${isSelected ? 'selected' : ''}" data-id="${art.id}" style="display: flex; align-items: flex-start; padding: 10px; margin-bottom: 5px; border-radius: 6px; background: ${isSelected ? 'rgba(14, 165, 164, 0.15)' : 'rgba(255,255,255,0.03)'}; border-left: 3px solid ${isSelected ? 'var(--accent)' : 'transparent'}; cursor: pointer; transition: all 0.2s;">
-                        <input type="checkbox" ${isSelected ? 'checked' : ''} style="margin-right: 12px; margin-top: 3px; transform: scale(1.1);">
-                        <div style="flex: 1;">
-                            <div style="font-weight: 700; color: var(--accent);">${art.law} — ${art.chapter}, п.${art.point}</div>
-                            <div style="font-size: 0.9em; color: var(--text-muted);">${art.text}</div>
+                    <div class="popular-article-item ${isSelected ? 'selected' : ''}" 
+                         data-id="${art.id}"
+                         style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin-bottom: 8px;
+                                border-radius: 8px; background: ${isSelected ? 'rgba(14, 165, 164, 0.15)' : 'rgba(255,255,255,0.03)'};
+                                border-left: 3px solid ${isSelected ? 'var(--accent)' : 'transparent'};
+                                cursor: pointer; transition: all 0.2s;">
+                        <input type="checkbox" ${isSelected ? 'checked' : ''} 
+                               style="flex-shrink: 0; transform: scale(1.1);">
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="font-size: 0.85em; font-weight: 700; color: var(--accent); margin-bottom: 2px;">
+                                ${art.law} — ${art.chapter}, п.${art.point}
+                            </div>
+                            <div style="font-size: 0.8em; color: var(--text-muted); line-height: 1.3;">
+                                ${art.text}
+                            </div>
                         </div>
                     </div>
                 `;
             }).join('');
-
-            container.querySelectorAll('.article-select-item').forEach(el => {
+            
+            container.querySelectorAll('.popular-article-item').forEach(el => {
                 el.addEventListener('click', function() {
                     const id = parseInt(this.dataset.id);
-                    const article = articlesDB.find(a => a.id === id);
+                    const article = popularArticles.find(a => a.id === id);
                     if (!article) return;
                     
                     const index = selectedArticles.findIndex(a => a.id === id);
@@ -452,53 +487,146 @@ function openArticlesModal() {
                         this.querySelector('input[type="checkbox"]').checked = false;
                     }
                     
-                    document.getElementById('confirmArticlesBtn').textContent = `✅ Подтвердить выбор (${selectedArticles.length})`;
+                    renderPopularArticles();
+                    renderArticles();
                 });
             });
         }
 
-        document.querySelectorAll('.category-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                currentCategory = this.dataset.category;
-                document.querySelectorAll('.category-btn').forEach(b => b.style.opacity = '0.5');
-                this.style.opacity = '1';
-                document.getElementById('articlesSearchInput').value = '';
-                filteredArticles = [];
-                renderArticles();
-            });
-        });
-        document.querySelector('.category-btn[data-category="устав"]').style.opacity = '1';
-        document.querySelectorAll('.category-btn').forEach(b => {
-            if (b.dataset.category !== 'устав') b.style.opacity = '0.5';
-        });
-
-        document.getElementById('articlesSearchInput').addEventListener('input', function() {
-            const query = this.value.trim().toLowerCase();
-            if (query.length < 2) {
-                filteredArticles = [];
-                renderArticles();
+        // === ФУНКЦИЯ РЕНДЕРИНГА ВСЕХ СТАТЕЙ С ПОИСКОМ ===
+        function renderArticles() {
+            const container = document.getElementById('articlesList');
+            const searchInput = document.getElementById('articlesSearchInput');
+            const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+            
+            let list = [...articlesDB];
+            
+            if (query.length > 0) {
+                list = list.filter(art => {
+                    const searchText = `${art.law} ${art.chapter} ${art.point} ${art.text}`.toLowerCase();
+                    return searchText.includes(query);
+                });
+            }
+            
+            const categoryOrder = { 'устав': 0, 'фп': 1, 'ук': 2 };
+            list.sort((a, b) => (categoryOrder[a.category] || 99) - (categoryOrder[b.category] || 99));
+            
+            if (list.length === 0) {
+                container.innerHTML = `
+                    <div style="padding: 30px; text-align: center; color: var(--text-muted);">
+                        <div style="font-size: 2em; margin-bottom: 10px;">🔍</div>
+                        <p>Ничего не найдено по запросу: <strong>"${query}"</strong></p>
+                    </div>
+                `;
                 return;
             }
-            filteredArticles = articlesDB.filter(art =>
-                art.category === currentCategory &&
-                (art.law.toLowerCase().includes(query) ||
-                 art.chapter.toLowerCase().includes(query) ||
-                 art.point.toLowerCase().includes(query) ||
-                 art.text.toLowerCase().includes(query))
-            );
+
+            container.innerHTML = list.map(art => {
+                const isSelected = selectedArticles.some(a => a.id === art.id);
+                let displayText = art.text;
+                if (query.length > 0) {
+                    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+                    displayText = art.text.replace(regex, '<mark style="background: rgba(14, 165, 164, 0.4); color: white; padding: 0 2px; border-radius: 2px;">$1</mark>');
+                }
+                
+                const categoryColor = {
+                    'устав': '#4fc3f7',
+                    'фп': '#ffb74d',
+                    'ук': '#ef5350'
+                };
+                
+                const categoryLabel = {
+                    'устав': '📘 Устав МО',
+                    'фп': '📗 ФП',
+                    'ук': '📕 УК'
+                };
+                
+                return `
+                    <div class="article-select-item ${isSelected ? 'selected' : ''}" 
+                         data-id="${art.id}" 
+                         style="display: flex; align-items: flex-start; padding: 12px; margin-bottom: 6px; 
+                                border-radius: 8px; background: ${isSelected ? 'rgba(14, 165, 164, 0.15)' : 'rgba(255,255,255,0.03)'}; 
+                                border-left: 4px solid ${isSelected ? 'var(--accent)' : categoryColor[art.category]}; 
+                                cursor: pointer; transition: all 0.2s;">
+                        <input type="checkbox" ${isSelected ? 'checked' : ''} 
+                               style="margin-right: 14px; margin-top: 3px; transform: scale(1.1); flex-shrink: 0;">
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px;">
+                                <span style="font-weight: 700; color: var(--accent);">${art.law} — ${art.chapter}, п.${art.point}</span>
+                                <span style="font-size: 0.7em; background: ${categoryColor[art.category]}33; color: ${categoryColor[art.category]}; 
+                                             padding: 2px 10px; border-radius: 12px; font-weight: 600;">
+                                    ${categoryLabel[art.category]}
+                                </span>
+                            </div>
+                            <div style="font-size: 0.9em; color: var(--text-muted); line-height: 1.4; word-break: break-word;">
+                                ${displayText}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('confirmArticlesBtn').textContent = `✅ Подтвердить выбор (${selectedArticles.length})`;
+
+            container.querySelectorAll('.article-select-item').forEach(el => {
+                el.addEventListener('click', function() {
+                    const id = parseInt(this.dataset.id);
+                    const article = articlesDB.find(a => a.id === id);
+                    if (!article) return;
+                    
+                    const index = selectedArticles.findIndex(a => a.id === id);
+                    if (index === -1) {
+                        selectedArticles.push(article);
+                        this.classList.add('selected');
+                        this.style.background = 'rgba(14, 165, 164, 0.15)';
+                        this.style.borderLeft = '4px solid var(--accent)';
+                        this.querySelector('input[type="checkbox"]').checked = true;
+                    } else {
+                        selectedArticles.splice(index, 1);
+                        this.classList.remove('selected');
+                        this.style.background = 'rgba(255,255,255,0.03)';
+                        this.style.borderLeft = `4px solid ${categoryColor[article.category]}`;
+                        this.querySelector('input[type="checkbox"]').checked = false;
+                    }
+                    
+                    renderPopularArticles();
+                    renderArticles();
+                });
+            });
+        }
+
+        // === ПОИСК ===
+        document.getElementById('articlesSearchInput').addEventListener('input', function() {
             renderArticles();
         });
 
+        // === ОЧИСТИТЬ ВСЁ ===
+        document.getElementById('clearAllBtn').addEventListener('click', function() {
+            if (selectedArticles.length === 0) {
+                showMessage('Нет выбранных пунктов для очистки', 'info');
+                return;
+            }
+            if (confirm(`Очистить все выбранные пункты (${selectedArticles.length} шт.)?`)) {
+                selectedArticles = [];
+                renderPopularArticles();
+                renderArticles();
+                showMessage('Все выбранные пункты очищены', 'success');
+            }
+        });
+
+        // === ПОДТВЕРЖДЕНИЕ ===
         document.getElementById('confirmArticlesBtn').addEventListener('click', function() {
             modal.remove();
             resolve(selectedArticles);
         });
 
+        // === ОТМЕНА ===
         document.getElementById('cancelArticlesBtn').addEventListener('click', function() {
             modal.remove();
             resolve(null);
         });
 
+        // === ЗАКРЫТИЕ ПО КЛИКУ ВНЕ МОДАЛКИ ===
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 modal.remove();
@@ -506,6 +634,7 @@ function openArticlesModal() {
             }
         });
 
+        renderPopularArticles();
         renderArticles();
     });
 }
