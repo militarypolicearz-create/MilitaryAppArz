@@ -208,7 +208,6 @@ function performAuth(username) {
         }
         
         updateRankMessage();
-        renderGreeting();
         renderCurrentTest();
     }, 600);
     
@@ -271,76 +270,6 @@ function logoutUser() {
 }
 
 
-function resetPassword() {
-    const username = document.getElementById('resetUsername').value.trim().toLowerCase();
-    const code = document.getElementById('resetCode').value.trim().toUpperCase();
-    const newPassword = document.getElementById('resetNewPassword').value;
-    const confirmPassword = document.getElementById('resetConfirmPassword').value;
-    
-    if (!username || !code || !newPassword || !confirmPassword) {
-        showAuthStatus('❌ Заполните все поля!', 'error');
-        return;
-    }
-    
-    if (newPassword.length < 6) {
-        showAuthStatus('❌ Пароль должен быть минимум 6 символов!', 'error');
-        return;
-    }
-    
-    if (newPassword !== confirmPassword) {
-        showAuthStatus('❌ Пароли не совпадают!', 'error');
-        return;
-    }
-    
-    const userData = usersDatabase[username];
-    if (!userData) {
-        showAuthStatus('❌ Пользователь не найден!', 'error');
-        return;
-    }
-    
-    const resetData = JSON.parse(localStorage.getItem('tempResetCodes') || '{}');
-    const userReset = resetData[username];
-    
-    if (!userReset) {
-        showAuthStatus('❌ Код сброса не найден. Нажмите "Запросить код сброса".', 'error');
-        return;
-    }
-    
-    if (Date.now() > userReset.expires) {
-        showAuthStatus('❌ Код сброса истек. Запросите новый код.', 'error');
-        delete resetData[username];
-        localStorage.setItem('tempResetCodes', JSON.stringify(resetData));
-        return;
-    }
-    
-    if (userReset.code !== code) {
-        showAuthStatus('❌ Неверный код сброса!', 'error');
-        return;
-    }
-    
-    userData.password = hashPassword(newPassword);
-    userData.lastLogin = Date.now();
-    localStorage.setItem('usersDatabase', JSON.stringify(usersDatabase));
-    
-    delete resetData[username];
-    localStorage.setItem('tempResetCodes', JSON.stringify(resetData));
-    
-    showAuthStatus(`✅ Пароль успешно изменен!`, 'success');
-    
-    document.getElementById('resetUsername').value = '';
-    document.getElementById('resetCode').value = '';
-    document.getElementById('resetNewPassword').value = '';
-    document.getElementById('resetConfirmPassword').value = '';
-    
-    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-    document.querySelector('.auth-tab[data-tab="login"]').classList.add('active');
-    document.getElementById('loginPanel').style.display = 'block';
-    document.getElementById('registerPanel').style.display = 'none';
-    document.getElementById('resetPanel').style.display = 'none';
-    document.getElementById('authActionBtn').textContent = '🔑 Войти в систему';
-}
-// === ФУНКЦИЯ ЗАПРОСА КОДА СБРОСА (для пользователя) ===
-// === ФУНКЦИЯ ДЛЯ ПРИВЕДЕНИЯ ИМЕНИ К ПРАВИЛЬНОМУ ФОРМАТУ ===
 function formatUsername(username) {
     const parts = username.split(/[_\s-]/);
     const formattedParts = parts.map(part => {
@@ -460,7 +389,6 @@ function adminDecryptResetFile() {
     fileInput.click();
 }
 
-// === ФУНКЦИЯ СБРОСА ПАРОЛЯ (для пользователя) ===
 function resetPassword() {
     const username = document.getElementById('resetUsername').value.trim().toLowerCase();
     const code = document.getElementById('resetCode').value.trim().toUpperCase();
@@ -801,38 +729,29 @@ function renderGreeting() {
     
     const greetingText = getRandomGreeting(currentUser.type);
     
-    let icon = '';
-    let roleName = '';
+    const icons = {
+        'cadet': '🎓',
+        'officer': '⚖️',
+        'senior_officer': '⭐',
+        'curator': '👑'
+    };
     
-    switch(currentUser.type) {
-        case 'cadet':
-            icon = '🎓';
-            roleName = 'Курсант';
-            break;
-        case 'officer':
-            icon = '⚖️';
-            roleName = 'Офицер';
-            break;
-        case 'senior_officer':
-            icon = '⭐';
-            roleName = 'Старший офицер';
-            break;
-        case 'curator':
-            icon = '👑';
-            roleName = 'Куратор';
-            break;
-        default:
-            icon = '👤';
-            roleName = 'Сотрудник';
-    }
+    const roleNames = {
+        'cadet': 'Курсант',
+        'officer': 'Офицер',
+        'senior_officer': 'Старший офицер',
+        'curator': 'Куратор'
+    };
+    
+    const icon = icons[currentUser.type] || '👤';
+    const roleName = roleNames[currentUser.type] || 'Сотрудник';
     
     greetingEl.innerHTML = `
-        <div class="greeting-box">
-            <div class="greeting-icon">${icon}</div>
-            <div class="greeting-content">
-                <div class="greeting-role">${roleName} ${currentUser.position}</div>
-                <div class="greeting-message">${greetingText}</div>
-                <div class="greeting-user">${currentUser.username}</div>
+        <div style="padding: 12px 16px; margin-bottom: 15px; background: rgba(14, 165, 164, 0.08); border-radius: 8px; border-left: 3px solid var(--accent); display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 1.5em;">${icon}</span>
+            <div style="flex: 1;">
+                <div style="font-weight: 600; color: var(--text-bright);">${greetingText}</div>
+                <div style="font-size: 0.85em; color: var(--text-muted); margin-top: 2px;">${roleName} ${currentUser.position} — ${currentUser.username}</div>
             </div>
         </div>
     `;
@@ -1647,11 +1566,20 @@ function resetInactivityTimer() {
     }
     
     if (test && !test.blocked) {
+        const answeredCount = Object.keys(test.answers || {}).length;
+        if (answeredCount >= TEST_COUNT) {
+            return;
+        }
+        
         const bufferTime = test.current === 0 ? 10000 : 0;
         
         inactivityTimer = setTimeout(() => {
             const timeSinceLastActivity = Date.now() - lastActivityTime;
             if (test && !test.blocked && timeSinceLastActivity >= INACTIVITY_TIMEOUT) {
+                const currentAnsweredCount = Object.keys(test.answers || {}).length;
+                if (currentAnsweredCount >= TEST_COUNT) {
+                    return;
+                }
                 showError("Тест заблокирован за бездействие!");
                 blockTest();
             }
@@ -1724,20 +1652,23 @@ function showDisclaimer() {
         return;
     }
     
-    if (currentUser.type === 'curator') {
-        const selectedType = localStorage.getItem('curatorSelectedTest');
-        if (!selectedType) {
-            showError("Сначала выберите тип теста на вкладке!");
-            return;
-        }
-        currentTestType = selectedType;
+    // Определяем тип теста по активной вкладке
+    const activeTab = document.querySelector('.tab.active');
+    if (activeTab) {
+        currentTestType = activeTab.dataset.tab;
     } else {
-        const testType = getTestForUserType(currentUser.type);
-        if (!testType) {
-            showError("Ваш статус не позволяет проходить тестирование.");
-            return;
-        }
-        currentTestType = testType;
+        currentTestType = 'exam';
+    }
+    
+    // Проверяем доступ к тесту
+    if (currentTestType === 'exam' && currentUser.type !== 'cadet' && currentUser.type !== 'curator') {
+        showError("Экзамен доступен только курсантам!");
+        return;
+    }
+    
+    if (currentTestType === 'retraining' && currentUser.type !== 'officer' && currentUser.type !== 'senior_officer' && currentUser.type !== 'curator') {
+        showError("Переаттестация доступна только офицерам и выше!");
+        return;
     }
     
     const modal = document.getElementById("disclaimerModal");
@@ -1774,22 +1705,15 @@ function actuallyStartTest() {
         return;
     }
     
-    if (currentUser.type === 'curator') {
-        const selectedType = localStorage.getItem('curatorSelectedTest');
-        if (!selectedType) {
-            showError("Сначала выберите тип теста на вкладке!");
-            return;
-        }
-        currentTestType = selectedType;
+    // Определяем тип теста по активной вкладке
+    const activeTab = document.querySelector('.tab.active');
+    if (activeTab) {
+        currentTestType = activeTab.dataset.tab;
     } else {
-        const testType = getTestForUserType(currentUser.type);
-        if (!testType) {
-            showError("Ваш статус не позволяет проходить тестирование.");
-            return;
-        }
-        currentTestType = testType;
+        currentTestType = 'exam';
     }
     
+    // Проверяем доступ к тесту
     if (currentTestType === 'exam' && currentUser.type !== 'cadet' && currentUser.type !== 'curator') {
         showError("Экзамен доступен только курсантам!");
         return;
@@ -1807,7 +1731,8 @@ function actuallyStartTest() {
     
     const questions = getQuestionsByType(currentTestType);
     const shuffledQuestions = shuffleArray([...questions]).slice(0, TEST_COUNT);
-    const player = getCurrentPlayer();
+    
+    const unlockCode = generateReadableCode();
     
     test = {
         username: currentUser.username,
@@ -1816,21 +1741,58 @@ function actuallyStartTest() {
         answers: {},
         shuffledQuestions,
         startTime: new Date(),
-        blocked: false,
+        blocked: true,
         testType: currentTestType,
-        playerId: player ? player.id : null
+        unlockCode: unlockCode,
+        blockReason: 'Ожидание разблокировки'
     };
     
-    currentTestType = test.testType;
+    createUnlockFile();
     
     saveTestState();
     document.getElementById("unlockBtn").style.display = "inline-block";
     document.getElementById("adminUnlockBtn").style.display = "inline-block";
-    document.getElementById("finishBtn").style.display = "inline-block";
-    showMessage("Тест начат! Не покидайте вкладку.", "success");
+    document.getElementById("finishBtn").style.display = "none";
     
-    resetInactivityTimer();
-    renderCurrentTest();
+    showMessage(`📄 Код разблокировки выдан! Файл скачан. Отправьте код администратору.`, "success");
+    
+    document.querySelectorAll("input, button, textarea, select").forEach(el => {
+        if (el.id === "username") {
+            el.disabled = false;
+            el.style.pointerEvents = 'auto';
+            el.style.opacity = '1';
+            return;
+        }
+        if (el.id === "logoutBtn") {
+            el.disabled = false;
+            el.style.pointerEvents = 'auto';
+            el.style.opacity = '1';
+            return;
+        }
+        if (el.id.includes("unlock") || el.id.includes("adminUnlock")) {
+            el.disabled = false;
+            el.style.pointerEvents = 'auto';
+            el.style.opacity = '1';
+            return;
+        }
+        if (el.closest(".tabs")) {
+            el.disabled = false;
+            el.style.pointerEvents = 'auto';
+            el.style.opacity = '1';
+            return;
+        }
+        if (el.closest('#authModal')) {
+            el.disabled = false;
+            el.style.pointerEvents = 'auto';
+            el.style.opacity = '1';
+            return;
+        }
+        el.disabled = true;
+        el.style.pointerEvents = 'none';
+        el.style.opacity = '0.5';
+    });
+    
+    renderBlockedScreen();
 }
 
 function adminUnblockTest() {
@@ -1867,10 +1829,6 @@ function adminUnblockTest() {
 function renderCurrentTest() {
     if (test && test.testType) {
         currentTestType = test.testType;
-    }
-    
-    if (currentUser && currentUser.type) {
-        renderGreeting();
     }
     
     if (currentTestType === 'exam') {
@@ -2193,6 +2151,11 @@ function renderReviewPage() {
     const area = document.getElementById("mainArea");
     const testTypeName = getTestTypeName(test.testType);
     
+    if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = null;
+    }
+    
     let answersHtml = '';
     
     test.shuffledQuestions.forEach((q, index) => {
@@ -2202,71 +2165,67 @@ function renderReviewPage() {
         if (q.type === 'multiple' && q.options) {
             const selectedOptions = Array.isArray(userAnswer) ? userAnswer : [];
             answerDisplay = `
-                <div class="review-multiple-answers">
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;">
                     ${q.options.map(option => {
                         const isSelected = selectedOptions.includes(option);
                         return `
-                            <span class="review-option ${isSelected ? 'review-option-selected' : 'review-option-unselected'}">
+                            <span style="display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 0.85em; 
+                                ${isSelected ? 'background: rgba(14, 165, 164, 0.25); color: var(--accent); border: 1px solid var(--accent);' : 'background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.08);'}">
                                 ${isSelected ? '✓' : '○'} ${escapeHtml(option)}
                             </span>
                         `;
                     }).join('')}
                 </div>
-                <div class="review-edit">
-                    <button class="btn small review-edit-btn" data-question-index="${index}">✏️ Редактировать</button>
-                </div>
             `;
         } else {
-            const answerText = userAnswer || "Нет ответа";
+            const answerText = userAnswer || "—";
             answerDisplay = `
-                <div class="review-answer-text">${escapeHtml(answerText)}</div>
-                <div class="review-edit">
-                    <button class="btn small review-edit-btn" data-question-index="${index}">✏️ Редактировать</button>
+                <div style="font-size: 0.95em; color: ${userAnswer ? 'var(--text-bright)' : 'var(--text-muted)'}; margin-top: 4px; padding: 6px 12px; background: rgba(255,255,255,0.03); border-radius: 6px;">
+                    ${escapeHtml(answerText)}
                 </div>
             `;
         }
         
         answersHtml += `
-            <div class="review-item" data-question-index="${index}">
-                <div class="review-question-header">
-                    <span class="review-question-number">Вопрос ${index + 1}</span>
-                    <span class="review-question-text">${escapeHtml(q.text)}</span>
-                </div>
-                <div class="review-answer">
-                    ${answerDisplay}
+            <div style="padding: 12px 16px; margin-bottom: 8px; background: rgba(255,255,255,0.03); border-radius: 8px; border-left: 2px solid var(--accent);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-size: 0.85em; font-weight: 600; color: var(--accent); margin-bottom: 2px;">
+                            Вопрос ${index + 1}
+                        </div>
+                        <div style="font-size: 0.95em; color: var(--text-bright);">${escapeHtml(q.text)}</div>
+                        ${answerDisplay}
+                    </div>
+                    <button class="btn small ghost review-edit-btn" data-question-index="${index}" 
+                            style="padding: 4px 12px; font-size: 0.75em; flex-shrink: 0; margin: 0; border-color: rgba(255,255,255,0.1);">
+                        ✏️
+                    </button>
                 </div>
             </div>
         `;
     });
     
+    const answeredCount = Object.keys(test.answers).length;
+    
     area.innerHTML = `
-        <div class="review-container">
-            <div class="review-header">
-                <h2>📋 Предварительный просмотр ответов</h2>
-                <p>Проверьте все свои ответы перед завершением ${testTypeName.toLowerCase()}</p>
-                <div class="review-stats">
-                    <div class="review-stat">
-                        <span>📝 Всего вопросов:</span>
-                        <strong>${TEST_COUNT}</strong>
-                    </div>
-                    <div class="review-stat">
-                        <span>✅ Отвечено:</span>
-                        <strong>${Object.keys(test.answers).length}</strong>
-                    </div>
-                    <div class="review-stat">
-                        <span>❌ Без ответа:</span>
-                        <strong>${TEST_COUNT - Object.keys(test.answers).length}</strong>
-                    </div>
+        <div style="max-width: 900px; margin: 0 auto;">
+            <div style="text-align: center; margin-bottom: 25px;">
+                <h2 style="font-size: 1.3em; font-weight: 600; color: var(--text-bright); margin-bottom: 4px;">📋 Проверка ответов</h2>
+                <p style="color: var(--text-muted); font-size: 0.9em;">Проверьте все ответы перед завершением ${testTypeName.toLowerCase()}</p>
+                <div style="display: flex; justify-content: center; gap: 24px; margin-top: 10px; font-size: 0.9em;">
+                    <span style="color: var(--text-muted);">📝 Всего: <strong style="color: var(--text-bright);">${TEST_COUNT}</strong></span>
+                    <span style="color: var(--text-muted);">✅ Отвечено: <strong style="color: var(--success);">${answeredCount}</strong></span>
+                    <span style="color: var(--text-muted);">❌ Без ответа: <strong style="color: var(--error);">${TEST_COUNT - answeredCount}</strong></span>
                 </div>
             </div>
             
-            <div class="review-answers-list">
+            <div style="max-height: 55vh; overflow-y: auto; padding-right: 4px; margin-bottom: 20px;">
                 ${answersHtml}
             </div>
             
-            <div class="review-actions">
-                <button class="btn ghost" id="backToTestBtn">← Вернуться к тесту</button>
-                <button class="btn" id="confirmFinishBtn">
+            <div style="display: flex; justify-content: center; gap: 12px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.06); flex-wrap: wrap;">
+                <button class="btn ghost" id="backToTestBtn" style="padding: 8px 24px; font-size: 0.9em;">← Назад</button>
+                <button class="btn" id="confirmFinishBtn" style="padding: 8px 32px; font-size: 0.9em;">
                     ✅ Завершить тест
                 </button>
             </div>
@@ -2317,29 +2276,7 @@ function finishTest() {
     const timeSpent = Math.round((endTime - test.startTime) / 1000 / 60);
     const testTypeName = getTestTypeName(test.testType);
     
-    let correctCount = 0;
     const answeredQuestions = Object.keys(test.answers).length;
-
-    test.shuffledQuestions.forEach((q, i) => {
-        const userAnswer = test.answers[i];
-        if (!userAnswer) return;
-        
-        if (q.type === 'multiple') {
-            if (q.correctAnswers && Array.isArray(q.correctAnswers) && userAnswer && Array.isArray(userAnswer)) {
-                const sortedUser = [...userAnswer].sort();
-                const sortedCorrect = [...q.correctAnswers].sort();
-                if (sortedUser.length === sortedCorrect.length && 
-                    sortedUser.every((val, index) => val === sortedCorrect[index])) {
-                    correctCount++;
-                }
-            }
-        } else {
-            if (userAnswer && userAnswer.trim() !== '') correctCount++;
-        }
-    });
-
-    const score = test.shuffledQuestions.length > 0 ? Math.round((correctCount / TEST_COUNT) * 100) : 0;
-    const passed = score >= 70;
 
     let reportText = `${testTypeName.toUpperCase()} ВОЕННОЙ ПОЛИЦИИ - РЕЗУЛЬТАТЫ
 =================================
@@ -2351,9 +2288,7 @@ function finishTest() {
 Дата: ${new Date().toLocaleString('ru-RU')}
 Время выполнения: ${timeSpent} минут
 Всего вопросов: ${TEST_COUNT}
-Правильных ответов: ${correctCount}
-Оценка: ${score}%
-Статус: ${passed ? '✅ ПРОЙДЕН' : '❌ НЕ ПРОЙДЕН'}
+Отвечено: ${answeredQuestions}/${TEST_COUNT}
 
 Ответы:
 ----------------
@@ -2375,36 +2310,42 @@ function finishTest() {
     reportText += `
 
 =================================
-Arizona RP | Военная Полиция
-Тест завершен.`;
+Arizona RP | Военная Полиция`;
 
-    const encrypted = CryptoJS.AES.encrypt(reportText, AES_KEY).toString();
-    const blob = new Blob([btoa(encrypted)], { 
-        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
-    });
-    
-    saveAs(blob, `${test.username}_${testTypeName}_${timeSpent}мин_результаты.docx`);
+    try {
+        const encrypted = CryptoJS.AES.encrypt(reportText, AES_KEY).toString();
+        const blob = new Blob([btoa(encrypted)], { 
+            type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
+        });
+        saveAs(blob, `${test.username}_${testTypeName}_${timeSpent}мин_результаты.docx`);
+        showMessage("Файл с результатами скачан!", "success");
+    } catch (e) {
+        showError("Ошибка сохранения результатов");
+    }
 
-    saveTestResultForStatistics(test, timeSpent, score, correctCount, passed);
+    saveTestResultForStatistics(test, timeSpent);
 
     if (inactivityTimer) {
         clearTimeout(inactivityTimer);
         inactivityTimer = null;
     }
 
+    const testUsername = test.username;
+    const testType = test.testType;
     clearTestState();
+    
     document.getElementById("unlockBtn").style.display = "none";
     document.getElementById("adminUnlockBtn").style.display = "none";
     document.getElementById("finishBtn").style.display = "none";
+    document.getElementById("startBtn").disabled = false;
 
     document.getElementById("mainArea").innerHTML = `
         <div class="question-box">
             <h2>✅ ${testTypeName} завершён!</h2>
-            <p><strong>${escapeHtml(test.username)}</strong>, ваш ${testTypeName.toLowerCase()} успешно завершён.</p>
-            <p><strong>Результат: ${score}% (${correctCount}/${TEST_COUNT})</strong></p>
-            <p>${passed ? '🎉 Поздравляем! Тест пройден успешно!' : '😔 К сожалению, тест не пройден.'}</p>
-            <p><strong>Вы ответили на ${answeredQuestions} из ${TEST_COUNT} вопросов.</strong></p>
+            <p><strong>${escapeHtml(testUsername)}</strong>, ваш ${testTypeName.toLowerCase()} успешно завершён.</p>
             <p>Файл с результатами был автоматически скачан.</p>
+            <p>Отправьте файл администратору для оценки.</p>
+            <p><strong>Вы ответили на ${answeredQuestions} из ${TEST_COUNT} вопросов.</strong></p>
             <div style="margin-top: 20px;">
                 <button class="btn" id="restartBtn">🔄 Пройти тест снова</button>
             </div>
@@ -2417,6 +2358,25 @@ Arizona RP | Военная Полиция
         showMessage("Готово к новому тесту!", "success");
         renderCurrentTest();
     });
+}
+
+function saveTestResultForStatistics(testData, timeSpent) {
+    const testResult = {
+        id: Date.now().toString(),
+        username: testData.username,
+        testType: testData.testType,
+        score: 0,
+        timeSpent: timeSpent,
+        totalQuestions: TEST_COUNT,
+        correctAnswers: 0,
+        date: new Date().toISOString(),
+        graded: false,
+        passed: false
+    };
+    
+    const pendingResults = JSON.parse(localStorage.getItem('pendingTestResults') || '[]');
+    pendingResults.push(testResult);
+    localStorage.setItem('pendingTestResults', JSON.stringify(pendingResults));
 }
 
 function saveTestResultForStatistics(testData, timeSpent, score, correctCount, passed) {
@@ -2525,6 +2485,8 @@ function blockTest() {
 }
 
 function createUnlockFile() {
+    if (!test) return;
+    
     const testTypeName = getTestTypeName(test.testType);
     const unlockContent = `КОД РАЗБЛОКИРОВКИ ТЕСТА
 
@@ -2532,21 +2494,26 @@ function createUnlockFile() {
 Имя пользователя: ${test.username}
 Код разблокировки: ${test.unlockCode}
 
-Причина блокировки: Бездействие
+Причина блокировки: Ожидание разблокировки
 Тест заблокирован: ${new Date().toLocaleString('ru-RU')}
-Прогресс: ${test.current + 1}/${TEST_COUNT} вопросов
 
 Для разблокировки теста обратитесь к администратору.
 
 Arizona RP | Военная Полиция`;
 
-    const encryptedUnlock = CryptoJS.AES.encrypt(unlockContent, AES_KEY).toString();
-    const unlockBlob = new Blob([btoa(encryptedUnlock)], { 
-        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
-    });
-    saveAs(unlockBlob, `${test.username}_${testTypeName}_код_разблокировки.docx`);
-
-    saveUnlockFileToEmployeeFolder(test.username, test.testType, unlockContent);
+    try {
+        const encryptedUnlock = CryptoJS.AES.encrypt(unlockContent, AES_KEY).toString();
+        const unlockBlob = new Blob([btoa(encryptedUnlock)], { 
+            type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
+        });
+        saveAs(unlockBlob, `${test.username}_${testTypeName}_код_разблокировки.docx`);
+        console.log('✅ Файл разблокировки создан:', `${test.username}_${testTypeName}_код_разблокировки.docx`);
+        
+        saveUnlockFileToEmployeeFolder(test.username, test.testType, unlockContent);
+    } catch (e) {
+        console.error('Ошибка создания файла разблокировки:', e);
+        showError('Ошибка создания файла разблокировки!');
+    }
 }
 
 function saveUnlockFileToEmployeeFolder(username, testType, unlockContent) {
@@ -2595,10 +2562,6 @@ function renderBlockedScreen() {
             </div>
         </div>
     `;
-
-    if (currentUser && currentUser.type) {
-        renderGreeting();
-    }
 
     document.getElementById("resendCodeBtn")?.addEventListener("click", () => {
         createUnlockFile();
@@ -3067,10 +3030,6 @@ function renderPlayersList(searchTerm = '') {
                             <span>Академия:</span>
                             <strong>${player.tests.academy.length}</strong>
                         </div>
-                    </div>
-                    <div class="player-actions">
-                        <button class="btn small" onclick="viewPlayerDetails('${player.id}')">👁️ Просмотр</button>
-                        <button class="btn small ghost" onclick="deletePlayer('${player.id}')">🗑️ Удалить</button>
                     </div>
                 </div>
             `).join('')}
@@ -5497,7 +5456,6 @@ function initUI() {
         }
         
         updateRankMessage();
-        renderGreeting();
         renderCurrentTest();
     } else {
         document.getElementById('authModal').style.display = 'flex';
@@ -5640,308 +5598,7 @@ function initUI() {
                 }
                 renderAdmin();
             } else if (tabName === "decree") {
-                contentArea.classList.remove("admin-active");
-                document.getElementById("mainArea").style.display = "none";
-                document.getElementById("adminArea").style.display = "none";
-                document.getElementById("decreeArea").style.display = "block";
-                if (typeof renderDecree === 'function') {
-                    renderDecree();
-                }
-            } else {
-                contentArea.classList.remove("admin-active");
-                document.getElementById("mainArea").style.display = "block";
-                document.getElementById("adminArea").style.display = "none";
-                document.getElementById("decreeArea").style.display = "none";
-                currentTestType = tabName;
-                renderCurrentTest();
-            }
-        });
-    });
-
-    document.getElementById("startBtn").addEventListener("click", showDisclaimer);
-    document.getElementById("finishBtn").addEventListener("click", finishTestManually);
-    document.getElementById("unlockBtn").addEventListener("click", unblockTest);
-    
-    const adminUnlockBtn = document.getElementById("adminUnlockBtn");
-    if (adminUnlockBtn) {
-        adminUnlockBtn.addEventListener("click", adminUnblockTest);
-    }
-
-    document.getElementById("unlockBtn").style.display = "none";
-    if (adminUnlockBtn) adminUnlockBtn.style.display = "none";
-
-    // === КНОПКА ВЫХОДА ===
-    const logoutBtn2 = document.getElementById('logoutBtn');
-    if (logoutBtn2) {
-        logoutBtn2.addEventListener('click', logoutUser);
-    }
-
-    // === КНОПКИ УПРАВЛЕНИЯ ПОЛЬЗОВАТЕЛЕМ ===
-    document.getElementById('showUserInfoBtn')?.addEventListener('click', showUserInfo);
-    document.getElementById('changePasswordBtn')?.addEventListener('click', openChangePasswordModal);
-
-    setInterval(() => {
-        if (test && !test.blocked) {
-            const timeSinceLastActivity = Date.now() - lastActivityTime;
-            if (timeSinceLastActivity >= INACTIVITY_TIMEOUT - 5000) {
-                showInactivityWarning();
-            }
-        }
-    }, 1000);
-
-    // === РАЗБЛОКИРУЕМ ПОЛЯ ВВОДА ===
-    ['username', 'authUsername'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.disabled = false;
-            el.style.pointerEvents = 'auto';
-            el.style.opacity = '1';
-        }
-    });
-
-    renderCurrentTest();
-}function initUI() {
-    if (inactivityTimer) {
-        clearTimeout(inactivityTimer);
-        inactivityTimer = null;
-    }
-    
-    // === РАЗБЛОКИРУЕМ АВТОРИЗАЦИЮ ПЕРЕД ВСЕМ ===
-    document.querySelectorAll('#authModal input, #authModal button, #authModal select, #authModal textarea').forEach(el => {
-        el.disabled = false;
-        el.style.pointerEvents = 'auto';
-        el.style.opacity = '1';
-    });
-    
-    // === РАЗБЛОКИРУЕМ ПОЛЕ ВВОДА НИКА ===
-    const usernameInput = document.getElementById('username');
-    if (usernameInput) {
-        usernameInput.disabled = false;
-        usernameInput.style.pointerEvents = 'auto';
-        usernameInput.style.opacity = '1';
-    }
-    
-    // === РАЗБЛОКИРУЕМ КНОПКУ ВЫХОДА ===
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.disabled = false;
-        logoutBtn.style.pointerEvents = 'auto';
-        logoutBtn.style.opacity = '1';
-    }
-    
-    loadTestState();
-    
-    // === ОБНОВЛЯЕМ СПИСКИ ===
-    const datalist = document.getElementById('playersList');
-    if (datalist) {
-        const players = JSON.parse(localStorage.getItem('playersDatabase') || '[]');
-        datalist.innerHTML = players.map(player => 
-            `<option value="${player.username}">`
-        ).join('');
-    }
-    
-    const authDatalist = document.getElementById('authPlayersList');
-    if (authDatalist) {
-        const employeesData = loadEmployeesData();
-        const names = Object.values(employeesData)
-            .filter(emp => emp.username && emp.username !== 'Вакантно')
-            .map(emp => emp.username);
-        authDatalist.innerHTML = names.map(name => `<option value="${name}">`).join('');
-    }
-    
-    // === ПРОВЕРКА АВТОРИЗАЦИИ ===
-    if (checkAuth()) {
-        const authModal = document.getElementById('authModal');
-        const app = document.getElementById('app');
-        const userNameDisplay = document.getElementById('userNameDisplay');
-        const userRoleDisplay = document.getElementById('userRoleDisplay');
-        const usernameInput2 = document.getElementById('username');
-        const avatar = document.getElementById('userAvatar');
-        const currentUsernameDisplay = document.getElementById('currentUsernameDisplay');
-        const currentUserRoleDisplay = document.getElementById('currentUserRoleDisplay');
-        
-        if (authModal) {
-            authModal.style.opacity = '0';
-            authModal.style.transition = 'opacity 0.5s ease';
-            setTimeout(() => {
-                authModal.style.display = 'none';
-            }, 500);
-        }
-        if (app) {
-            app.style.display = 'block';
-            app.style.opacity = '0';
-            app.style.transition = 'opacity 0.5s ease';
-            setTimeout(() => {
-                app.style.opacity = '1';
-            }, 100);
-        }
-        
-        if (userNameDisplay) userNameDisplay.textContent = currentUser.username;
-        if (userRoleDisplay) userRoleDisplay.textContent = currentUser.position;
-        if (currentUsernameDisplay) currentUsernameDisplay.textContent = currentUser.username;
-        if (currentUserRoleDisplay) currentUserRoleDisplay.textContent = `— ${currentUser.position}`;
-        
-        if (avatar) {
-            const icons = {
-                'curator': '👑',
-                'senior_officer': '⭐',
-                'officer': '⚖️',
-                'cadet': '🎓'
-            };
-            avatar.textContent = icons[currentUser.type] || '👤';
-        }
-        
-        if (usernameInput2) {
-            usernameInput2.disabled = false;
-            usernameInput2.style.pointerEvents = 'auto';
-            usernameInput2.style.opacity = '1';
-        }
-        
-        updateRankMessage();
-        renderGreeting();
-        renderCurrentTest();
-    } else {
-        document.getElementById('authModal').style.display = 'flex';
-        document.getElementById('authModal').style.opacity = '1';
-        document.getElementById('app').style.display = 'none';
-    }
-    
-    // === ВКЛАДКИ АВТОРИЗАЦИИ (ВХОД / РЕГИСТРАЦИЯ / СБРОС) ===
-    let authMode = 'login';
-    
-    document.querySelectorAll('.auth-tab').forEach(tab => {
-        tab.addEventListener('click', function() {
-            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            authMode = this.dataset.tab;
-            
-            document.getElementById('loginPanel').style.display = authMode === 'login' ? 'block' : 'none';
-            document.getElementById('registerPanel').style.display = authMode === 'register' ? 'block' : 'none';
-            document.getElementById('resetPanel').style.display = authMode === 'reset' ? 'block' : 'none';
-            
-            const btn = document.getElementById('authActionBtn');
-            if (authMode === 'login') {
-                btn.textContent = '🔑 Войти в систему';
-            } else if (authMode === 'register') {
-                btn.textContent = '📝 Зарегистрироваться';
-            } else {
-                btn.textContent = '🔒 Сбросить пароль';
-            }
-            
-            document.getElementById('authStatus').style.display = 'none';
-        });
-    });
-    
-    document.getElementById('authActionBtn').addEventListener('click', function() {
-        if (authMode === 'login') {
-            const username = document.getElementById('authUsername').value.trim();
-            const password = document.getElementById('authPassword').value;
-            loginUser(username, password);
-        } else if (authMode === 'register') {
-            const username = document.getElementById('regUsername').value.trim();
-            const callsign = document.getElementById('regCallsign').value.trim();
-            const password = document.getElementById('regPassword').value;
-            const confirmPassword = document.getElementById('regConfirmPassword').value;
-            registerUser(username, password, confirmPassword, callsign);
-        } else {
-            resetPassword();
-        }
-    });
-    
-    // === ЗАПРОС КОДА СБРОСА ===
-    document.getElementById('requestResetBtn')?.addEventListener('click', function() {
-        requestResetCode();
-    });
-    
-    document.getElementById('authPassword').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            document.getElementById('authActionBtn').click();
-        }
-    });
-    
-    document.getElementById('regPassword').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            document.getElementById('regConfirmPassword').focus();
-        }
-    });
-    
-    document.getElementById('regConfirmPassword').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            document.getElementById('authActionBtn').click();
-        }
-    });
-    
-    document.getElementById('resetCode').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            document.getElementById('resetNewPassword').focus();
-        }
-    });
-    
-    document.getElementById('resetNewPassword').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            document.getElementById('resetConfirmPassword').focus();
-        }
-    });
-    
-    document.getElementById('resetConfirmPassword').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            document.getElementById('authActionBtn').click();
-        }
-    });
-    
-    document.addEventListener('visibilitychange', () => {
-        if (document.hidden && test && !test.blocked) {
-            console.log('🚫 Пользователь покинул вкладку!');
-            showError("Тест заблокирован! Не переключайте вкладки во время теста.");
-            blockTest();
-        }
-    });
-    
-    window.addEventListener('blur', () => {
-        if (test && !test.blocked) {
-            setTimeout(() => {
-                if (document.hidden && test && !test.blocked) {
-                    console.log('🚫 Окно потеряло фокус!');
-                    showError("Тест заблокирован! Не переключайтесь в другие окна.");
-                    blockTest();
-                }
-            }, 500);
-        }
-    });
-    
-    document.addEventListener('mousemove', trackActivity);
-    document.addEventListener('mousedown', trackActivity);
-    document.addEventListener('keypress', trackActivity);
-    document.addEventListener('keydown', trackActivity);
-    
-    document.querySelectorAll(".tab").forEach(tab => {
-        tab.addEventListener("click", () => {
-            trackActivity();
-            const tabName = tab.dataset.tab;
-            
-            document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-            tab.classList.add("active");
-            
-            const contentArea = document.getElementById("contentArea");
-            if (tabName === "admin") {
                 contentArea.classList.add("admin-active");
-                document.getElementById("mainArea").style.display = "none";
-                document.getElementById("adminArea").style.display = "block";
-                document.getElementById("decreeArea").style.display = "none";
-                if (!authenticateAdmin()) {
-                    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-                    document.querySelector(".tab[data-tab='exam']").classList.add("active");
-                    document.getElementById("mainArea").style.display = "block";
-                    document.getElementById("adminArea").style.display = "none";
-                    document.getElementById("decreeArea").style.display = "none";
-                    contentArea.classList.remove("admin-active");
-                    currentTestType = 'exam';
-                    renderCurrentTest();
-                    return;
-                }
-                renderAdmin();
-            } else if (tabName === "decree") {
-                contentArea.classList.remove("admin-active");
                 document.getElementById("mainArea").style.display = "none";
                 document.getElementById("adminArea").style.display = "none";
                 document.getElementById("decreeArea").style.display = "block";
