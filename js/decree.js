@@ -1055,7 +1055,6 @@ ${escapeHtml(defPos || 'не имеется')}.
 ${articlesHtml}
 
 [IMG width="660px" height="20px"]https://lh6.googleusercontent.com/bfkuOzG0e4kH5IKPsuBGLbGP9LBWXsD886Dvwkf-RquzpshIle3LHwid8n6mKaEFBFiNxyWCgjisr1eB-KCUC91WFQa910RvY0vMmV_i4_U7O7kaL3sYaJuIbkLN_0V4aCjvZCj1[/IMG]
-[/FONT]
 [/CENTER]
 
 
