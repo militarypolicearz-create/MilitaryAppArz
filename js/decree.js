@@ -984,7 +984,7 @@ ${points}
 
 [FONT=courier new][SIZE=7]П О С Т А Н О В Л Е Н И Е №[COLOR=rgb(250,197,28)] ${decreeNumber} [/COLOR][/SIZE][/FONT]
 
-[IMG width="660px" height="20px"]https://i.postimg.cc/KjdKPtPF/image.png[/IMG]
+[IMG width="660px" height="20px"]https://lh6.googleusercontent.com/bfkuOzG0e4kH5IKPsuBGLbGP9LBWXsD886Dvwkf-RquzpshIle3LHwid8n6mKaEFBFiNxyWCgjisr1eB-KCUC91WFQa910RvY0vMmV_i4_U7O7kaL3sYaJuIbkLN_0V4aCjvZCj1[/IMG]
 [/CENTER]
 
 [TABLE width="100%"]
@@ -1016,12 +1016,12 @@ ${points}
 
 
 [CENTER]
-[IMG width="660px" height="20px"]https://i.postimg.cc/KjdKPtPF/image.png[/IMG]
+[IMG width="660px" height="20px"]https://lh6.googleusercontent.com/bfkuOzG0e4kH5IKPsuBGLbGP9LBWXsD886Dvwkf-RquzpshIle3LHwid8n6mKaEFBFiNxyWCgjisr1eB-KCUC91WFQa910RvY0vMmV_i4_U7O7kaL3sYaJuIbkLN_0V4aCjvZCj1[/IMG]
 [FONT=courier new][SIZE=4][B]Описание обстоятельств:[/B]
 
 ${escapeHtml(circumstances || 'Не указано.')}
 [/SIZE][/FONT]
-[IMG width="660px" height="20px"]https://i.postimg.cc/KjdKPtPF/image.png[/IMG]
+[IMG width="660px" height="20px"]https://lh6.googleusercontent.com/bfkuOzG0e4kH5IKPsuBGLbGP9LBWXsD886Dvwkf-RquzpshIle3LHwid8n6mKaEFBFiNxyWCgjisr1eB-KCUC91WFQa910RvY0vMmV_i4_U7O7kaL3sYaJuIbkLN_0V4aCjvZCj1[/IMG]
 
 
 
@@ -1050,11 +1050,11 @@ ${escapeHtml(defPos || 'не имеется')}.
 [/TABLE]
 
 [CENTER]
-[IMG width="660px" height="20px"]https://i.postimg.cc/KjdKPtPF/image.png[/IMG]
+[IMG width="660px" height="20px"]https://lh6.googleusercontent.com/bfkuOzG0e4kH5IKPsuBGLbGP9LBWXsD886Dvwkf-RquzpshIle3LHwid8n6mKaEFBFiNxyWCgjisr1eB-KCUC91WFQa910RvY0vMmV_i4_U7O7kaL3sYaJuIbkLN_0V4aCjvZCj1[/IMG]
 
 ${articlesHtml}
 
-[IMG width="660px" height="20px"]https://i.postimg.cc/KjdKPtPF/image.png[/IMG]
+[IMG width="660px" height="20px"]https://lh6.googleusercontent.com/bfkuOzG0e4kH5IKPsuBGLbGP9LBWXsD886Dvwkf-RquzpshIle3LHwid8n6mKaEFBFiNxyWCgjisr1eB-KCUC91WFQa910RvY0vMmV_i4_U7O7kaL3sYaJuIbkLN_0V4aCjvZCj1[/IMG]
 [/FONT]
 [/CENTER]
 
