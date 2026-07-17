@@ -773,9 +773,14 @@ const FIXED_EMPLOYEE_STRUCTURE = [
     { id: 'officer_2', position: 'Офицер ВП', type: 'officer', username: 'Blake_Obi' },
     { id: 'officer_7', position: 'Офицер ВП', type: 'officer', username: 'Kristoph_Hidenberg' },
     { id: 'officer_6', position: 'Офицер ВП', type: 'officer', username: 'Maks_Willov' },
+    { id: 'officer_8', position: 'Офицер ВП', type: 'officer', username: 'Вакантно' },
+    { id: 'officer_9', position: 'Офицер ВП', type: 'officer', username: 'Вакантно' },
+    { id: 'officer_10', position: 'Офицер ВП', type: 'officer', username: 'Вакантно' },
     { id: 'cadet_2', position: 'Курсант ВП', type: 'cadet', username: 'Dear_Scaletto' },
     { id: 'cadet_1', position: 'Курсант ВП', type: 'cadet', username: 'Wato_Kapiani' },
-    { id: 'cadet_3', position: 'Курсант ВП', type: 'cadet', username: 'Вакантно' }
+    { id: 'cadet_3', position: 'Курсант ВП', type: 'cadet', username: 'Ghost_Deespees' },
+    { id: 'cadet_4', position: 'Курсант ВП', type: 'cadet', username: 'Вакантно' },
+    { id: 'cadet_5', position: 'Курсант ВП', type: 'cadet', username: 'Вакантно' },
 ];
 
 // === ВОПРОСЫ ДЛЯ ЭКЗАМЕНА ===
@@ -5355,7 +5360,40 @@ function switchRankingTab(type) {
         }, 100);
     }
 }
-
+function migrateEmployeesStructure() {
+    const saved = localStorage.getItem('fixedEmployees');
+    if (!saved) return;
+    
+    const employeesData = JSON.parse(saved);
+    let needSave = false;
+    
+    // Проверяем все слоты из FIXED_EMPLOYEE_STRUCTURE
+    FIXED_EMPLOYEE_STRUCTURE.forEach(fixedEmp => {
+        if (!employeesData[fixedEmp.id]) {
+            // Если слота нет - создаём
+            employeesData[fixedEmp.id] = {
+                ...fixedEmp,
+                username: fixedEmp.username,
+                folders: {
+                    academy: `${fixedEmp.username !== 'Вакантно' ? fixedEmp.username : fixedEmp.position}_Академия`,
+                    exam: `${fixedEmp.username !== 'Вакантно' ? fixedEmp.username : fixedEmp.position}_Экзамен`,
+                    retraining: `${fixedEmp.username !== 'Вакантно' ? fixedEmp.username : fixedEmp.position}_Переаттестация`
+                },
+                files: {
+                    academy: [],
+                    exam: [],
+                    retraining: []
+                }
+            };
+            needSave = true;
+        }
+    });
+    
+    if (needSave) {
+        saveEmployeesData(employeesData);
+        console.log('✅ Структура сотрудников обновлена!');
+    }
+}
 // === ИНИЦИАЛИЗАЦИЯ ===
 
 function initUI() {
@@ -5406,6 +5444,9 @@ function initUI() {
             .map(emp => emp.username);
         authDatalist.innerHTML = names.map(name => `<option value="${name}">`).join('');
     }
+    
+    // === ОБНОВЛЯЕМ СТРУКТУРУ СОТРУДНИКОВ ===
+    migrateEmployeesStructure();
     
     // === ПРОВЕРКА АВТОРИЗАЦИИ ===
     if (checkAuth()) {
