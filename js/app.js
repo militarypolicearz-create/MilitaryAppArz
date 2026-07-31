@@ -780,7 +780,7 @@ const FIXED_EMPLOYEE_STRUCTURE = [
     { id: 'cadet_2', position: 'Курсант ВП', type: 'cadet', username: 'Wock_Moncler' },
     { id: 'cadet_1', position: 'Курсант ВП', type: 'cadet', username: 'Avice_Sgawe' },
     { id: 'cadet_4', position: 'Курсант ВП', type: 'cadet', username: 'Jame_Chillaut' },
-    { id: 'cadet_5', position: 'Курсант ВП', type: 'cadet', username: 'Вакантно' },
+    { id: 'cadet_5', position: 'Курсант ВП', type: 'cadet', username: 'Maximiliano_Alwarez' },
 ];
 
 // === ВОПРОСЫ ДЛЯ ЭКЗАМЕНА ===
