@@ -779,7 +779,7 @@ const FIXED_EMPLOYEE_STRUCTURE = [
     { id: 'cadet_3', position: 'Курсант ВП', type: 'cadet', username: 'Alexey_Night' },
     { id: 'cadet_2', position: 'Курсант ВП', type: 'cadet', username: 'Wock_Moncler' },
     { id: 'cadet_1', position: 'Курсант ВП', type: 'cadet', username: 'Avice_Sgawe' },
-    { id: 'cadet_4', position: 'Курсант ВП', type: 'cadet', username: 'Вакантно' },
+    { id: 'cadet_4', position: 'Курсант ВП', type: 'cadet', username: 'Jame_Chillaut' },
     { id: 'cadet_5', position: 'Курсант ВП', type: 'cadet', username: 'Вакантно' },
 ];
 
