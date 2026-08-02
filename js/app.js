@@ -770,8 +770,8 @@ const FIXED_EMPLOYEE_STRUCTURE = [
     { id: 'officer_3', position: 'Офицер ВП', type: 'officer', username: 'Akashi_Miyazuki' },
     { id: 'officer_7', position: 'Офицер ВП', type: 'officer', username: 'Kristoph_Hidenberg' },
     { id: 'officer_9', position: 'Офицер ВП', type: 'officer', username: 'Dear_Scaletto' },
-    { id: 'officer_2', position: 'Офицер ВП', type: 'officer', username: 'Вакантно' },
-    { id: 'officer_6', position: 'Офицер ВП', type: 'officer', username: 'Вакантно' },
+    { id: 'officer_2', position: 'Офицер ВП', type: 'officer', username: 'Maximiliano_Alwarez' },
+    { id: 'officer_6', position: 'Офицер ВП', type: 'officer', username: 'Jame_Chillaut' },
     { id: 'officer_1', position: 'Офицер ВП', type: 'officer', username: 'Вакантно' },
     { id: 'officer_8', position: 'Офицер ВП', type: 'officer', username: 'Вакантно' },
     { id: 'officer_4', position: 'Офицер ВП', type: 'officer', username: 'Вакантно' },
@@ -779,8 +779,8 @@ const FIXED_EMPLOYEE_STRUCTURE = [
     { id: 'cadet_3', position: 'Курсант ВП', type: 'cadet', username: 'Alexey_Night' },
     { id: 'cadet_2', position: 'Курсант ВП', type: 'cadet', username: 'Wock_Moncler' },
     { id: 'cadet_1', position: 'Курсант ВП', type: 'cadet', username: 'Avice_Sgawe' },
-    { id: 'cadet_4', position: 'Курсант ВП', type: 'cadet', username: 'Jame_Chillaut' },
-    { id: 'cadet_5', position: 'Курсант ВП', type: 'cadet', username: 'Maximiliano_Alwarez' },
+    { id: 'cadet_4', position: 'Курсант ВП', type: 'cadet', username: 'Вакантно' },
+    { id: 'cadet_5', position: 'Курсант ВП', type: 'cadet', username: 'Вакантно' },
 ];
 
 // === ВОПРОСЫ ДЛЯ ЭКЗАМЕНА ===
