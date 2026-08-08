@@ -776,7 +776,7 @@ const FIXED_EMPLOYEE_STRUCTURE = [
     { id: 'officer_8', position: 'Офицер ВП', type: 'officer', username: 'Вакантно' },
     { id: 'officer_4', position: 'Офицер ВП', type: 'officer', username: 'Вакантно' },
     { id: 'officer_10', position: 'Офицер ВП', type: 'officer', username: 'Вакантно' },
-    { id: 'cadet_1', position: 'Курсант ВП', type: 'cadet', username: 'Вакантно' },
+    { id: 'cadet_1', position: 'Курсант ВП', type: 'cadet', username: 'Kiril_Kot' },
     { id: 'cadet_3', position: 'Курсант ВП', type: 'cadet', username: 'Вакантно' },
     { id: 'cadet_2', position: 'Курсант ВП', type: 'cadet', username: 'Вакантно' },
     { id: 'cadet_4', position: 'Курсант ВП', type: 'cadet', username: 'Вакантно' },
