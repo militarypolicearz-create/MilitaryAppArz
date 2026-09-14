@@ -763,9 +763,9 @@ function getRandomGreeting(userType) {
 }
 
 const FIXED_EMPLOYEE_STRUCTURE = [
-    { id: 'curator', position: 'Куратор ВП', type: 'curator', username: 'Gustavo_Mendez' },
+    { id: 'curator', position: 'Куратор ВП', type: 'curator', username: 'Gustavo_Abobbi' },
     { id: 'senior_officer_2', position: 'Старший офицер ВП', type: 'senior_officer', username: 'Chaffy_Washington' },
-    { id: 'senior_officer_1', position: 'Старший офицер ВП', type: 'senior_officer', username: 'Akashi_Miyazuki' },
+    { id: 'senior_officer_1', position: 'Старший офицер ВП', type: 'senior_officer', username: 'Dobriy_Abobbi' },
     { id: 'officer_5', position: 'Офицер ВП', type: 'officer', username: 'Ralph_Laurence' },
     { id: 'officer_7', position: 'Офицер ВП', type: 'officer', username: 'Kristoph_Hidenberg' },
     { id: 'officer_2', position: 'Офицер ВП', type: 'officer', username: 'Maximiliano_Alwarez' },
