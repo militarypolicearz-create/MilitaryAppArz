@@ -674,9 +674,9 @@ const GREETINGS = {
     ],
     'senior_officer': [
         "Командир, рад приветствовать вас. Ваш опыт — опора системы. Младшие равняются на вас, не подведите их.",
-        "Господин старший офицер, ваше присутствие — честь. Система готова выполнять любые ваши приказы.",
+        "Заместитель, ваше присутствие — честь. Система готова выполнять любые ваши приказы.",
         "Приветствую вас, сэр. Ваш авторитет заслужен годами. Продолжайте укреплять нашу систему изнутри.",
-        "Старший офицер, вы — пример для подражания. Ваш путь — это путь настоящего воина, достойного уважения.",
+        "Заместитель, вы — пример для подражания. Ваш путь — это путь настоящего воина, достойного уважения.",
         "Командир, система полностью подчинена вам. Ваша мудрость и решительность ведут нас к победе."
     ],
     'curator': [
@@ -763,21 +763,21 @@ function getRandomGreeting(userType) {
 }
 
 const FIXED_EMPLOYEE_STRUCTURE = [
-    { id: 'curator', position: 'Куратор ВП', type: 'curator', username: 'Gustavo_Abobbi' },
-    { id: 'senior_officer_2', position: 'Старший офицер ВП', type: 'senior_officer', username: 'Chaffy_Washington' },
-    { id: 'senior_officer_1', position: 'Старший офицер ВП', type: 'senior_officer', username: 'Dobriy_Abobbi' },
-    { id: 'officer_5', position: 'Офицер ВП', type: 'officer', username: 'Ralph_Laurence' },
-    { id: 'officer_7', position: 'Офицер ВП', type: 'officer', username: 'Kristoph_Hidenberg' },
+    { id: 'curator', position: 'Куратор ВП', type: 'curator', username: 'Dobriy_Abobbi' },
+    { id: 'senior_officer_2', position: 'Заместитель Куратора ВП', type: 'senior_officer', username: 'Chaffy_Washington' },
+    { id: 'senior_officer_1', position: 'Заместитель Куратора ВП', type: 'senior_officer', username: 'Ralph_Laurence' },
     { id: 'officer_2', position: 'Офицер ВП', type: 'officer', username: 'Maximiliano_Alwarez' },
     { id: 'officer_9', position: 'Офицер ВП', type: 'officer', username: 'Kiril_Kot' },
-    { id: 'officer_3', position: 'Офицер ВП', type: 'officer', username: 'Blake_Obi' },
     { id: 'officer_6', position: 'Офицер ВП', type: 'officer', username: 'Nine_Oxidize' },
+    { id: 'officer_5', position: 'Офицер ВП', type: 'officer', username: 'Вакантно' },
+    { id: 'officer_7', position: 'Офицер ВП', type: 'officer', username: 'Вакантно' },
+    { id: 'officer_3', position: 'Офицер ВП', type: 'officer', username: 'Вакантно' },
     { id: 'officer_1', position: 'Офицер ВП', type: 'officer', username: 'Вакантно' },
     { id: 'officer_8', position: 'Офицер ВП', type: 'officer', username: 'Вакантно' },
     { id: 'officer_4', position: 'Офицер ВП', type: 'officer', username: 'Вакантно' },
     { id: 'officer_10', position: 'Офицер ВП', type: 'officer', username: 'Вакантно' },
-    { id: 'cadet_3', position: 'Курсант ВП', type: 'cadet', username: 'Вакантно' },
     { id: 'cadet_1', position: 'Курсант ВП', type: 'cadet', username: 'Вакантно' },
+    { id: 'cadet_3', position: 'Курсант ВП', type: 'cadet', username: 'Вакантно' },
     { id: 'cadet_2', position: 'Курсант ВП', type: 'cadet', username: 'Вакантно' },
     { id: 'cadet_4', position: 'Курсант ВП', type: 'cadet', username: 'Вакантно' },
     { id: 'cadet_5', position: 'Курсант ВП', type: 'cadet', username: 'Вакантно' },
