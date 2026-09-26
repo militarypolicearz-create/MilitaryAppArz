@@ -10,97 +10,62 @@ let currentTestType = 'exam';
 let playersDatabase = JSON.parse(localStorage.getItem('playersDatabase') || '[]');
 let currentUser = null;
 
-// === БАЗА ПОЛЬЗОВАТЕЛЕЙ (ХРАНИТСЯ В LOCALSTORAGE) ===
-let usersDatabase = JSON.parse(localStorage.getItem('usersDatabase') || '{}');
+const FIXED_ACCESS_CODES = {
+    'curator':             'Kx7amP9qqL2rrT5vvN8wwE3yyU6bbY9',
+    'senior_officer_2':    'Bv4cnQ8wwE3yyU6kkF7ddS4jjR2ccJ9',
+    'senior_officer_1':    'Zc9djR2kkF7ddS4xxP1vvN8ggT6bbY3',
+    'officer_2':           'Hm3gT6xxP1vvN8qqL2rT5mmP9kF4zz',
+    'officer_9':           'Wq5bY9ccJ4zzM2ffD3pH6sK1nR7tt',
+    'officer_6':           'Lr8fD3sK6pV1xQ4mW7eT2yU5qqWw',
+    'officer_5':           'De6fG9hI2jK5lM8nO1pQ4rS7tU0vW3',
+    'officer_7':           'Ef7gH0iJ3kL6mN9oP2qR5sT8uV1wX4',
+    'officer_3':           'Bc4dE7fG0hI3jK6lM9nO2pQ5rS8tV1',
+    'officer_1':           'Ab3cD6eF9gH2iJ5kL8mN1oP4qR7sT0',
+    'officer_8':           'Fg8hI1jK4lM7nO0pQ3rS6tU9vW2xY5',
+    'officer_4':           'Cd5eF8gH1iJ4kL7mN0oP3qR6sT9uV2',
+    'officer_10':          'Gh9iJ2kL5mN8oP1qR4sT7uV0wX3yZ6',
+    'cadet_1':             'Hi0jK3lM6nO9pQ2rS5tU8vW1xY4zA7',
+    'cadet_3':             'Jk2lM5nO8pQ1rS4tU7vW0xY3zA6bC9',
+    'cadet_2':             'Ij1kL4mN7oP0qR3sT6uV9wX2yZ5aB8',
+    'cadet_4':             'Kl3mN6oP9qR2sT5uV8wX1yZ4aB7cD0',
+    'cadet_5':             'Lm4nO7pQ0rS3tU6vW9xY2zA5bC8dE1',
+};
 
-function hashPassword(password) {
-    let hash = 0;
-    for (let i = 0; i < password.length; i++) {
-        const char = password.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash;
-    }
-    return 'hash_' + Math.abs(hash).toString(36);
+function getAccessCode(employeeId) {
+    if (!employeeId) return null;
+    return FIXED_ACCESS_CODES[employeeId] || null;
 }
 
-function registerUser(username, password, confirmPassword, callsign) {
-    if (!username || username.trim() === '') {
-        showAuthStatus('❌ Введите ник!', 'error');
-        return false;
-    }
-    
-    if (!password || password.length < 6) {
-        showAuthStatus('❌ Пароль должен быть минимум 6 символов!', 'error');
-        return false;
-    }
-    
-    if (password !== confirmPassword) {
-        showAuthStatus('❌ Пароли не совпадают!', 'error');
-        return false;
-    }
-    
-    const employeesData = loadEmployeesData();
-    const employee = Object.values(employeesData).find(emp => 
-        emp.username.toLowerCase() === username.toLowerCase() && emp.username !== 'Вакантно'
-    );
-    
-    if (!employee) {
-        showAuthStatus('❌ Сотрудник с таким ником не найден в системе!', 'error');
-        return false;
-    }
-    
-    if (usersDatabase[username.toLowerCase()]) {
-        showAuthStatus('❌ Этот ник уже зарегистрирован! Используйте вход.', 'error');
-        return false;
-    }
-    
-    usersDatabase[username.toLowerCase()] = {
-        username: username,
-        password: hashPassword(password),
-        callsign: callsign || '',
-        registeredAt: Date.now(),
-        lastLogin: Date.now()
-    };
-    
-    localStorage.setItem('usersDatabase', JSON.stringify(usersDatabase));
-    showAuthStatus(`✅ Пользователь ${username} зарегистрирован! Теперь войдите.`, 'success');
-    return true;
-}
 
 function loginUser(username, password) {
     if (!username || username.trim() === '') {
         showAuthStatus('❌ Введите ник!', 'error');
         return false;
     }
-    
-    if (!password || password.length < 6) {
-        showAuthStatus('❌ Введите пароль!', 'error');
+    if (!password || password.length === 0) {
+        showAuthStatus('❌ Введите код доступа!', 'error');
         return false;
     }
-    
-    const userData = usersDatabase[username.toLowerCase()];
-    if (!userData) {
-        showAuthStatus('❌ Пользователь не найден. Зарегистрируйтесь!', 'error');
+    const formattedUsername = formatUsername(username);
+    const employeesData = loadEmployeesData();
+    const employee = Object.values(employeesData).find(emp =>
+        emp.username.toLowerCase() === formattedUsername.toLowerCase() &&
+        emp.username !== 'Вакантно'
+    );
+    if (!employee) {
+        showAuthStatus(`❌ Сотрудник "${formattedUsername}" не найден в системе!`, 'error');
         return false;
     }
-    
-    if (userData.password !== hashPassword(password)) {
-        showAuthStatus('❌ Неверный пароль!', 'error');
+    const correctCode = getAccessCode(employee.id);
+    if (!correctCode) {
+        showAuthStatus('❌ Для вашей должности не задан код доступа. Обратитесь к администратору!', 'error');
         return false;
     }
-    
-    const daysPassed = (Date.now() - userData.lastLogin) / (1000 * 60 * 60 * 24);
-    if (daysPassed >= 7) {
-        showAuthStatus('❌ Сессия истекла (7 дней). Перерегистрируйтесь!', 'error');
-        delete usersDatabase[username.toLowerCase()];
-        localStorage.setItem('usersDatabase', JSON.stringify(usersDatabase));
+    if (password.trim() !== correctCode) {
+        showAuthStatus('❌ Неверный код доступа!', 'error');
         return false;
     }
-    
-    userData.lastLogin = Date.now();
-    localStorage.setItem('usersDatabase', JSON.stringify(usersDatabase));
-    
-    return performAuth(username);
+    return performAuth(formattedUsername);
 }
 
 function checkAuth() {
@@ -140,27 +105,23 @@ function checkAuth() {
 
 function performAuth(username) {
     const employeesData = loadEmployeesData();
-    const employee = Object.values(employeesData).find(emp => 
-        emp.username.toLowerCase() === username.toLowerCase() && emp.username !== 'Вакантно'
+    const employee = Object.values(employeesData).find(emp =>
+        emp.username.toLowerCase() === username.toLowerCase() &&
+        emp.username !== 'Вакантно'
     );
-    
     if (!employee) {
         showAuthStatus('❌ Сотрудник не найден.', 'error');
         return false;
     }
-    
     currentUser = {
         username: employee.username,
         type: employee.type,
         position: employee.position,
         id: employee.id
     };
-    
     localStorage.setItem('currentUser', JSON.stringify(currentUser));
     localStorage.setItem('authDate', String(Date.now()));
-    
     showAuthStatus(`✅ Добро пожаловать, ${employee.username}! (${employee.position})`, 'success');
-    
     setTimeout(() => {
         const authModal = document.getElementById('authModal');
         const app = document.getElementById('app');
@@ -170,7 +131,6 @@ function performAuth(username) {
         const avatar = document.getElementById('userAvatar');
         const currentUsernameDisplay = document.getElementById('currentUsernameDisplay');
         const currentUserRoleDisplay = document.getElementById('currentUserRoleDisplay');
-        
         if (authModal) {
             authModal.style.opacity = '0';
             authModal.style.transition = 'opacity 0.5s ease';
@@ -186,12 +146,10 @@ function performAuth(username) {
                 app.style.opacity = '1';
             }, 100);
         }
-        
         if (userNameDisplay) userNameDisplay.textContent = employee.username;
         if (userRoleDisplay) userRoleDisplay.textContent = employee.position;
         if (currentUsernameDisplay) currentUsernameDisplay.textContent = employee.username;
         if (currentUserRoleDisplay) currentUserRoleDisplay.textContent = `— ${employee.position}`;
-        
         if (avatar) {
             const icons = {
                 'curator': '👑',
@@ -206,11 +164,9 @@ function performAuth(username) {
             usernameInput.style.pointerEvents = 'auto';
             usernameInput.style.opacity = '1';
         }
-        
         updateRankMessage();
         renderCurrentTest();
     }, 600);
-    
     return true;
 }
 
@@ -225,28 +181,22 @@ function showAuthStatus(message, type) {
 function logoutUser() {
     localStorage.removeItem('currentUser');
     localStorage.removeItem('authDate');
-    
     if (test) {
         clearTestState();
     }
-    
     currentUser = null;
     test = null;
     blocked = false;
-    
-    // Удаляем модалку смены пароля если открыта
     document.querySelectorAll('.modal-overlay').forEach(modal => {
         if (modal.id !== 'authModal' && modal.id !== 'disclaimerModal' && modal.id !== 'employeeSelectionModal') {
             modal.remove();
         }
     });
-    
     const app = document.getElementById('app');
     const authModal = document.getElementById('authModal');
     const statusEl = document.getElementById('authStatus');
     const usernameInput = document.getElementById('authUsername');
     const passwordInput = document.getElementById('authPassword');
-    
     if (app) {
         app.style.opacity = '0';
         setTimeout(() => {
@@ -260,11 +210,9 @@ function logoutUser() {
     if (statusEl) statusEl.style.display = 'none';
     if (usernameInput) usernameInput.value = '';
     if (passwordInput) passwordInput.value = '';
-    
     document.querySelectorAll("input, button, textarea, select").forEach(el => {
         el.disabled = false;
     });
-    
     updateRankMessage();
     showMessage('Вы вышли из системы', 'info');
 }
@@ -279,382 +227,7 @@ function formatUsername(username) {
     return formattedParts.join('_');
 }
 
-// === ФУНКЦИЯ ЗАПРОСА КОДА СБРОСА (для пользователя) ===
-function requestResetCode() {
-    const username = document.getElementById('resetUsername').value.trim();
-    if (!username) {
-        showAuthStatus('❌ Введите ваш ник!', 'error');
-        return;
-    }
-    
-    // Приводим к правильному формату
-    const formattedUsername = formatUsername(username);
-    const trimmedUsername = formattedUsername.toLowerCase();
-    
-    const employeesData = loadEmployeesData();
-    const employee = Object.values(employeesData).find(emp => 
-        emp.username.toLowerCase() === trimmedUsername && emp.username !== 'Вакантно'
-    );
-    
-    if (!employee) {
-        showAuthStatus(`❌ Сотрудник "${formattedUsername}" не найден в системе!`, 'error');
-        return;
-    }
-    
-    if (!usersDatabase[trimmedUsername]) {
-        usersDatabase[trimmedUsername] = {
-            username: formattedUsername,
-            password: hashPassword(generateReadableCode()),
-            callsign: '',
-            registeredAt: Date.now(),
-            lastLogin: Date.now()
-        };
-        localStorage.setItem('usersDatabase', JSON.stringify(usersDatabase));
-    }
-    
-    const resetCode = generateReadableCode();
-    const resetData = JSON.parse(localStorage.getItem('tempResetCodes') || '{}');
-    resetData[trimmedUsername] = {
-        code: resetCode,
-        expires: Date.now() + 86400000
-    };
-    localStorage.setItem('tempResetCodes', JSON.stringify(resetData));
-    
-    const resetContent = `КОД СБРОСА ПАРОЛЯ
-=================================
 
-Имя пользователя: ${formattedUsername}
-Код сброса: ${resetCode}
-
-Инструкция:
-1. Отправьте этот файл администратору
-2. Администратор расшифрует файл и сообщит вам код
-3. Введите полученный код в поле "Код сброса"
-4. Придумайте новый пароль и подтвердите его
-
-Код действителен 24 часа.
-
-=================================
-Arizona RP | Военная Полиция`;
-
-    try {
-        const encrypted = CryptoJS.AES.encrypt(resetContent, AES_KEY).toString();
-        const blob = new Blob([btoa(encrypted)], { 
-            type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
-        });
-        saveAs(blob, `${formattedUsername}_код_сброса_пароля.docx`);
-        showAuthStatus(`✅ Файл с кодом сброса скачан! Отправьте его администратору.`, 'success');
-    } catch (e) {
-        showAuthStatus('❌ Ошибка создания файла!', 'error');
-    }
-}
-
-// === ФУНКЦИЯ ДЛЯ АДМИНИСТРАТОРА - РАСШИФРОВАТЬ ФАЙЛ С КОДОМ ===
-function adminDecryptResetFile() {
-    if (!isAdminAuthenticated) {
-        if (!authenticateAdmin()) {
-            showError('Только для администратора!');
-            return;
-        }
-    }
-    
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = '.docx';
-    fileInput.onchange = function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-            try {
-                const fileText = atob(evt.target.result);
-                const decrypted = CryptoJS.AES.decrypt(fileText, AES_KEY).toString(CryptoJS.enc.Utf8);
-                
-                const codeMatch = decrypted.match(/Код сброса:\s*([^\n]+)/i);
-                const usernameMatch = decrypted.match(/Имя пользователя:\s*([^\n]+)/i);
-                
-                if (codeMatch && usernameMatch) {
-                    alert(`🔑 Расшифрованный код:\n\nПользователь: ${usernameMatch[1].trim()}\nКод сброса: ${codeMatch[1].trim()}\n\nПередайте этот код пользователю.`);
-                } else {
-                    alert('❌ Не удалось найти код в файле!\n\nРасшифрованный текст:\n' + decrypted);
-                }
-            } catch (err) {
-                alert('❌ Ошибка расшифровки файла! Убедитесь, что файл зашифрован правильно.');
-                console.error(err);
-            }
-        };
-        reader.readAsText(file);
-    };
-    fileInput.click();
-}
-
-function resetPassword() {
-    const username = document.getElementById('resetUsername').value.trim().toLowerCase();
-    const code = document.getElementById('resetCode').value.trim().toUpperCase();
-    const newPassword = document.getElementById('resetNewPassword').value;
-    const confirmPassword = document.getElementById('resetConfirmPassword').value;
-    
-    if (!username || !code || !newPassword || !confirmPassword) {
-        showAuthStatus('❌ Заполните все поля!', 'error');
-        return;
-    }
-    
-    if (newPassword.length < 6) {
-        showAuthStatus('❌ Пароль должен быть минимум 6 символов!', 'error');
-        return;
-    }
-    
-    if (newPassword !== confirmPassword) {
-        showAuthStatus('❌ Пароли не совпадают!', 'error');
-        return;
-    }
-    
-    const userData = usersDatabase[username];
-    if (!userData) {
-        showAuthStatus('❌ Пользователь не найден!', 'error');
-        return;
-    }
-    
-    const resetData = JSON.parse(localStorage.getItem('tempResetCodes') || '{}');
-    const userReset = resetData[username];
-    
-    if (!userReset) {
-        showAuthStatus('❌ Код сброса не найден. Нажмите "Запросить код сброса".', 'error');
-        return;
-    }
-    
-    if (Date.now() > userReset.expires) {
-        showAuthStatus('❌ Код сброса истек. Запросите новый код.', 'error');
-        delete resetData[username];
-        localStorage.setItem('tempResetCodes', JSON.stringify(resetData));
-        return;
-    }
-    
-    if (userReset.code !== code) {
-        showAuthStatus('❌ Неверный код сброса!', 'error');
-        return;
-    }
-    
-    userData.password = hashPassword(newPassword);
-    userData.lastLogin = Date.now();
-    localStorage.setItem('usersDatabase', JSON.stringify(usersDatabase));
-    
-    delete resetData[username];
-    localStorage.setItem('tempResetCodes', JSON.stringify(resetData));
-    
-    showAuthStatus(`✅ Пароль успешно изменен!`, 'success');
-    
-    document.getElementById('resetUsername').value = '';
-    document.getElementById('resetCode').value = '';
-    document.getElementById('resetNewPassword').value = '';
-    document.getElementById('resetConfirmPassword').value = '';
-    
-    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-    document.querySelector('.auth-tab[data-tab="login"]').classList.add('active');
-    document.getElementById('loginPanel').style.display = 'block';
-    document.getElementById('registerPanel').style.display = 'none';
-    document.getElementById('resetPanel').style.display = 'none';
-    document.getElementById('authActionBtn').textContent = '🔑 Войти в систему';
-}
-function adminGenerateResetCode() {
-    if (!isAdminAuthenticated) {
-        if (!authenticateAdmin()) {
-            showError('Только для администратора!');
-            return;
-        }
-    }
-    
-    const username = prompt('Введите ник сотрудника для сброса пароля:');
-    if (!username || username.trim() === '') return;
-    
-    const trimmedUsername = username.trim().toLowerCase();
-    
-    // Проверяем, есть ли пользователь в FIXED_EMPLOYEE_STRUCTURE
-    const employeesData = loadEmployeesData();
-    const employee = Object.values(employeesData).find(emp => 
-        emp.username.toLowerCase() === trimmedUsername && emp.username !== 'Вакантно'
-    );
-    
-    if (!employee) {
-        showError(`❌ Сотрудник "${trimmedUsername}" не найден в системе!`);
-        return;
-    }
-    
-    // Если пользователь не зарегистрирован - создаём
-    if (!usersDatabase[trimmedUsername]) {
-        usersDatabase[trimmedUsername] = {
-            username: trimmedUsername,
-            password: hashPassword(generateReadableCode()),
-            callsign: '',
-            registeredAt: Date.now(),
-            lastLogin: Date.now()
-        };
-        localStorage.setItem('usersDatabase', JSON.stringify(usersDatabase));
-        showMessage(`✅ Аккаунт для ${trimmedUsername} создан!`, 'success');
-    }
-    
-    const resetCode = generateReadableCode();
-    const resetData = JSON.parse(localStorage.getItem('tempResetCodes') || '{}');
-    resetData[trimmedUsername] = {
-        code: resetCode,
-        expires: Date.now() + 86400000 // 24 часа
-    };
-    localStorage.setItem('tempResetCodes', JSON.stringify(resetData));
-    
-    const resetContent = `КОД СБРОСА ПАРОЛЯ
-=================================
-
-Имя пользователя: ${trimmedUsername}
-Код сброса: ${resetCode}
-
-Инструкция для пользователя:
-1. Перейдите в раздел "Сброс пароля" в системе
-2. Введите свой ник и этот код
-3. Придумайте новый пароль и подтвердите его
-
-Код действителен 24 часа.
-
-=================================
-Arizona RP | Военная Полиция`;
-
-    try {
-        const encrypted = CryptoJS.AES.encrypt(resetContent, AES_KEY).toString();
-        const blob = new Blob([btoa(encrypted)], { 
-            type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
-        });
-        saveAs(blob, `${trimmedUsername}_код_сброса_пароля.docx`);
-        showMessage(`✅ Код сброса для ${trimmedUsername} создан и скачан!`, 'success');
-    } catch (e) {
-        showError('❌ Ошибка создания файла!');
-    }
-}
-
-// === ФУНКЦИЯ СМЕНЫ ПАРОЛЯ (для авторизованных пользователей) ===
-function changePassword(oldPassword, newPassword, confirmPassword) {
-    if (!currentUser) {
-        showMessage('Вы не авторизованы!', 'error');
-        return false;
-    }
-    
-    const userData = usersDatabase[currentUser.username.toLowerCase()];
-    if (!userData) {
-        showMessage('Пользователь не найден!', 'error');
-        return false;
-    }
-    
-    if (userData.password !== hashPassword(oldPassword)) {
-        showMessage('❌ Неверный текущий пароль!', 'error');
-        return false;
-    }
-    
-    if (newPassword.length < 6) {
-        showMessage('❌ Новый пароль должен быть минимум 6 символов!', 'error');
-        return false;
-    }
-    
-    if (newPassword !== confirmPassword) {
-        showMessage('❌ Пароли не совпадают!', 'error');
-        return false;
-    }
-    
-    userData.password = hashPassword(newPassword);
-    userData.lastLogin = Date.now();
-    localStorage.setItem('usersDatabase', JSON.stringify(usersDatabase));
-    
-    showMessage('✅ Пароль успешно изменен!', 'success');
-    return true;
-}
-
-// === ФУНКЦИЯ ПОКАЗА ИНФОРМАЦИИ О ПОЛЬЗОВАТЕЛЕ ===
-function showUserInfo() {
-    if (!currentUser) {
-        showMessage('Вы не авторизованы!', 'error');
-        return;
-    }
-    
-    const userData = usersDatabase[currentUser.username.toLowerCase()];
-    if (!userData) {
-        showMessage('Данные пользователя не найдены!', 'error');
-        return;
-    }
-    
-    const info = `👤 Информация о пользователе
-=================================
-Имя: ${currentUser.username}
-Должность: ${currentUser.position || 'Не указана'}
-Роль: ${currentUser.type || 'Не указана'}
-Позывной: ${userData.callsign || 'Не указан'}
-Зарегистрирован: ${new Date(userData.registeredAt).toLocaleString('ru-RU')}
-Последний вход: ${new Date(userData.lastLogin).toLocaleString('ru-RU')}
-=================================`;
-    
-    alert(info);
-}
-
-// === ФУНКЦИЯ ОТКРЫТИЯ МОДАЛКИ СМЕНЫ ПАРОЛЯ ===
-function openChangePasswordModal() {
-    if (!currentUser) {
-        showMessage('Вы не авторизованы!', 'error');
-        return;
-    }
-    
-    const modal = document.createElement('div');
-    modal.className = 'modal-overlay';
-    modal.style.zIndex = '10050';
-    modal.innerHTML = `
-        <div class="modal-content" style="max-width: 400px;">
-            <h2 style="color: var(--accent);">🔑 Смена пароля</h2>
-            <p style="color: var(--text-muted);">Пользователь: <strong>${currentUser.username}</strong></p>
-            
-            <div class="auth-input-group">
-                <label>🔒 Текущий пароль</label>
-                <input type="password" id="changeOldPassword" placeholder="Введите текущий пароль">
-            </div>
-            
-            <div class="auth-input-group">
-                <label>🔑 Новый пароль</label>
-                <input type="password" id="changeNewPassword" placeholder="Минимум 6 символов">
-            </div>
-            
-            <div class="auth-input-group">
-                <label>✅ Подтвердите новый пароль</label>
-                <input type="password" id="changeConfirmPassword" placeholder="Повторите новый пароль">
-            </div>
-            
-            <div style="display: flex; gap: 10px; margin-top: 15px;">
-                <button class="btn" id="changePasswordBtn" style="flex: 1;">💾 Сохранить</button>
-                <button class="btn ghost" id="closeChangePasswordBtn" style="flex: 1;">❌ Отмена</button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(modal);
-    
-    document.getElementById('closeChangePasswordBtn').addEventListener('click', function() {
-        modal.remove();
-    });
-    
-    document.getElementById('changePasswordBtn').addEventListener('click', function() {
-        const oldPassword = document.getElementById('changeOldPassword').value;
-        const newPassword = document.getElementById('changeNewPassword').value;
-        const confirmPassword = document.getElementById('changeConfirmPassword').value;
-        
-        if (changePassword(oldPassword, newPassword, confirmPassword)) {
-            modal.remove();
-        }
-    });
-    
-    // Enter на полях
-    document.getElementById('changeOldPassword').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') document.getElementById('changeNewPassword').focus();
-    });
-    document.getElementById('changeNewPassword').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') document.getElementById('changeConfirmPassword').focus();
-    });
-    document.getElementById('changeConfirmPassword').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') document.getElementById('changePasswordBtn').click();
-    });
-}
 
 // === ПРИВЕТСТВИЯ ===
 const GREETINGS = {
@@ -769,14 +342,14 @@ const FIXED_EMPLOYEE_STRUCTURE = [
     { id: 'officer_2', position: 'Офицер ВП', type: 'officer', username: 'Maximiliano_Alwarez' },
     { id: 'officer_9', position: 'Офицер ВП', type: 'officer', username: 'Kiril_Kot' },
     { id: 'officer_6', position: 'Офицер ВП', type: 'officer', username: 'Nine_Oxidize' },
-    { id: 'officer_5', position: 'Офицер ВП', type: 'officer', username: 'Hungwoo_Uchiha' },
+    { id: 'officer_5', position: 'Офицер ВП', type: 'officer', username: 'Вакантно' },
     { id: 'officer_7', position: 'Офицер ВП', type: 'officer', username: 'Вакантно' },
     { id: 'officer_3', position: 'Офицер ВП', type: 'officer', username: 'Вакантно' },
     { id: 'officer_1', position: 'Офицер ВП', type: 'officer', username: 'Вакантно' },
     { id: 'officer_8', position: 'Офицер ВП', type: 'officer', username: 'Вакантно' },
     { id: 'officer_4', position: 'Офицер ВП', type: 'officer', username: 'Вакантно' },
     { id: 'officer_10', position: 'Офицер ВП', type: 'officer', username: 'Вакантно' },
-    { id: 'cadet_1', position: 'Курсант ВП', type: 'cadet', username: 'Reno_Gold' },
+    { id: 'cadet_1', position: 'Курсант ВП', type: 'cadet', username: 'Вакантно' },
     { id: 'cadet_3', position: 'Курсант ВП', type: 'cadet', username: 'Вакантно' },
     { id: 'cadet_2', position: 'Курсант ВП', type: 'cadet', username: 'Вакантно' },
     { id: 'cadet_4', position: 'Курсант ВП', type: 'cadet', username: 'Вакантно' },
@@ -5363,14 +4936,10 @@ function switchRankingTab(type) {
 function migrateEmployeesStructure() {
     const saved = localStorage.getItem('fixedEmployees');
     if (!saved) return;
-    
     const employeesData = JSON.parse(saved);
     let needSave = false;
-    
-    // Проверяем все слоты из FIXED_EMPLOYEE_STRUCTURE
     FIXED_EMPLOYEE_STRUCTURE.forEach(fixedEmp => {
         if (!employeesData[fixedEmp.id]) {
-            // Если слота нет - создаём
             employeesData[fixedEmp.id] = {
                 ...fixedEmp,
                 username: fixedEmp.username,
@@ -5388,7 +4957,6 @@ function migrateEmployeesStructure() {
             needSave = true;
         }
     });
-    
     if (needSave) {
         saveEmployeesData(employeesData);
         console.log('✅ Структура сотрудников обновлена!');
@@ -5401,41 +4969,32 @@ function initUI() {
         clearTimeout(inactivityTimer);
         inactivityTimer = null;
     }
-    
-    // === РАЗБЛОКИРУЕМ АВТОРИЗАЦИЮ ПЕРЕД ВСЕМ ===
     document.querySelectorAll('#authModal input, #authModal button, #authModal select, #authModal textarea').forEach(el => {
         el.disabled = false;
         el.style.pointerEvents = 'auto';
         el.style.opacity = '1';
     });
-    
-    // === РАЗБЛОКИРУЕМ ПОЛЕ ВВОДА НИКА ===
     const usernameInput = document.getElementById('username');
     if (usernameInput) {
         usernameInput.disabled = false;
         usernameInput.style.pointerEvents = 'auto';
         usernameInput.style.opacity = '1';
     }
-    
-    // === РАЗБЛОКИРУЕМ КНОПКУ ВЫХОДА ===
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
         logoutBtn.disabled = false;
         logoutBtn.style.pointerEvents = 'auto';
         logoutBtn.style.opacity = '1';
     }
-    
     loadTestState();
-    
-    // === ОБНОВЛЯЕМ СПИСКИ ===
+    migrateEmployeesStructure();
     const datalist = document.getElementById('playersList');
     if (datalist) {
         const players = JSON.parse(localStorage.getItem('playersDatabase') || '[]');
-        datalist.innerHTML = players.map(player => 
+        datalist.innerHTML = players.map(player =>
             `<option value="${player.username}">`
         ).join('');
     }
-    
     const authDatalist = document.getElementById('authPlayersList');
     if (authDatalist) {
         const employeesData = loadEmployeesData();
@@ -5444,11 +5003,6 @@ function initUI() {
             .map(emp => emp.username);
         authDatalist.innerHTML = names.map(name => `<option value="${name}">`).join('');
     }
-    
-    // === ОБНОВЛЯЕМ СТРУКТУРУ СОТРУДНИКОВ ===
-    migrateEmployeesStructure();
-    
-    // === ПРОВЕРКА АВТОРИЗАЦИИ ===
     if (checkAuth()) {
         const authModal = document.getElementById('authModal');
         const app = document.getElementById('app');
@@ -5458,7 +5012,6 @@ function initUI() {
         const avatar = document.getElementById('userAvatar');
         const currentUsernameDisplay = document.getElementById('currentUsernameDisplay');
         const currentUserRoleDisplay = document.getElementById('currentUserRoleDisplay');
-        
         if (authModal) {
             authModal.style.opacity = '0';
             authModal.style.transition = 'opacity 0.5s ease';
@@ -5474,12 +5027,10 @@ function initUI() {
                 app.style.opacity = '1';
             }, 100);
         }
-        
         if (userNameDisplay) userNameDisplay.textContent = currentUser.username;
         if (userRoleDisplay) userRoleDisplay.textContent = currentUser.position;
         if (currentUsernameDisplay) currentUsernameDisplay.textContent = currentUser.username;
         if (currentUserRoleDisplay) currentUserRoleDisplay.textContent = `— ${currentUser.position}`;
-        
         if (avatar) {
             const icons = {
                 'curator': '👑',
@@ -5489,13 +5040,11 @@ function initUI() {
             };
             avatar.textContent = icons[currentUser.type] || '👤';
         }
-        
         if (usernameInput2) {
             usernameInput2.disabled = false;
             usernameInput2.style.pointerEvents = 'auto';
             usernameInput2.style.opacity = '1';
         }
-        
         updateRankMessage();
         renderCurrentTest();
     } else {
@@ -5503,90 +5052,16 @@ function initUI() {
         document.getElementById('authModal').style.opacity = '1';
         document.getElementById('app').style.display = 'none';
     }
-    
-    // === ВКЛАДКИ АВТОРИЗАЦИИ (ВХОД / РЕГИСТРАЦИЯ / СБРОС) ===
-    let authMode = 'login';
-    
-    document.querySelectorAll('.auth-tab').forEach(tab => {
-        tab.addEventListener('click', function() {
-            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            authMode = this.dataset.tab;
-            
-            document.getElementById('loginPanel').style.display = authMode === 'login' ? 'block' : 'none';
-            document.getElementById('registerPanel').style.display = authMode === 'register' ? 'block' : 'none';
-            document.getElementById('resetPanel').style.display = authMode === 'reset' ? 'block' : 'none';
-            
-            const btn = document.getElementById('authActionBtn');
-            if (authMode === 'login') {
-                btn.textContent = '🔑 Войти в систему';
-            } else if (authMode === 'register') {
-                btn.textContent = '📝 Зарегистрироваться';
-            } else {
-                btn.textContent = '🔒 Сбросить пароль';
-            }
-            
-            document.getElementById('authStatus').style.display = 'none';
-        });
-    });
-    
     document.getElementById('authActionBtn').addEventListener('click', function() {
-        if (authMode === 'login') {
-            const username = document.getElementById('authUsername').value.trim();
-            const password = document.getElementById('authPassword').value;
-            loginUser(username, password);
-        } else if (authMode === 'register') {
-            const username = document.getElementById('regUsername').value.trim();
-            const callsign = document.getElementById('regCallsign').value.trim();
-            const password = document.getElementById('regPassword').value;
-            const confirmPassword = document.getElementById('regConfirmPassword').value;
-            registerUser(username, password, confirmPassword, callsign);
-        } else {
-            resetPassword();
-        }
+        const username = document.getElementById('authUsername').value.trim();
+        const password = document.getElementById('authPassword').value;
+        loginUser(username, password);
     });
-    
-    // === ЗАПРОС КОДА СБРОСА ===
-    document.getElementById('requestResetBtn')?.addEventListener('click', function() {
-        requestResetCode();
-    });
-    
     document.getElementById('authPassword').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             document.getElementById('authActionBtn').click();
         }
     });
-    
-    document.getElementById('regPassword').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            document.getElementById('regConfirmPassword').focus();
-        }
-    });
-    
-    document.getElementById('regConfirmPassword').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            document.getElementById('authActionBtn').click();
-        }
-    });
-    
-    document.getElementById('resetCode').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            document.getElementById('resetNewPassword').focus();
-        }
-    });
-    
-    document.getElementById('resetNewPassword').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            document.getElementById('resetConfirmPassword').focus();
-        }
-    });
-    
-    document.getElementById('resetConfirmPassword').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            document.getElementById('authActionBtn').click();
-        }
-    });
-    
     document.addEventListener('visibilitychange', () => {
         if (document.hidden && test && !test.blocked) {
             console.log('🚫 Пользователь покинул вкладку!');
@@ -5594,7 +5069,6 @@ function initUI() {
             blockTest();
         }
     });
-    
     window.addEventListener('blur', () => {
         if (test && !test.blocked) {
             setTimeout(() => {
@@ -5606,20 +5080,16 @@ function initUI() {
             }, 500);
         }
     });
-    
     document.addEventListener('mousemove', trackActivity);
     document.addEventListener('mousedown', trackActivity);
     document.addEventListener('keypress', trackActivity);
     document.addEventListener('keydown', trackActivity);
-    
     document.querySelectorAll(".tab").forEach(tab => {
         tab.addEventListener("click", () => {
             trackActivity();
             const tabName = tab.dataset.tab;
-            
             document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
             tab.classList.add("active");
-            
             const contentArea = document.getElementById("contentArea");
             if (tabName === "admin") {
                 contentArea.classList.add("admin-active");
@@ -5656,29 +5126,19 @@ function initUI() {
             }
         });
     });
-
     document.getElementById("startBtn").addEventListener("click", showDisclaimer);
     document.getElementById("finishBtn").addEventListener("click", finishTestManually);
     document.getElementById("unlockBtn").addEventListener("click", unblockTest);
-    
     const adminUnlockBtn = document.getElementById("adminUnlockBtn");
     if (adminUnlockBtn) {
         adminUnlockBtn.addEventListener("click", adminUnblockTest);
     }
-
     document.getElementById("unlockBtn").style.display = "none";
     if (adminUnlockBtn) adminUnlockBtn.style.display = "none";
-
-    // === КНОПКА ВЫХОДА ===
     const logoutBtn2 = document.getElementById('logoutBtn');
     if (logoutBtn2) {
         logoutBtn2.addEventListener('click', logoutUser);
     }
-
-    // === КНОПКИ УПРАВЛЕНИЯ ПОЛЬЗОВАТЕЛЕМ ===
-    document.getElementById('showUserInfoBtn')?.addEventListener('click', showUserInfo);
-    document.getElementById('changePasswordBtn')?.addEventListener('click', openChangePasswordModal);
-
     setInterval(() => {
         if (test && !test.blocked) {
             const timeSinceLastActivity = Date.now() - lastActivityTime;
@@ -5687,8 +5147,6 @@ function initUI() {
             }
         }
     }, 1000);
-
-    // === РАЗБЛОКИРУЕМ ПОЛЯ ВВОДА ===
     ['username', 'authUsername'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
@@ -5697,8 +5155,8 @@ function initUI() {
             el.style.opacity = '1';
         }
     });
-
     renderCurrentTest();
 }
 
+document.addEventListener('DOMContentLoaded', initUI);
 document.addEventListener('DOMContentLoaded', initUI);
