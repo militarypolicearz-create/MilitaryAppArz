@@ -1,0 +1,388 @@
+.claim-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 30px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 16px;
+    border: 1px solid var(--vp-border-strong);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    animation: fadeIn 0.4s ease-out;
+}
+
+.claim-container h2 {
+    font-size: 1.8em;
+    font-weight: 700;
+    margin: 0 0 8px;
+    color: var(--vp-accent-hover);
+}
+
+.claim-container > p {
+    color: var(--text-muted);
+    font-size: 0.95em;
+    margin: 0 0 25px;
+    border-bottom: 1px solid var(--vp-border);
+    padding-bottom: 15px;
+}
+
+.claim-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 5px;
+}
+
+.claim-header__title {
+    margin: 0;
+    font-size: 1.55em;
+    font-weight: 700;
+    color: var(--text-bright);
+    letter-spacing: 0.3px;
+}
+
+.claim-header__link {
+    color: var(--vp-accent-hover);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9em;
+    border: 1px solid var(--vp-border-strong);
+    padding: 8px 18px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.claim-header__link:hover {
+    background: rgba(168, 112, 60, 0.12);
+    border-color: var(--vp-accent);
+    color: var(--vp-accent-hover);
+    transform: translateY(-2px);
+}
+
+.claim-header__subtitle {
+    color: var(--text-muted);
+    font-size: 0.9em;
+    margin: 0 0 25px;
+    line-height: 1.5;
+}
+
+.claim-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 10px;
+}
+
+.claim-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.claim-row--three {
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+.claim-row--full {
+    grid-template-columns: 1fr;
+}
+
+.claim-field {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.claim-field--full {
+    grid-column: 1 / -1;
+}
+
+.claim-form label {
+    font-size: 0.78em;
+    color: var(--text-muted);
+    font-weight: 600;
+    display: block;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.claim-form input,
+.claim-form textarea,
+.claim-form select {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--vp-border);
+    background: rgba(0,0,0,0.25);
+    color: var(--text-bright);
+    font-size: 0.95em;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.claim-form input:focus,
+.claim-form textarea:focus,
+.claim-form select:focus {
+    border-color: var(--vp-accent);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--vp-accent-glow);
+    background: rgba(0,0,0,0.35);
+}
+
+.claim-form input::placeholder,
+.claim-form textarea::placeholder {
+    color: rgba(255,255,255,0.25);
+}
+
+.claim-form textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.claim-form select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(168,112,60,0.7)' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    cursor: pointer;
+}
+
+.claim-form select option {
+    background: #1a1a2e;
+}
+
+.claim-form .btn {
+    margin: 0;
+    padding: 12px 24px;
+    font-weight: 600;
+    background: var(--vp-accent);
+    color: var(--vp-text-bright);
+    border: none;
+}
+
+.claim-form .btn:hover {
+    background: var(--vp-accent-hover);
+    box-shadow: 0 6px 16px var(--vp-accent-glow);
+}
+
+.claim-form .btn.small {
+    padding: 8px 16px;
+    font-size: 0.85em;
+}
+
+.claim-form .btn.ghost {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--vp-border-strong);
+}
+
+.claim-form .btn.ghost:hover {
+    border-color: var(--vp-accent);
+    color: var(--vp-accent-hover);
+    background: rgba(168, 112, 60, 0.08);
+    box-shadow: none;
+}
+
+.claim-readonly {
+    cursor: not-allowed;
+    opacity: 0.85;
+    background: rgba(0,0,0,0.35) !important;
+    border-color: var(--vp-border) !important;
+}
+
+.claim-hint {
+    font-size: 0.78em;
+    color: var(--text-muted);
+    margin-top: 5px;
+    opacity: 0.75;
+}
+
+.claim-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+.claim-btn-generate {
+    background: var(--vp-accent);
+    color: var(--vp-text-bright);
+    font-weight: 700;
+    padding: 12px 28px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.95em;
+    font-family: inherit;
+    transition: all 0.3s ease;
+}
+
+.claim-btn-generate:hover {
+    background: var(--vp-accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px var(--vp-accent-glow);
+}
+
+.claim-result {
+    margin-top: 30px;
+    padding: 20px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 12px;
+    border: 1px solid var(--vp-border-strong);
+    animation: fadeIn 0.4s ease-out;
+}
+
+.claim-result__header,
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.claim-result__header h3,
+.result-header h3 {
+    margin: 0;
+    font-size: 1.2em;
+    color: var(--vp-accent-hover);
+}
+
+.claim-result__buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.claim-result__buttons .btn,
+.result-header .btn {
+    background: var(--vp-accent);
+    color: var(--vp-text-bright);
+    border: none;
+    margin: 0;
+}
+
+.claim-result__buttons .btn:hover,
+.result-header .btn:hover {
+    background: var(--vp-accent-hover);
+    box-shadow: 0 6px 16px var(--vp-accent-glow);
+}
+
+.claim-result__buttons .btn.ghost,
+.result-header .btn.ghost {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--vp-border-strong);
+}
+
+.claim-result__buttons .btn.ghost:hover,
+.result-header .btn.ghost:hover {
+    border-color: var(--vp-accent);
+    color: var(--vp-accent-hover);
+    background: rgba(168, 112, 60, 0.08);
+    box-shadow: none;
+}
+
+.claim-result__code,
+.result-code {
+    background: rgba(0,0,0,0.4);
+    padding: 20px;
+    border-radius: 10px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    font-size: 0.85em;
+    max-height: 500px;
+    overflow-y: auto;
+    border: 1px solid var(--vp-border);
+    color: #d4d4d4;
+    font-family: 'Consolas', 'Courier New', monospace;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.claim-result__code::-webkit-scrollbar,
+.result-code::-webkit-scrollbar {
+    width: 6px;
+}
+.claim-result__code::-webkit-scrollbar-track,
+.result-code::-webkit-scrollbar-track {
+    background: transparent;
+}
+.claim-result__code::-webkit-scrollbar-thumb,
+.result-code::-webkit-scrollbar-thumb {
+    background: var(--vp-accent);
+    border-radius: 4px;
+}
+
+@media (max-width: 768px) {
+    .claim-container {
+        padding: 16px;
+    }
+
+    .claim-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .claim-header__link {
+        width: 100%;
+        text-align: center;
+    }
+
+    .claim-row,
+    .claim-row--three,
+    .claim-row--full {
+        grid-template-columns: 1fr;
+    }
+
+    .claim-result__header,
+    .result-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .claim-result__header .btn,
+    .result-header .btn,
+    .claim-result__buttons .btn {
+        width: 100%;
+    }
+
+    .claim-actions {
+        flex-direction: column;
+    }
+
+    .claim-actions .btn,
+    .claim-btn-generate {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .claim-container {
+        padding: 12px;
+    }
+
+    .claim-container h2 {
+        font-size: 1.3em;
+    }
+
+    .claim-header__title {
+        font-size: 1.2em;
+    }
+
+    .claim-form input,
+    .claim-form textarea,
+    .claim-form select {
+        padding: 10px 14px;
+        font-size: 0.9em;
+    }
+
+    .claim-form .btn,
+    .claim-btn-generate {
+        padding: 10px 20px;
+        font-size: 0.92em;
+    }
+}
