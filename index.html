@@ -4,35 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Arizona RP — Тест Военной Полиции</title>
-    <link rel="stylesheet" href="style.css">
+
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="css/exam.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/decree.css">
+    <link rel="stylesheet" href="css/claim.css">
+    <link rel="stylesheet" href="css/vp.css">
+    <link rel="stylesheet" href="css/contacts.css">
+    <link rel="stylesheet" href="css/discord.css">
+    <link rel="stylesheet" href="css/members.css">
 </head>
 <body>
+
     <div id="authModal" class="modal-overlay" style="display: flex;">
         <div class="modal-content auth-modal">
             <div class="auth-header">
-                <img src="https://cdn11.bigcommerce.com/s-jbg7mp3qyd/images/stencil/1280x1280/products/2515/1041/dep_army_police_badge__84795.1464722242.jpg?c=2&imbypass=on" alt="MP Badge" style="width: 80px; height: 80px; border-radius: 50%; margin-bottom: 15px;">
-                <h2>🔐 Авторизация</h2>
+                <img src="https://cdn11.bigcommerce.com/s-jbg7mp3qyd/images/stencil/1280x1280/products/2515/1041/dep_army_police_badge__84795.1464722242.jpg?c=2&imbypass=on" alt="MP Badge">
+                <h2>Авторизация</h2>
                 <p class="auth-subtitle">Войдите в систему тестирования Военной Полиции</p>
             </div>
-            
+
             <div class="auth-body">
                 <div id="authStatus" class="auth-status" style="display: none;"></div>
-                
+
                 <div class="auth-input-group">
-                    <label>👤 Ваш ник</label>
+                    <label>Ваш ник</label>
                     <input type="text" id="authUsername" placeholder="Имя_Фамилия" list="authPlayersList" autocomplete="off">
                     <datalist id="authPlayersList"></datalist>
                 </div>
-                
+
                 <div class="auth-input-group">
-                    <label>🔑 Пароль</label>
+                    <label>Пароль</label>
                     <input type="password" id="authPassword" placeholder="Введите пароль" autocomplete="off">
                 </div>
-                
-                <button class="btn auth-btn" id="authActionBtn">🔑 Войти в систему</button>
-                
+
+                <button class="btn auth-btn" id="authActionBtn">Войти в систему</button>
+
                 <div class="auth-footer">
-                    <span>🔒 Доступ только для сотрудников Военной Полиции</span>
+                    <span>Доступ только для сотрудников Военной Полиции</span>
                 </div>
             </div>
         </div>
@@ -40,138 +53,178 @@
 
     <div id="disclaimerModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
-            <h2>⚠️ ВАЖНОЕ ПРЕДУПРЕЖДЕНИЕ</h2>
+            <h2>Внимание</h2>
             <div class="disclaimer-text">
                 <p><strong>Перед началом теста внимательно ознакомьтесь с правилами:</strong></p>
-                
+
                 <div class="warning-item">
-                    <span class="warning-icon">🚫</span>
-                    <span><strong>Система отслеживает активность</strong> - бездействие более 20 секунд приведет к блокировке теста</span>
+                    <span class="warning-icon">⚠</span>
+                    <span><strong>Система отслеживает активность</strong> — бездействие более 20 секунд приведёт к блокировке теста</span>
                 </div>
-                
+
                 <div class="warning-item">
-                    <span class="warning-icon">📱</span>
+                    <span class="warning-icon">⚠</span>
                     <span><strong>Запрещено использовать телефон</strong> или другие устройства для подсматривания ответов</span>
                 </div>
-                
+
                 <div class="warning-item">
-                    <span class="warning-icon">⚡</span>
-                    <span><strong>Двигайте мышкой или печатайте</strong> каждые 15-20 секунд для подтверждения активности</span>
+                    <span class="warning-icon">⚠</span>
+                    <span><strong>Двигайте мышкой или печатайте</strong> каждые 15–20 секунд для подтверждения активности</span>
                 </div>
-                
+
                 <div class="warning-item">
-                    <span class="warning-icon">🔒</span>
+                    <span class="warning-icon">⚠</span>
                     <span><strong>При блокировке</strong> потребуется код разблокировки от администратора</span>
                 </div>
-                
+
                 <div class="warning-item">
-                    <span class="warning-icon">⏱️</span>
+                    <span class="warning-icon">⚠</span>
                     <span><strong>Тест состоит из 15 вопросов</strong>, ответы сохраняются автоматически</span>
                 </div>
-                
+
                 <p style="margin-top: 20px; color: #ff4444; font-weight: bold;">
-                    Нажимая "Подтверждаю и начинаю тест", вы соглашаетесь с этими правилами.
+                    Нажимая «Подтверждаю и начинаю тест», вы соглашаетесь с этими правилами.
                 </p>
             </div>
-            
+
             <div class="modal-buttons">
                 <button class="btn ghost" id="closeDisclaimerBtn">Закрыть</button>
-                <button class="btn" id="confirmStartBtn">✅ Подтверждаю и начинаю тест</button>
+                <button class="btn" id="confirmStartBtn">Подтверждаю и начинаю тест</button>
             </div>
         </div>
     </div>
 
     <div id="employeeSelectionModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
-            <h2>🔍 Выбор сотрудника</h2>
+            <h2>Выбор сотрудника</h2>
             <div class="disclaimer-text">
                 <p><strong>Для файла:</strong> <span id="fileNameDisplay"></span></p>
                 <p>Найдено несколько возможных сотрудников. Выберите правильного:</p>
-                
-                <div id="employeeSelectionList" style="max-height: 300px; overflow-y: auto; margin: 15px 0;">
-                </div>
-                
+
+                <div id="employeeSelectionList" style="max-height: 300px; overflow-y: auto; margin: 15px 0;"></div>
+
                 <div style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
-                    <strong>💡 Подсказка:</strong> Обратите внимание на должность и количество файлов в папках
+                    <strong>Подсказка:</strong> Обратите внимание на должность и количество файлов в папках
                 </div>
             </div>
-            
+
             <div class="modal-buttons">
                 <button class="btn ghost" id="cancelEmployeeSelection">Отмена</button>
-                <button class="btn" id="confirmEmployeeSelection" disabled>✅ Сохранить выбранному сотруднику</button>
+                <button class="btn" id="confirmEmployeeSelection" disabled>Сохранить выбранному сотруднику</button>
             </div>
         </div>
     </div>
 
     <div class="app" id="app" style="display: none;">
-        <div class="warning-banner">
-            ⚠️ Внимание! Система отслеживает активность. Бездействие более 20 секунд приведет к блокировке теста!
+        <div class="warning-banner" id="warningBanner" style="display: none;">
+            Внимание! Система отслеживает активность. Бездействие более 20 секунд приведёт к блокировке теста!
         </div>
-        
-        <header>
-            <div class="header-left">
-                <div class="user-account" id="userAccount">
-                    <div class="user-avatar" id="userAvatar">👤</div>
-                    <div class="user-info">
-                        <div class="user-name" id="userNameDisplay">Не авторизован</div>
-                        <div class="user-role" id="userRoleDisplay">—</div>
+
+        <div class="app-shell">
+            <aside class="app-sidebar">
+                <nav class="app-sidebar__nav">
+                    <div class="app-sidebar__item" data-tab="home">
+                        <span class="app-sidebar__icon">⌂</span>
+                        <span class="app-sidebar__label">Главная</span>
                     </div>
-                    <button class="btn small ghost logout-btn" id="logoutBtn">🚪 Выйти</button>
-                </div>
-                <div class="rank-message" id="rankMessage">
-                    <span class="rank-message-icon" id="rankMessageIcon">🖥️</span>
-                    <span class="rank-message-text" id="rankMessageText">Добро пожаловать в систему</span>
-                </div>
-            </div>
-            
-            <div class="header-right">
-                <div class="tabs">
-                    <div class="tab active" data-tab="exam">🎓 Экзамен</div>
-                    <div class="tab" data-tab="retraining">🔄 Переаттестация</div>
-                    <div class="tab" data-tab="admin">⚙️ Админ</div>
-                    <div class="tab" data-tab="decree">📋 Постановления</div>
-                </div>
-            </div>
-        </header>
+                    <div class="app-sidebar__item" data-tab="members">
+                        <span class="app-sidebar__icon">☰</span>
+                        <span class="app-sidebar__label">Пользователи</span>
+                    </div>
+                    <div class="app-sidebar__item" data-tab="vp">
+                        <span class="app-sidebar__icon">§</span>
+                        <span class="app-sidebar__label">Устав ВП</span>
+                    </div>
+                    <div class="app-sidebar__item" data-tab="contacts">
+                        <span class="app-sidebar__icon">☎</span>
+                        <span class="app-sidebar__label">Контакты</span>
+                    </div>
+                    <div class="app-sidebar__item" data-tab="discord">
+                        <span class="app-sidebar__icon">◈</span>
+                        <span class="app-sidebar__label">Discord</span>
+                    </div>
+                </nav>
+            </aside>
 
-        <div id="contentArea">
-            <div class="card" id="mainArea" style="display: block;">
-                <div id="testGreeting"></div>
-                <div id="testContent">
-                    <p>Введите имя и нажмите «Начать тест».</p>
+            <div class="app-main">
+                <div class="app-topbar">
+                    <div class="app-topbar__tabs">
+                        <div class="tab active" data-tab="exam">Экзамен</div>
+                        <div class="tab" data-tab="retraining">Переаттестация</div>
+                        <div class="tab" data-tab="decree">Постановления</div>
+                        <div class="tab" data-tab="claim">Судебные иски</div>
+                        <div class="tab" data-tab="admin">Админ</div>
+                    </div>
+
+                    <div class="app-topbar__greeting" id="topbarGreeting"></div>
+
+                    <div class="app-topbar__user">
+                        <div class="user-account" id="userAccount">
+                            <div class="user-avatar" id="userAvatar">·</div>
+                            <div class="user-info">
+                                <div class="user-name" id="userNameDisplay">Не авторизован</div>
+                                <div class="user-role" id="userRoleDisplay">—</div>
+                            </div>
+                            <button class="btn small ghost logout-btn" id="logoutBtn">Выйти</button>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="adminArea" id="adminArea" style="display: none;">
-            </div>
-
-            <div id="decreeArea" style="display: none;">
-            </div>
-
-            <div id="claimArea" style="display: none;">
-            </div>
-
-            <div class="card user-card" id="userCard">
-                <div class="small" id="userInfo">
-                    <strong>👤 Текущий пользователь:</strong> <span id="currentUsernameDisplay">Не авторизован</span>
-                    <span id="currentUserRoleDisplay" style="margin-left: 10px; color: var(--accent);"></span>
+                <div class="app-breadcrumbs">
+                    <span class="app-breadcrumbs__item">Главная</span>
+                    <span class="app-breadcrumbs__sep">›</span>
+                    <span class="app-breadcrumbs__item" id="breadcrumbActive">Главная</span>
                 </div>
-                
-                <div style="margin: 15px 0;">
-                    <label style="display: block; margin-bottom: 5px; font-weight: 600; color: var(--text-muted);">👤 Введите ваш ник для теста:</label>
-                    <input type="text" id="username" placeholder="Например: Jan_Abobbi" style="width: 100%; padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white; font-size: 16px;">
-                </div>
-                
-                <p class="small">
-                    Система автоматически определит ваш статус и предложит соответствующий тест.
-                    <br><strong>Курсанты</strong> → Экзамен | <strong>Офицеры и выше</strong> → Переаттестация
-                </p>
 
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button class="btn" id="startBtn">🚀 Начать тест</button>
-                    <button class="btn ghost" id="finishBtn" style="display: none;">✅ Завершить тест</button>
-                    <button class="btn ghost" id="unlockBtn" style="display: none;">🔓 Разблокировать</button>
-                    <button class="btn warning" id="adminUnlockBtn" style="display: none; background: var(--warning); color: black;">🔓 Админ-разблокировка</button>
+                <div id="contentArea">
+                    <div id="homeArea" style="display: none;"></div>
+
+                    <div id="membersArea" style="display: none;"></div>
+
+                    <div id="legendsArea" style="display: none;"></div>
+
+                    <div class="card" id="mainArea" style="display: none;">
+                        <div id="testGreeting"></div>
+                        <div id="testContent">
+                            <p>Введите имя и нажмите «Начать тест».</p>
+                        </div>
+                    </div>
+
+                    <div class="adminArea" id="adminArea" style="display: none;"></div>
+
+                    <div id="decreeArea" style="display: none;"></div>
+
+                    <div id="claimArea" style="display: none;"></div>
+
+                    <div id="vpCharterArea" style="display: none;"></div>
+
+                    <div id="contactsArea" style="display: none;"></div>
+
+                    <div id="discordArea" style="display: none;"></div>
+
+                    <div class="card user-card" id="userCard" style="display: none;">
+                        <div class="small" id="userInfo">
+                            <strong>Текущий пользователь:</strong> <span id="currentUsernameDisplay">Не авторизован</span>
+                            <span id="currentUserRoleDisplay" style="margin-left: 10px; color: var(--accent);"></span>
+                        </div>
+
+                        <div style="margin: 15px 0;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600; color: var(--text-muted);">Введите ваш ник для теста:</label>
+                            <input type="text" id="username" placeholder="Например: Jan_Abobbi" style="width: 100%; padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white; font-size: 16px;">
+                        </div>
+
+                        <p class="small">
+                            Система автоматически определит ваш статус и предложит соответствующий тест.
+                            <br><strong>Курсанты</strong> → Экзамен | <strong>Офицеры и выше</strong> → Переаттестация
+                        </p>
+
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn" id="startBtn">Начать тест</button>
+                            <button class="btn ghost" id="finishBtn" style="display: none;">Завершить тест</button>
+                            <button class="btn ghost" id="unlockBtn" style="display: none;">Разблокировать</button>
+                            <button class="btn warning" id="adminUnlockBtn" style="display: none;">Админ-разблокировка</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -185,8 +238,29 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <script src="js/app.js"></script>
-    <script src="js/decree.js"></script>
-    <script src="js/claim.js"></script>
+
+    <script src="js/core/constants.js"></script>
+    <script src="js/core/utils.js"></script>
+    <script src="js/core/storage.js"></script>
+    <script src="js/core/auth.js"></script>
+    <script src="js/core/layout.js"></script>
+
+    <script src="js/data/questions.js"></script>
+    <script src="js/data/articles.js"></script>
+    <script src="js/data/legends.js"></script>
+
+    <script src="js/tabs/exam.js"></script>
+    <script src="js/tabs/admin.js"></script>
+    <script src="js/tabs/decree.js"></script>
+    <script src="js/tabs/claim.js"></script>
+    <script src="js/tabs/vp.js"></script>
+    <script src="js/tabs/contacts.js"></script>
+    <script src="js/tabs/discord.js"></script>
+    <script src="js/tabs/home.js"></script>
+
+    <script src="js/members/members.js"></script>
+    <script src="js/members/legends.js"></script>
+
+    <script src="js/main.js"></script>
 </body>
 </html>
