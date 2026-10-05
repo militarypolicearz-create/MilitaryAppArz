@@ -51,19 +51,22 @@ function renderLegendsGrid() {
         return;
     }
 
-    grid.innerHTML = legends.map((legend, index) => `
-        <div class="legend-card" style="animation-delay: ${index * 0.05}s">
-            <div class="legend-card__head">
-                <div class="legend-card__avatar">${getInitials(legend.name)}</div>
-                <div class="legend-card__info">
-                    <div class="legend-card__name">${escapeHtml(legend.name)}</div>
-                    <div class="legend-card__position">${escapeHtml(legend.position || '')}</div>
+    grid.innerHTML = legends.map((legend, index) => {
+        const themeClass = legend.theme ? ` legend-card--${legend.theme}` : '';
+        return `
+            <div class="legend-card${themeClass}" style="animation-delay: ${index * 0.05}s">
+                <div class="legend-card__head">
+                    <div class="legend-card__avatar">${getInitials(legend.name)}</div>
+                    <div class="legend-card__info">
+                        <div class="legend-card__name">${escapeHtml(legend.name)}</div>
+                        <div class="legend-card__position">${escapeHtml(legend.position || '')}</div>
+                    </div>
                 </div>
+                ${legend.period ? `<div class="legend-card__period">${escapeHtml(legend.period)}</div>` : ''}
+                ${legend.note ? `<div class="legend-card__note">${escapeHtml(legend.note)}</div>` : ''}
             </div>
-            ${legend.period ? `<div class="legend-card__period">${escapeHtml(legend.period)}</div>` : ''}
-            ${legend.note ? `<div class="legend-card__note">${escapeHtml(legend.note)}</div>` : ''}
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 window.renderLegends = renderLegends;
