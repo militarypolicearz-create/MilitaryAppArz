@@ -1,6 +1,6 @@
 let currentUser = null;
 let playersDatabase = JSON.parse(localStorage.getItem('playersDatabase') || '[]');
-let isAdminAuthenticated = false;
+let isAdminAuthenticated = localStorage.getItem('adminAuthenticated') === 'true';
 
 function saveEmployeesData(employeesData) {
     localStorage.setItem('fixedEmployees', JSON.stringify(employeesData));
