@@ -95,6 +95,7 @@ function performAuth(username) {
         const avatar = document.getElementById('userAvatar');
         const currentUsernameDisplay = document.getElementById('currentUsernameDisplay');
         const currentUserRoleDisplay = document.getElementById('currentUserRoleDisplay');
+        const avatarInline = document.getElementById('userAvatarInline');
 
         if (authModal) {
             authModal.style.opacity = '0';
@@ -110,11 +111,18 @@ function performAuth(username) {
         if (userNameDisplay) userNameDisplay.textContent = employee.username;
         if (userRoleDisplay) userRoleDisplay.textContent = employee.position;
         if (currentUsernameDisplay) currentUsernameDisplay.textContent = employee.username;
-        if (currentUserRoleDisplay) currentUserRoleDisplay.textContent = `— ${employee.position}`;
-        if (avatar) {
-            const icons = { curator: '★', senior_officer: '◆', officer: '●', cadet: '○' };
-            avatar.textContent = icons[employee.type] || '·';
-        }
+        if (currentUserRoleDisplay) currentUserRoleDisplay.textContent = employee.position;
+
+        const icons = {
+            curator: '★',
+            senior_officer: '◆',
+            officer: '●',
+            cadet: '○'
+        };
+        const icon = icons[employee.type] || '·';
+        if (avatar) avatar.textContent = icon;
+        if (avatarInline) avatarInline.textContent = icon;
+
         if (usernameInput) {
             usernameInput.disabled = false;
             usernameInput.style.pointerEvents = 'auto';
@@ -130,6 +138,8 @@ function performAuth(username) {
 function logoutUser() {
     localStorage.removeItem('currentUser');
     localStorage.removeItem('authDate');
+    localStorage.removeItem('adminAuthenticated');
+    isAdminAuthenticated = false;
 
     if (typeof test !== 'undefined' && test && typeof clearTestState === 'function') {
         clearTestState();
@@ -137,6 +147,7 @@ function logoutUser() {
     currentUser = null;
     if (typeof test !== 'undefined') test = null;
     if (typeof blocked !== 'undefined') blocked = false;
+    if (typeof isAdminAuthenticated !== 'undefined') isAdminAuthenticated = false;
 
     document.querySelectorAll('.modal-overlay').forEach(modal => {
         if (modal.id !== 'authModal' && modal.id !== 'disclaimerModal' && modal.id !== 'employeeSelectionModal') {
@@ -172,11 +183,15 @@ function logoutUser() {
 }
 
 function authenticateAdmin() {
-    if (isAdminAuthenticated) return true;
+    if (isAdminAuthenticated === true) {
+        return true;
+    }
+
     const pwd = prompt("Введите пароль для Админки:");
     if (pwd === ADMIN_PASSWORD) {
         isAdminAuthenticated = true;
         localStorage.setItem('adminAuthenticated', 'true');
+        showMessage("Доступ в админ-панель разрешён", "success");
         return true;
     }
     alert("Неверный пароль!");
@@ -185,7 +200,7 @@ function authenticateAdmin() {
 
 function logoutAdmin() {
     isAdminAuthenticated = false;
-    localStorage.setItem('adminAuthenticated', 'false');
+    localStorage.removeItem('adminAuthenticated');
     showMessage("Выход из админ-панели выполнен", "info");
     if (typeof openExamTab === 'function') openExamTab();
     if (typeof setTopbarActive === 'function') setTopbarActive('exam');
