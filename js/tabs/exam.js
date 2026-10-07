@@ -498,7 +498,7 @@ function renderTextQuestion(q) {
             <div class="question-text-large">${escapeHtml(q.text)}</div>
 
             <input type="text" id="answerInput" placeholder="Введите ваш ответ здесь..."
-                   value="${test.answers[test.current] || ''}" autocomplete="off">
+                   value="${escapeHtml(test.answers[test.current] || '')}" autocomplete="off">
 
             <div class="question-actions">
                 <button class="btn btn-primary" id="nextBtn">
@@ -574,7 +574,8 @@ function renderTestQuestions() {
         if (answerInput) {
             answerInput.addEventListener("input", (e) => {
                 trackActivity();
-                test.answers[test.current] = e.target.value.trim();
+                const cleaned = e.target.value.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ');
+                test.answers[test.current] = cleaned;
                 saveTestState();
             });
             answerInput.addEventListener("keypress", (e) => {
@@ -610,7 +611,7 @@ function renderReviewPage() {
         if (q.type === 'multiple' && q.options) {
             const selectedOptions = Array.isArray(userAnswer) ? userAnswer : [];
             answerDisplay = `
-                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;">
+                <div class="review-options-row">
                     ${q.options.map(option => {
                         const isSelected = selectedOptions.includes(option);
                         return `
@@ -622,7 +623,10 @@ function renderReviewPage() {
                 </div>
             `;
         } else {
-            const answerText = userAnswer || "—";
+            let answerText = userAnswer || "—";
+            if (typeof answerText === 'string') {
+                answerText = answerText.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim();
+            }
             answerDisplay = `
                 <div class="review-answer-text">${escapeHtml(answerText)}</div>
             `;
@@ -630,12 +634,12 @@ function renderReviewPage() {
 
         answersHtml += `
             <div class="review-item">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
-                    <div style="flex: 1; min-width: 0;">
-                        <div style="font-size: 0.82em; font-weight: 600; color: var(--vp-accent-hover); margin-bottom: 2px;">
+                <div class="review-item__inner">
+                    <div class="review-item__content">
+                        <div class="review-item__number">
                             Вопрос ${index + 1}
                         </div>
-                        <div style="font-size: 0.92em; color: var(--text-bright);">${escapeHtml(q.text)}</div>
+                        <div class="review-item__question">${escapeHtml(q.text)}</div>
                         ${answerDisplay}
                     </div>
                     <button class="btn small ghost review-edit-btn" data-question-index="${index}">
@@ -730,6 +734,7 @@ function finishTest() {
         let answerText = test.answers[i];
         if (Array.isArray(answerText)) answerText = answerText.join(', ');
         else if (!answerText) answerText = "Нет ответа";
+        else if (typeof answerText === 'string') answerText = answerText.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim();
 
         reportText += `\n${i + 1}. ${q.text}\n`;
         reportText += `Ответ: ${answerText}\n`;
