@@ -1,6 +1,7 @@
 function hideAllMainAreas() {
     const ids = [
         'homeArea',
+        'tsrArea',
         'membersArea',
         'legendsArea',
         'mainArea',
@@ -8,6 +9,7 @@ function hideAllMainAreas() {
         'decreeArea',
         'claimArea',
         'vpCharterArea',
+        'roleplayArea',
         'contactsArea',
         'discordArea'
     ];
@@ -25,8 +27,33 @@ function showMainArea(id) {
 }
 
 function setBreadcrumb(label) {
-    const el = document.getElementById('breadcrumbActive');
-    if (el) el.textContent = label;
+    const container = document.querySelector('.app-breadcrumbs');
+    if (!container) return;
+
+    container.innerHTML = `
+        <span class="app-breadcrumbs__item">Главная</span>
+        <span class="app-breadcrumbs__sep">›</span>
+        <span class="app-breadcrumbs__item" id="breadcrumbActive">${label}</span>
+    `;
+}
+
+function setBreadcrumbPath(path) {
+    const container = document.querySelector('.app-breadcrumbs');
+    if (!container) return;
+
+    if (!Array.isArray(path) || path.length === 0) {
+        setBreadcrumb('Главная');
+        return;
+    }
+
+    const html = path.map((item, index) => {
+        if (index === path.length - 1) {
+            return `<span class="app-breadcrumbs__item" id="breadcrumbActive">${item}</span>`;
+        }
+        return `<span class="app-breadcrumbs__item">${item}</span>`;
+    }).join('<span class="app-breadcrumbs__sep">›</span>');
+
+    container.innerHTML = html;
 }
 
 function setSidebarActive(tab) {
@@ -38,6 +65,17 @@ function setSidebarActive(tab) {
 
 function clearSidebarActive() {
     document.querySelectorAll('.app-sidebar__item').forEach(item => item.classList.remove('active'));
+}
+
+function setSidebarSubActive(subtab) {
+    document.querySelectorAll('.app-sidebar__subitem').forEach(item => {
+        if (item.dataset.subtab === subtab) item.classList.add('active');
+        else item.classList.remove('active');
+    });
+}
+
+function clearSidebarSubActive() {
+    document.querySelectorAll('.app-sidebar__subitem').forEach(item => item.classList.remove('active'));
 }
 
 function setTopbarActive(tab) {
@@ -78,6 +116,10 @@ function openHome() {
     if (typeof renderHome === 'function') renderHome();
 }
 
+function openTSR() {
+    if (typeof renderTSR === 'function') renderTSR();
+}
+
 function openMembers() {
     if (typeof renderMembers === 'function') renderMembers();
 }
@@ -88,6 +130,10 @@ function openLegends() {
 
 function openVPCharter() {
     if (typeof renderVP === 'function') renderVP();
+}
+
+function openRoleplay() {
+    if (typeof renderRoleplay === 'function') renderRoleplay();
 }
 
 function openContacts() {
@@ -130,6 +176,7 @@ function openDecreeTab() {
 
 function openClaimTab() {
     hideAllMainAreas();
+    showMainArea('claimArea');
     setBreadcrumb('Судебные иски');
     if (typeof renderClaim === 'function') renderClaim();
     hideWarningBanner();
@@ -149,19 +196,55 @@ function openAdminTab() {
     hideWarningBanner();
 }
 
+function closeAllSidebarGroups() {
+    document.querySelectorAll('.app-sidebar__group').forEach(g => g.classList.remove('open'));
+}
+
 function initSidebar() {
     document.querySelectorAll('.app-sidebar__item').forEach(item => {
+        if (item.classList.contains('app-sidebar__item--group')) return;
         item.addEventListener('click', () => {
             const tab = item.dataset.tab;
             clearTopbarActive();
+            clearSidebarSubActive();
+            closeAllSidebarGroups();
             setSidebarActive(tab);
 
             if (tab === 'home') openHome();
             else if (tab === 'members') openMembers();
             else if (tab === 'legends') openLegends();
             else if (tab === 'vp') openVPCharter();
+            else if (tab === 'roleplay') openRoleplay();
             else if (tab === 'contacts') openContacts();
             else if (tab === 'discord') openDiscord();
+        });
+    });
+
+    document.querySelectorAll('.app-sidebar__group').forEach(group => {
+        const header = group.querySelector('.app-sidebar__item--group');
+        if (!header) return;
+        header.addEventListener('click', (e) => {
+            e.stopPropagation();
+            group.classList.toggle('open');
+        });
+    });
+
+    document.querySelectorAll('.app-sidebar__subitem').forEach(sub => {
+        sub.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const subtab = sub.dataset.subtab;
+            clearTopbarActive();
+            clearSidebarActive();
+            clearSidebarSubActive();
+            sub.classList.add('active');
+
+            if (subtab === 'tsr-report') {
+                if (typeof renderTSRReport === 'function') renderTSRReport();
+            } else if (subtab === 'tsr-parole') {
+                if (typeof renderTSRParole === 'function') renderTSRParole();
+            } else if (subtab === 'tsr-charter') {
+                if (typeof renderTSRCharter === 'function') renderTSRCharter();
+            }
         });
     });
 }
@@ -171,6 +254,8 @@ function initTopbarTabs() {
         tab.addEventListener('click', () => {
             const tabId = tab.dataset.tab;
             clearSidebarActive();
+            clearSidebarSubActive();
+            closeAllSidebarGroups();
             setTopbarActive(tabId);
 
             if (tabId === 'exam') openExamTab();
@@ -190,17 +275,22 @@ document.addEventListener('DOMContentLoaded', () => {
 window.hideAllMainAreas = hideAllMainAreas;
 window.showMainArea = showMainArea;
 window.setBreadcrumb = setBreadcrumb;
+window.setBreadcrumbPath = setBreadcrumbPath;
 window.setSidebarActive = setSidebarActive;
 window.clearSidebarActive = clearSidebarActive;
+window.setSidebarSubActive = setSidebarSubActive;
+window.clearSidebarSubActive = clearSidebarSubActive;
 window.setTopbarActive = setTopbarActive;
 window.clearTopbarActive = clearTopbarActive;
 window.showWarningBanner = showWarningBanner;
 window.hideWarningBanner = hideWarningBanner;
 window.updateWarningBannerVisibility = updateWarningBannerVisibility;
 window.openHome = openHome;
+window.openTSR = openTSR;
 window.openMembers = openMembers;
 window.openLegends = openLegends;
 window.openVPCharter = openVPCharter;
+window.openRoleplay = openRoleplay;
 window.openContacts = openContacts;
 window.openDiscord = openDiscord;
 window.openExamTab = openExamTab;
