@@ -33,7 +33,7 @@ const FIXED_EMPLOYEE_STRUCTURE = [
     { id: 'senior_officer_1', position: 'Заместитель Куратора ВП', type: 'senior_officer', username: 'Ralph_Laurence' },
     
     { id: 'officer_9',        position: 'Офицер ВП',               type: 'officer',       username: 'Kiril_Kot' },
-    { id: 'officer_6',        position: 'Офицер ВП',               type: 'officer',       username: 'Hungwoo_Uchiha' },
+    { id: 'officer_6',        position: 'Офицер ВП',               type: 'officer',       username: 'Hungwoo_Abobbi' },
     { id: 'officer_2',        position: 'Офицер ВП',               type: 'officer',       username: 'Вакантно' },
     { id: 'officer_5',        position: 'Офицер ВП',               type: 'officer',       username: 'Вакантно' },
     { id: 'officer_7',        position: 'Офицер ВП',               type: 'officer',       username: 'Вакантно' },
@@ -43,8 +43,8 @@ const FIXED_EMPLOYEE_STRUCTURE = [
     { id: 'officer_4',        position: 'Офицер ВП',               type: 'officer',       username: 'Вакантно' },
     { id: 'officer_10',       position: 'Офицер ВП',               type: 'officer',       username: 'Вакантно' },
 
-    { id: 'cadet_3',          position: 'Курсант ВП',              type: 'cadet',        username: 'Mister_Kote' },
-    { id: 'cadet_1',          position: 'Курсант ВП',              type: 'cadet',        username: 'Вакантно' },
+    { id: 'cadet_3',          position: 'Курсант ВП',              type: 'cadet',        username: 'Leon_Abobbi' },
+    { id: 'cadet_1',          position: 'Курсант ВП',              type: 'cadet',        username: 'Alexey_Night' },
     { id: 'cadet_2',          position: 'Курсант ВП',              type: 'cadet',        username: 'Вакантно' },
     { id: 'cadet_4',          position: 'Курсант ВП',              type: 'cadet',        username: 'Вакантно' },
     { id: 'cadet_5',          position: 'Курсант ВП',              type: 'cadet',        username: 'Вакантно' }
