@@ -44,10 +44,10 @@ const FIXED_EMPLOYEE_STRUCTURE = [
     { id: 'officer_10',       position: 'Офицер ВП',               type: 'officer',       username: 'Вакантно' },
 
     { id: 'cadet_3',          position: 'Курсант ВП',              type: 'cadet',        username: 'Leon_Abobbi' },
+    { id: 'cadet_5',          position: 'Курсант ВП',              type: 'cadet',        username: 'Haruki_Yoshida' }
     { id: 'cadet_1',          position: 'Курсант ВП',              type: 'cadet',        username: 'Вакантно' },
     { id: 'cadet_2',          position: 'Курсант ВП',              type: 'cadet',        username: 'Вакантно' },
     { id: 'cadet_4',          position: 'Курсант ВП',              type: 'cadet',        username: 'Вакантно' },
-    { id: 'cadet_5',          position: 'Курсант ВП',              type: 'cadet',        username: 'Вакантно' }
 ];
 
 const GREETINGS = {
