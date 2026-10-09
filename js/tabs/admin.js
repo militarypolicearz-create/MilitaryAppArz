@@ -1867,37 +1867,56 @@ function renderFiles() {
         return;
     }
 
-    fileList.innerHTML = savedFiles.map((f, i) => `
-        <li>
-            <div class="file-info">
-                <strong>${escapeHtml(f.name)}</strong>
-                <span class="small">${(f.size / 1024).toFixed(1)} KB</span>
-            </div>
-            <div class="small">Загружен: ${f.uploaded}</div>
-            ${f.name.toLowerCase().includes('разблокировк') ? `
-                <div class="small" style="color:var(--warning);font-weight:bold;">Файл разблокировки</div>
-            ` : f.graded ? `
-                <div class="small" style="color:${f.score >= 70 ? 'var(--success)' : 'var(--error)'};font-weight:bold;">Оценка: ${f.score}% (${f.correctAnswers}/${f.totalAnswers})</div>
-            ` : ''}
+    fileList.innerHTML = savedFiles.map((f, i) => {
+        const lowerName = (f.name || '').toLowerCase();
+        const isUnlock = lowerName.includes('разблокировк');
+        const isReport = lowerName.endsWith('.txt');
 
-            <div class="file-actions">
-                <label style="display:flex;align-items:center;gap:5px;">
-                    <input type="checkbox" class="pass-checkbox" data-index="${i}" ${f.passed ? "checked" : ""}>
-                    <span class="small">Пройден</span>
-                </label>
+        let statusLine = '';
+        if (isUnlock) {
+            statusLine = `<div class="small" style="color:var(--warning);font-weight:bold;">Файл разблокировки</div>`;
+        } else if (isReport) {
+            statusLine = `<div class="small" style="color:var(--vp-accent-hover);font-weight:bold;">Отчёт</div>`;
+        } else if (f.graded) {
+            statusLine = `<div class="small" style="color:${f.score >= 70 ? 'var(--success)' : 'var(--error)'};font-weight:bold;">Оценка: ${f.score}% (${f.correctAnswers}/${f.totalAnswers})</div>`;
+        }
 
-                <button class="btn small open-btn" data-index="${i}">Просмотр</button>
+        let actionBtn = '';
+        if (isUnlock) {
+            actionBtn = `<button class="btn small unlock-save-btn" data-index="${i}">Сохранить в папку</button>`;
+        } else if (isReport) {
+            actionBtn = `<button class="btn small open-btn" data-index="${i}">Просмотр отчёта</button>`;
+        } else {
+            actionBtn = `<button class="btn small grade-btn" data-index="${i}">${f.graded ? 'Изменить оценку' : 'Оценить'}</button>`;
+        }
 
-                ${f.name.toLowerCase().includes('разблокировк') ? `
-                    <button class="btn small unlock-save-btn" data-index="${i}">Сохранить в папку</button>
-                ` : `
-                    <button class="btn small grade-btn" data-index="${i}">${f.graded ? 'Изменить оценку' : 'Оценить'}</button>
-                `}
+        const viewBtn = isReport
+            ? ''
+            : `<button class="btn small open-btn" data-index="${i}">Просмотр</button>`;
 
-                <button class="btn small ghost del-btn" data-index="${i}">Удалить</button>
-            </div>
-        </li>
-    `).join("");
+        return `
+            <li>
+                <div class="file-info">
+                    <strong>${escapeHtml(f.name)}</strong>
+                    <span class="small">${(f.size / 1024).toFixed(1)} KB</span>
+                </div>
+                <div class="small">Загружен: ${f.uploaded}</div>
+                ${statusLine}
+
+                <div class="file-actions">
+                    <label style="display:flex;align-items:center;gap:5px;">
+                        <input type="checkbox" class="pass-checkbox" data-index="${i}" ${f.passed ? "checked" : ""}>
+                        <span class="small">Пройден</span>
+                    </label>
+
+                    ${viewBtn}
+                    ${actionBtn}
+
+                    <button class="btn small ghost del-btn" data-index="${i}">Удалить</button>
+                </div>
+            </li>
+        `;
+    }).join("");
 
     document.querySelectorAll(".pass-checkbox").forEach(cb => {
         cb.addEventListener("change", (e) => {
@@ -2171,52 +2190,318 @@ function openGradingPanel(file, fileIndex) {
     }
 }
 
-function openFileViewer(file) {
-    const fileViewer = document.getElementById("fileViewer");
-    if (!fileViewer) return;
+function parseReportSections(text) {
+    const knownTitles = [
+        'ПРОВЕРКА ДЕЛЬТЫ НА РЕАГИРОВАНИЕ',
+        'ПРОВЕРКА ДЕЛЬТЫ',
+        'ПРОВЕРКА ВЧ НА ЧС',
+        'ПРОВЕРКА ЧС',
+        'ПРОВЕРКА ЛИЧНОГО СОСТАВА АРМИИ',
+        'ПРОВЕРКА СОСТАВА',
+        'ПОСТАНОВЛЕНИЯ ВП',
+        'ПОСТАНОВЛЕНИЯ'
+    ];
 
-    fileViewer.style.display = "block";
+    const cleaned = (text || '')
+        .split('\n')
+        .filter(line => {
+            const t = line.trim();
+            if (t === '') return true;
+            if (/^[-=_.*~]{3,}$/.test(t)) return false;
+            if (/^Arizona RP\s*\|/i.test(t)) return false;
+            if (/^Военная Полиция$/i.test(t)) return false;
+            return true;
+        })
+        .join('\n');
+
+    const lines = cleaned.split('\n');
+    const sections = [];
+    let current = null;
+
+    for (const line of lines) {
+        const trimmed = line.trim();
+        const upper = trimmed.toUpperCase();
+        const matchedTitle = knownTitles.find(t => upper.startsWith(t));
+
+        if (matchedTitle) {
+            if (current) sections.push(current);
+            const countMatch = trimmed.match(/\((\d+)\)/);
+            const count = countMatch ? countMatch[1] : null;
+
+            current = {
+                num: sections.length + 1,
+                title: trimmed.replace(/\(\d+\)/, '').trim(),
+                count: count,
+                content: []
+            };
+            continue;
+        }
+
+        if (current) {
+            current.content.push(line);
+        }
+    }
+
+    if (current) sections.push(current);
+
+    if (sections.length === 0) {
+        return [{
+            num: 1,
+            title: 'Содержимое файла',
+            count: null,
+            content: cleaned.split('\n')
+        }];
+    }
+
+    return sections.map(s => ({
+        ...s,
+        content: s.content.join('\n').replace(/^\n+|\n+$/g, '')
+    }));
+}
+
+function renderReportContent(content) {
+    if (!content || content.trim() === '' || content.trim() === '-') {
+        return `
+            <div class="fv-empty">
+                <div class="fv-empty__icon">∅</div>
+                <div class="fv-empty__text">Отчётов нет</div>
+            </div>
+        `;
+    }
+
+    const lines = content.split('\n');
+    const blocks = [];
+    let currentBlock = null;
+
+    const isRecordStart = (line) => /^\s*\[\d+\]/.test(line);
+    const isFieldLine = (line) => /^\s*[^:\n]{2,80}:\s*.+/.test(line);
+    const isSubheading = (line) => /:\s*$/.test(line) && line.trim().length > 3 && line.trim().length < 80;
+
+    lines.forEach(line => {
+        const trimmed = line.trim();
+
+        if (trimmed === '') return;
+        if (/^[-=_.*~]{3,}$/.test(trimmed)) return;
+        if (/^Arizona RP\s*\|/i.test(trimmed)) return;
+
+        if (isRecordStart(trimmed)) {
+            if (currentBlock) blocks.push(currentBlock);
+            currentBlock = {
+                number: trimmed.match(/^\[(\d+)\]/)[1],
+                date: trimmed.replace(/^\[\d+\]\s*/, '').trim(),
+                fields: []
+            };
+            return;
+        }
+
+        if (!currentBlock) {
+            currentBlock = { number: null, date: null, fields: [] };
+        }
+
+        if (isFieldLine(trimmed) && !isSubheading(trimmed)) {
+            const colonIndex = trimmed.indexOf(':');
+            const key = trimmed.slice(0, colonIndex).trim();
+            const value = trimmed.slice(colonIndex + 1).trim();
+            currentBlock.fields.push({ type: 'field', key, value });
+        } else if (isSubheading(trimmed)) {
+            currentBlock.fields.push({
+                type: 'subheading',
+                value: trimmed.replace(/:\s*$/, '')
+            });
+        } else {
+            currentBlock.fields.push({ type: 'text', value: trimmed });
+        }
+    });
+
+    if (currentBlock) blocks.push(currentBlock);
+
+    if (blocks.length === 0) {
+        return `<div class="fv-empty"><div class="fv-empty__text">Данных нет</div></div>`;
+    }
+
+    return blocks.map(block => `
+        <div class="fv-record">
+            ${block.number !== null || block.date
+                ? `<div class="fv-record__head">
+                       ${block.number !== null ? `<span class="fv-record__num">#${block.number}</span>` : ''}
+                       ${block.date ? `<span class="fv-record__date">${escapeHtml(block.date)}</span>` : ''}
+                   </div>`
+                : ''}
+            <div class="fv-record__body">
+                ${block.fields.map(f => {
+                    if (f.type === 'field') {
+                        return `
+                            <div class="fv-field">
+                                <div class="fv-field__key">${escapeHtml(f.key)}</div>
+                                <div class="fv-field__value">${escapeHtml(f.value)}</div>
+                            </div>
+                        `;
+                    }
+                    if (f.type === 'subheading') {
+                        return `<div class="fv-subheading">${escapeHtml(f.value)}</div>`;
+                    }
+                    return `<div class="fv-text">${escapeHtml(f.value)}</div>`;
+                }).join('')}
+            </div>
+        </div>
+    `).join('');
+}
+
+function openFileViewer(file) {
+    document.querySelectorAll('.file-viewer-modal').forEach(m => m.remove());
+
+    let rawText = '';
+    let decryptedPlain = null;
 
     try {
-        const storedBase64 = file.content;
-        const fileText = atob(storedBase64);
-        let decryptedPlain = null;
-
+        const fileText = atob(file.content);
         try {
             const encrypted = atob(fileText);
             decryptedPlain = CryptoJS.AES.decrypt(encrypted, AES_KEY).toString(CryptoJS.enc.Utf8);
         } catch (err) {
             decryptedPlain = null;
         }
-
-        let contentHTML = '';
-        if (decryptedPlain && decryptedPlain.length > 0) {
-            let reportWithGrading = decryptedPlain;
-            if (file.graded) {
-                reportWithGrading += `\n\n=== ОЦЕНКА АДМИНИСТРАТОРА ===\n`;
-                reportWithGrading += `Оценка: ${file.score}%\n`;
-                reportWithGrading += `Правильных ответов: ${file.correctAnswers}/${file.totalAnswers}\n`;
-                reportWithGrading += `Статус: ${file.passed ? 'ПРОЙДЕН' : 'НЕ ПРОЙДЕН'}\n`;
-            }
-            contentHTML = `<pre>${escapeHtml(reportWithGrading)}</pre>`;
-        } else {
-            contentHTML = `<pre style="color: var(--error);">Не удалось расшифровать файл.</pre>`;
-        }
-
-        fileViewer.innerHTML = `
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                <strong>${escapeHtml(file.name)}</strong>
-                <button class="btn small" id="closeViewerBtn">Закрыть</button>
-            </div>
-            ${contentHTML}
-        `;
-
-        document.getElementById("closeViewerBtn").addEventListener("click", () => {
-            fileViewer.style.display = "none";
-        });
-    } catch (error) {
-        fileViewer.innerHTML = `<div style="color: var(--error);">Ошибка при чтении файла</div>`;
+    } catch (e) {
+        decryptedPlain = null;
     }
+
+    const isDecryptOk = decryptedPlain
+        && decryptedPlain.length > 0
+        && !decryptedPlain.includes('\uFFFD')
+        && /[А-Яа-яA-Za-z0-9]/.test(decryptedPlain);
+
+    if (isDecryptOk) {
+        rawText = decryptedPlain;
+    } else {
+        try {
+            rawText = decodeURIComponent(escape(atob(file.content)));
+        } catch (e) {
+            rawText = atob(file.content);
+        }
+    }
+
+    const sections = parseReportSections(rawText);
+
+    const cardsHTML = sections.map(section => `
+        <div class="file-viewer-card">
+            <div class="file-viewer-card__head">
+                <div class="file-viewer-card__num">${section.num}</div>
+                <div class="file-viewer-card__title">${escapeHtml(section.title)}</div>
+                ${section.count !== null
+                    ? `<div class="file-viewer-card__badge">${section.count}</div>`
+                    : ''}
+            </div>
+            <div class="file-viewer-card__body">
+                ${renderReportContent(section.content)}
+            </div>
+        </div>
+    `).join('');
+
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay file-viewer-modal';
+    modal.innerHTML = `
+        <div class="modal-content file-viewer">
+            <div class="file-viewer__head">
+                <div class="file-viewer__title">${escapeHtml(file.name)}</div>
+                <button class="btn small ghost file-viewer__close">Закрыть</button>
+            </div>
+            <div class="file-viewer__body">
+                ${cardsHTML || '<div class="file-viewer__empty">Файл пуст или не содержит данных</div>'}
+            </div>
+            <div class="file-viewer__footer">
+                <span>Arizona RP | Военная Полиция</span>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const close = () => modal.remove();
+    modal.querySelector('.file-viewer__close').addEventListener('click', close);
+    modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+    document.addEventListener('keydown', function escHandler(e) {
+        if (e.key === 'Escape') { close(); document.removeEventListener('keydown', escHandler); }
+    });
+}
+
+function openFileViewer(file) {
+    document.querySelectorAll('.file-viewer-modal').forEach(m => m.remove());
+
+    let rawText = '';
+    let decryptedPlain = null;
+
+    try {
+        const fileText = atob(file.content);
+        try {
+            const encrypted = atob(fileText);
+            decryptedPlain = CryptoJS.AES.decrypt(encrypted, AES_KEY).toString(CryptoJS.enc.Utf8);
+        } catch (err) {
+            decryptedPlain = null;
+        }
+    } catch (e) {
+        decryptedPlain = null;
+    }
+
+    const isDecryptOk = decryptedPlain
+        && decryptedPlain.length > 0
+        && !decryptedPlain.includes('\uFFFD')
+        && /[А-Яа-яA-Za-z0-9]/.test(decryptedPlain);
+
+    if (isDecryptOk) {
+        rawText = decryptedPlain;
+        if (file.graded) {
+            rawText += `\n\n=== ОЦЕНКА АДМИНИСТРАТОРА ===\n`;
+            rawText += `Оценка: ${file.score}%\n`;
+            rawText += `Правильных ответов: ${file.correctAnswers}/${file.totalAnswers}\n`;
+            rawText += `Статус: ${file.passed ? 'ПРОЙДЕН' : 'НЕ ПРОЙДЕН'}\n`;
+        }
+    } else {
+        try {
+            rawText = decodeURIComponent(escape(atob(file.content)));
+        } catch (e) {
+            rawText = atob(file.content);
+        }
+    }
+
+    const sections = parseReportSections(rawText);
+
+    const cardsHTML = sections.map(section => `
+        <div class="file-viewer-card">
+            <div class="file-viewer-card__head">
+                <div class="file-viewer-card__num">${section.num}</div>
+                <div class="file-viewer-card__title">${escapeHtml(section.title)}</div>
+                ${section.count !== null
+                    ? `<div class="file-viewer-card__badge">${section.count}</div>`
+                    : ''}
+            </div>
+            <div class="file-viewer-card__body">
+                <pre class="file-viewer-card__pre">${escapeHtml(section.content || 'Отчётов нет.')}</pre>
+            </div>
+        </div>
+    `).join('');
+
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay file-viewer-modal';
+    modal.innerHTML = `
+        <div class="modal-content file-viewer">
+            <div class="file-viewer__head">
+                <div class="file-viewer__title">${escapeHtml(file.name)}</div>
+                <button class="btn small ghost file-viewer__close">Закрыть</button>
+            </div>
+            <div class="file-viewer__body">
+                ${cardsHTML || '<div class="file-viewer__empty">Файл пуст или не содержит данных</div>'}
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const close = () => modal.remove();
+    modal.querySelector('.file-viewer__close').addEventListener('click', close);
+    modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+    document.addEventListener('keydown', function escHandler(e) {
+        if (e.key === 'Escape') { close(); document.removeEventListener('keydown', escHandler); }
+    });
 }
 
 function deleteFile(index) {
@@ -2288,5 +2573,6 @@ window.initAdminPanel = initAdminPanel;
 window.renderFiles = renderFiles;
 window.saveUnlockFileToEmployee = saveUnlockFileToEmployee;
 window.openGradingPanel = openGradingPanel;
+window.parseReportSections = parseReportSections;
 window.openFileViewer = openFileViewer;
 window.deleteFile = deleteFile;
