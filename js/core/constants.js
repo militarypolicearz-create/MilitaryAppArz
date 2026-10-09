@@ -20,8 +20,8 @@ const FIXED_ACCESS_CODES = {
     'officer_8':        'Fg8hI1jK4lM7nO0pQ3rS6tU9vW2xY5',
     'officer_4':        'Cd5eF8gH1iJ4kL7mN0oP3qR6sT9uV2',
     'officer_10':       'Gh9iJ2kL5mN8oP1qR4sT7uV0wX3yZ6',
-    'cadet_1':          'Hi0jK3lM6nO9pQ2rS5tU8vW1xY4zA7',
-    'cadet_3':          'Jk2lM5nO8pQ1rS4tU7vW0xY3zA6bC9',
+    'cadet_1':          'Hi0jK3lM6nO9pQ2rS5tU8vW1xY4zA7', // скоро под замену
+    'cadet_3':          'Jk2lM5nO8pQ1rS4tU7vW0xY3zA6bC9', // под замену
     'cadet_2':          'Ij1kL4mN7oP0qR3sT6uV9wX2yZ5aB8',
     'cadet_4':          'Kl3mN6oP9qR2sT5uV8wX1yZ4aB7cD0',
     'cadet_5':          'Lm4nO7pQ0rS3tU6vW9xY2zA5bC8dE1'
