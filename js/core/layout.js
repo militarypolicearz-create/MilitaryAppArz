@@ -10,6 +10,7 @@ function hideAllMainAreas() {
         'claimArea',
         'vpCharterArea',
         'roleplayArea',
+        'vpReportsArea',
         'contactsArea',
         'discordArea'
     ];
@@ -144,6 +145,10 @@ function openDiscord() {
     if (typeof renderDiscord === 'function') renderDiscord();
 }
 
+function openVPReports() {
+    if (typeof renderVPReports === 'function') renderVPReports();
+}
+
 function openExamTab() {
     hideAllMainAreas();
     showMainArea('mainArea');
@@ -217,6 +222,7 @@ function initSidebar() {
             else if (tab === 'roleplay') openRoleplay();
             else if (tab === 'contacts') openContacts();
             else if (tab === 'discord') openDiscord();
+            else if (tab === 'vp-reports') openVPReports();
         });
     });
 
@@ -237,13 +243,15 @@ function initSidebar() {
             clearSidebarActive();
             clearSidebarSubActive();
             sub.classList.add('active');
-
+        
             if (subtab === 'tsr-report') {
                 if (typeof renderTSRReport === 'function') renderTSRReport();
             } else if (subtab === 'tsr-parole') {
                 if (typeof renderTSRParole === 'function') renderTSRParole();
             } else if (subtab === 'tsr-charter') {
                 if (typeof renderTSRCharter === 'function') renderTSRCharter();
+            } else if (subtab === 'tsr-antibyat') {
+                if (typeof renderAntiByat === 'function') renderAntiByat();
             }
         });
     });
