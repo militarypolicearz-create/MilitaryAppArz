@@ -47,7 +47,7 @@ const FIXED_EMPLOYEE_STRUCTURE = [
     { id: 'cadet_5',          position: 'Курсант ВП',              type: 'cadet',        username: 'Haruki_Yoshida' },
     { id: 'cadet_1',          position: 'Курсант ВП',              type: 'cadet',        username: 'Вакантно' },
     { id: 'cadet_2',          position: 'Курсант ВП',              type: 'cadet',        username: 'Вакантно' },
-    { id: 'cadet_4',          position: 'Курсант ВП',              type: 'cadet',        username: 'Вакантно' },
+    { id: 'cadet_4',          position: 'Курсант ВП',              type: 'cadet',        username: 'Вакантно' }
 ];
 
 const GREETINGS = {
