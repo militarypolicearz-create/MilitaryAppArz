@@ -10,6 +10,7 @@ const FIXED_ACCESS_CODES = {
     'curator':          'Kx7amP9qqL2rrT5vvN8wwE3yyU6bbY9',
     'senior_officer_2': 'Bv4cnQ8wwE3yyU6kkF7ddS4jjR2ccJ9',
     'senior_officer_1': 'Zc9djR2kkF7ddS4xxP1vvN8ggT6bbY3',
+    
     'officer_2':        'Hm3gT6xxP1vvN8qqL2rT5mmP9kF4zz',
     'officer_9':        'Wq5bY9ccJ4zzM2ffD3pH6sK1nR7tt',
     'officer_6':        'Lr8fD3sK6pV1xQ4mW7eT2yU5qqWw',
@@ -20,8 +21,9 @@ const FIXED_ACCESS_CODES = {
     'officer_8':        'Fg8hI1jK4lM7nO0pQ3rS6tU9vW2xY5',
     'officer_4':        'Cd5eF8gH1iJ4kL7mN0oP3qR6sT9uV2',
     'officer_10':       'Gh9iJ2kL5mN8oP1qR4sT7uV0wX3yZ6',
-    'cadet_1':          'Hi0jK3lM6nO9pQ2rS5tU8vW1xY4zA7', // скоро под замену
-    'cadet_3':          'Jk2lM5nO8pQ1rS4tU7vW0xY3zA6bC9', // под замену
+
+    'cadet_1':          'Hi0jK3lM6nO9pQ2rS5tU8vW1xY4zA7',
+    'cadet_3':          'Jk2lM5nO8pQ1rS4tU7vW0xY3zA6bC9',
     'cadet_2':          'Ij1kL4mN7oP0qR3sT6uV9wX2yZ5aB8',
     'cadet_4':          'Kl3mN6oP9qR2sT5uV8wX1yZ4aB7cD0',
     'cadet_5':          'Lm4nO7pQ0rS3tU6vW9xY2zA5bC8dE1'
@@ -31,10 +33,10 @@ const FIXED_EMPLOYEE_STRUCTURE = [
     { id: 'curator',          position: 'Куратор ВП',              type: 'curator',        username: 'Dobriy_Abobbi' },
     { id: 'senior_officer_2', position: 'Заместитель Куратора ВП', type: 'senior_officer', username: 'Chaffy_Washington' },
     { id: 'senior_officer_1', position: 'Заместитель Куратора ВП', type: 'senior_officer', username: 'Ralph_Laurence' },
-    
-    { id: 'officer_9',        position: 'Офицер ВП',               type: 'officer',       username: 'Kiril_Kot' },
-    { id: 'officer_6',        position: 'Офицер ВП',               type: 'officer',       username: 'Hungwoo_Abobbi' },
-    { id: 'officer_2',        position: 'Офицер ВП',               type: 'officer',       username: 'Alexey_Night' },
+
+    { id: 'officer_2',        position: 'Офицер ВП',               type: 'officer',       username: 'Kiril_Kot' },
+    { id: 'officer_9',        position: 'Офицер ВП',               type: 'officer',       username: 'Hungwoo_Abobbi' },
+    { id: 'officer_6',        position: 'Офицер ВП',               type: 'officer',       username: 'Alexey_night' },
     { id: 'officer_5',        position: 'Офицер ВП',               type: 'officer',       username: 'Вакантно' },
     { id: 'officer_7',        position: 'Офицер ВП',               type: 'officer',       username: 'Вакантно' },
     { id: 'officer_3',        position: 'Офицер ВП',               type: 'officer',       username: 'Вакантно' },
@@ -43,11 +45,11 @@ const FIXED_EMPLOYEE_STRUCTURE = [
     { id: 'officer_4',        position: 'Офицер ВП',               type: 'officer',       username: 'Вакантно' },
     { id: 'officer_10',       position: 'Офицер ВП',               type: 'officer',       username: 'Вакантно' },
 
-    { id: 'cadet_3',          position: 'Курсант ВП',              type: 'cadet',        username: 'Leon_Abobbi' },
-    { id: 'cadet_5',          position: 'Курсант ВП',              type: 'cadet',        username: 'Haruki_Yoshida' },
-    { id: 'cadet_1',          position: 'Курсант ВП',              type: 'cadet',        username: 'Вакантно' },
+    { id: 'cadet_1',          position: 'Курсант ВП',              type: 'cadet',        username: 'Leon_Abobbi' },
+    { id: 'cadet_3',          position: 'Курсант ВП',              type: 'cadet',        username: 'Haruki_Yoshida' },
     { id: 'cadet_2',          position: 'Курсант ВП',              type: 'cadet',        username: 'Вакантно' },
-    { id: 'cadet_4',          position: 'Курсант ВП',              type: 'cadet',        username: 'Вакантно' }
+    { id: 'cadet_4',          position: 'Курсант ВП',              type: 'cadet',        username: 'Вакантно' },
+    { id: 'cadet_5',          position: 'Курсант ВП',              type: 'cadet',        username: 'Вакантно' }
 ];
 
 const GREETINGS = {
