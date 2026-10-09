@@ -1,0 +1,256 @@
+.antibyat-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 30px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 16px;
+    border: 1px solid var(--vp-border-strong);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    animation: fadeIn 0.4s ease-out;
+}
+
+.antibyat-header {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--vp-border);
+}
+
+.antibyat-header__title {
+    margin: 0 0 6px;
+    font-size: 1.6em;
+    font-weight: 800;
+    color: var(--vp-accent-hover);
+    letter-spacing: 0.3px;
+}
+
+.antibyat-header__subtitle {
+    font-size: 0.9em;
+    color: var(--text-muted);
+}
+
+.antibyat-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.antibyat-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-items: end;
+}
+
+.antibyat-row--three {
+    grid-template-columns: 1fr 1fr 1fr;
+    align-items: end;
+}
+
+.antibyat-row--full {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+}
+
+.antibyat-field {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.antibyat-field label {
+    font-size: 0.78em;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    min-height: 2.2em;
+    display: flex;
+    align-items: flex-end;
+    line-height: 1.25;
+}
+
+.antibyat-field input,
+.antibyat-field textarea,
+.antibyat-field select {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--vp-border);
+    background: rgba(0,0,0,0.25);
+    color: var(--text-bright);
+    font-family: inherit;
+    font-size: 0.95em;
+    transition: all 0.25s ease;
+}
+
+.antibyat-field textarea {
+    min-height: 90px;
+    resize: vertical;
+}
+
+.antibyat-field input:focus,
+.antibyat-field textarea:focus,
+.antibyat-field select:focus {
+    outline: none;
+    border-color: var(--vp-accent);
+    box-shadow: 0 0 0 3px var(--vp-accent-glow);
+    background: rgba(0,0,0,0.35);
+}
+
+.antibyat-field select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(168,112,60,0.7)' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 2.25rem;
+    cursor: pointer;
+}
+
+.antibyat-field select option {
+    background: #1a1a2e;
+    color: #fff;
+}
+
+.antibyat-readonly {
+    cursor: not-allowed;
+    opacity: 0.85;
+    background: rgba(0,0,0,0.35) !important;
+    border-color: var(--vp-border) !important;
+    color: var(--text-muted) !important;
+    font-weight: 600;
+}
+
+.antibyat-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+    padding-top: 16px;
+    border-top: 1px solid var(--vp-border);
+}
+
+.antibyat-actions .btn {
+    margin: 0;
+    padding: 12px 24px;
+    background: var(--vp-accent);
+    color: var(--vp-text-bright);
+    border: none;
+    font-weight: 700;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+.antibyat-actions .btn:hover {
+    background: var(--vp-accent-hover);
+    box-shadow: 0 6px 16px var(--vp-accent-glow);
+}
+
+.antibyat-actions .btn.ghost {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--vp-border-strong);
+}
+
+.antibyat-actions .btn.ghost:hover {
+    border-color: var(--vp-accent);
+    color: var(--vp-accent-hover);
+    background: rgba(168, 112, 60, 0.08);
+}
+
+.antibyat-result {
+    margin-top: 30px;
+    padding: 20px;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--vp-border-strong);
+    border-radius: 12px;
+    animation: fadeIn 0.4s ease-out;
+}
+
+.antibyat-result__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.antibyat-result__header h3 {
+    margin: 0;
+    font-size: 1.15em;
+    color: var(--vp-accent-hover);
+}
+
+.antibyat-result__buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.antibyat-result__buttons .btn {
+    margin: 0;
+    background: var(--vp-accent);
+    color: var(--vp-text-bright);
+    border: none;
+}
+
+.antibyat-result__buttons .btn:hover {
+    background: var(--vp-accent-hover);
+}
+
+.antibyat-result__buttons .btn.ghost {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--vp-border-strong);
+}
+
+.antibyat-result__buttons .btn.ghost:hover {
+    border-color: var(--vp-accent);
+    color: var(--vp-accent-hover);
+    background: rgba(168, 112, 60, 0.08);
+}
+
+.antibyat-result__code {
+    margin: 0;
+    padding: 16px 20px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--vp-border);
+    border-radius: 10px;
+    color: var(--text-bright);
+    font-family: 'Segoe UI', 'Inter', system-ui, sans-serif;
+    font-size: 0.92em;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-word;
+    letter-spacing: 0.2px;
+}
+
+@media (max-width: 768px) {
+    .antibyat-container {
+        padding: 18px;
+    }
+
+    .antibyat-row,
+    .antibyat-row--three,
+    .antibyat-row--full {
+        grid-template-columns: 1fr;
+    }
+
+    .antibyat-result__header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .antibyat-result__buttons .btn {
+        width: 100%;
+    }
+
+    .antibyat-actions {
+        flex-direction: column;
+    }
+
+    .antibyat-actions .btn {
+        width: 100%;
+    }
+}
