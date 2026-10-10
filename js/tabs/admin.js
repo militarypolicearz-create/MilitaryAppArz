@@ -2269,26 +2269,27 @@ function renderReportContent(content) {
         `;
     }
 
-    const lines = content.split('\n');
+    const lines = content
+        .split('\n')
+        .map(l => l.trim())
+        .filter(l => l !== '' && !/^[-=_.*~]{3,}$/.test(l));
+
     const blocks = [];
     let currentBlock = null;
 
-    const isRecordStart = (line) => /^\s*\[\d+\]/.test(line);
-    const isFieldLine = (line) => /^\s*[^:\n]{2,80}:\s*.+/.test(line);
-    const isSubheading = (line) => /:\s*$/.test(line) && line.trim().length > 3 && line.trim().length < 80;
+    const isRecordStart = (line) => /^\[\d+\]/.test(line);
+    const isFieldLine = (line) => {
+        const idx = line.indexOf(':');
+        if (idx < 2 || idx > 80) return false;
+        return true;
+    };
 
     lines.forEach(line => {
-        const trimmed = line.trim();
-
-        if (trimmed === '') return;
-        if (/^[-=_.*~]{3,}$/.test(trimmed)) return;
-        if (/^Arizona RP\s*\|/i.test(trimmed)) return;
-
-        if (isRecordStart(trimmed)) {
+        if (isRecordStart(line)) {
             if (currentBlock) blocks.push(currentBlock);
             currentBlock = {
-                number: trimmed.match(/^\[(\d+)\]/)[1],
-                date: trimmed.replace(/^\[\d+\]\s*/, '').trim(),
+                number: line.match(/^\[(\d+)\]/)[1],
+                date: line.replace(/^\[\d+\]\s*/, '').trim(),
                 fields: []
             };
             return;
@@ -2298,18 +2299,13 @@ function renderReportContent(content) {
             currentBlock = { number: null, date: null, fields: [] };
         }
 
-        if (isFieldLine(trimmed) && !isSubheading(trimmed)) {
-            const colonIndex = trimmed.indexOf(':');
-            const key = trimmed.slice(0, colonIndex).trim();
-            const value = trimmed.slice(colonIndex + 1).trim();
+        if (isFieldLine(line)) {
+            const idx = line.indexOf(':');
+            const key = line.slice(0, idx).trim();
+            const value = line.slice(idx + 1).trim();
             currentBlock.fields.push({ type: 'field', key, value });
-        } else if (isSubheading(trimmed)) {
-            currentBlock.fields.push({
-                type: 'subheading',
-                value: trimmed.replace(/:\s*$/, '')
-            });
         } else {
-            currentBlock.fields.push({ type: 'text', value: trimmed });
+            currentBlock.fields.push({ type: 'text', value: line });
         }
     });
 
@@ -2337,9 +2333,6 @@ function renderReportContent(content) {
                             </div>
                         `;
                     }
-                    if (f.type === 'subheading') {
-                        return `<div class="fv-subheading">${escapeHtml(f.value)}</div>`;
-                    }
                     return `<div class="fv-text">${escapeHtml(f.value)}</div>`;
                 }).join('')}
             </div>
@@ -2348,7 +2341,8 @@ function renderReportContent(content) {
 }
 
 function openFileViewer(file) {
-    document.querySelectorAll('.file-viewer-modal').forEach(m => m.remove());
+    const fileViewer = document.getElementById("fileViewer");
+    if (!fileViewer) return;
 
     let rawText = '';
     let decryptedPlain = null;
@@ -2380,128 +2374,52 @@ function openFileViewer(file) {
         }
     }
 
-    const sections = parseReportSections(rawText);
+    const lines = rawText
+        .split('\n')
+        .map(l => l.trimEnd())
+        .filter(l => {
+            const t = l.trim();
+            if (t === '') return true;
+            if (/^[-=_.*~]{3,}$/.test(t)) return false;
+            return true;
+        });
 
-    const cardsHTML = sections.map(section => `
-        <div class="file-viewer-card">
-            <div class="file-viewer-card__head">
-                <div class="file-viewer-card__num">${section.num}</div>
-                <div class="file-viewer-card__title">${escapeHtml(section.title)}</div>
-                ${section.count !== null
-                    ? `<div class="file-viewer-card__badge">${section.count}</div>`
-                    : ''}
-            </div>
-            <div class="file-viewer-card__body">
-                ${renderReportContent(section.content)}
-            </div>
+    const linesHTML = lines.map(line => {
+        const trimmed = line.trim();
+        if (trimmed === '') {
+            return '<div class="file-viewer__spacer"></div>';
+        }
+        const idx = trimmed.indexOf(':');
+        if (idx > 2 && idx < 80) {
+            const key = trimmed.slice(0, idx).trim();
+            const value = trimmed.slice(idx + 1).trim();
+            return `
+                <div class="file-viewer__field">
+                    <div class="file-viewer__key">${escapeHtml(key)}</div>
+                    <div class="file-viewer__value">${escapeHtml(value)}</div>
+                </div>
+            `;
+        }
+        return `<div class="file-viewer__text">${escapeHtml(trimmed)}</div>`;
+    }).join('');
+
+    fileViewer.style.display = "block";
+    fileViewer.innerHTML = `
+        <div class="file-viewer__head">
+            <div class="file-viewer__title">${escapeHtml(file.name)}</div>
+            <button class="btn small ghost file-viewer__close" id="closeFileViewerBtn">✕ Закрыть</button>
         </div>
-    `).join('');
-
-    const modal = document.createElement('div');
-    modal.className = 'modal-overlay file-viewer-modal';
-    modal.innerHTML = `
-        <div class="modal-content file-viewer">
-            <div class="file-viewer__head">
-                <div class="file-viewer__title">${escapeHtml(file.name)}</div>
-                <button class="btn small ghost file-viewer__close">Закрыть</button>
-            </div>
-            <div class="file-viewer__body">
-                ${cardsHTML || '<div class="file-viewer__empty">Файл пуст или не содержит данных</div>'}
-            </div>
-            <div class="file-viewer__footer">
-                <span>Arizona RP | Военная Полиция</span>
-            </div>
+        <div class="file-viewer__body">
+            ${linesHTML}
         </div>
     `;
 
-    document.body.appendChild(modal);
-
-    const close = () => modal.remove();
-    modal.querySelector('.file-viewer__close').addEventListener('click', close);
-    modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
-    document.addEventListener('keydown', function escHandler(e) {
-        if (e.key === 'Escape') { close(); document.removeEventListener('keydown', escHandler); }
+    document.getElementById("closeFileViewerBtn").addEventListener("click", () => {
+        fileViewer.style.display = "none";
+        fileViewer.innerHTML = "";
     });
-}
 
-function openFileViewer(file) {
-    document.querySelectorAll('.file-viewer-modal').forEach(m => m.remove());
-
-    let rawText = '';
-    let decryptedPlain = null;
-
-    try {
-        const fileText = atob(file.content);
-        try {
-            const encrypted = atob(fileText);
-            decryptedPlain = CryptoJS.AES.decrypt(encrypted, AES_KEY).toString(CryptoJS.enc.Utf8);
-        } catch (err) {
-            decryptedPlain = null;
-        }
-    } catch (e) {
-        decryptedPlain = null;
-    }
-
-    const isDecryptOk = decryptedPlain
-        && decryptedPlain.length > 0
-        && !decryptedPlain.includes('\uFFFD')
-        && /[А-Яа-яA-Za-z0-9]/.test(decryptedPlain);
-
-    if (isDecryptOk) {
-        rawText = decryptedPlain;
-        if (file.graded) {
-            rawText += `\n\n=== ОЦЕНКА АДМИНИСТРАТОРА ===\n`;
-            rawText += `Оценка: ${file.score}%\n`;
-            rawText += `Правильных ответов: ${file.correctAnswers}/${file.totalAnswers}\n`;
-            rawText += `Статус: ${file.passed ? 'ПРОЙДЕН' : 'НЕ ПРОЙДЕН'}\n`;
-        }
-    } else {
-        try {
-            rawText = decodeURIComponent(escape(atob(file.content)));
-        } catch (e) {
-            rawText = atob(file.content);
-        }
-    }
-
-    const sections = parseReportSections(rawText);
-
-    const cardsHTML = sections.map(section => `
-        <div class="file-viewer-card">
-            <div class="file-viewer-card__head">
-                <div class="file-viewer-card__num">${section.num}</div>
-                <div class="file-viewer-card__title">${escapeHtml(section.title)}</div>
-                ${section.count !== null
-                    ? `<div class="file-viewer-card__badge">${section.count}</div>`
-                    : ''}
-            </div>
-            <div class="file-viewer-card__body">
-                <pre class="file-viewer-card__pre">${escapeHtml(section.content || 'Отчётов нет.')}</pre>
-            </div>
-        </div>
-    `).join('');
-
-    const modal = document.createElement('div');
-    modal.className = 'modal-overlay file-viewer-modal';
-    modal.innerHTML = `
-        <div class="modal-content file-viewer">
-            <div class="file-viewer__head">
-                <div class="file-viewer__title">${escapeHtml(file.name)}</div>
-                <button class="btn small ghost file-viewer__close">Закрыть</button>
-            </div>
-            <div class="file-viewer__body">
-                ${cardsHTML || '<div class="file-viewer__empty">Файл пуст или не содержит данных</div>'}
-            </div>
-        </div>
-    `;
-
-    document.body.appendChild(modal);
-
-    const close = () => modal.remove();
-    modal.querySelector('.file-viewer__close').addEventListener('click', close);
-    modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
-    document.addEventListener('keydown', function escHandler(e) {
-        if (e.key === 'Escape') { close(); document.removeEventListener('keydown', escHandler); }
-    });
+    fileViewer.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function deleteFile(index) {
