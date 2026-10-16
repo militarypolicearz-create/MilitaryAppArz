@@ -137,16 +137,16 @@ function openRoleplay() {
     if (typeof renderRoleplay === 'function') renderRoleplay();
 }
 
+function openVPReports() {
+    if (typeof renderVPReports === 'function') renderVPReports();
+}
+
 function openContacts() {
     if (typeof renderContacts === 'function') renderContacts();
 }
 
 function openDiscord() {
     if (typeof renderDiscord === 'function') renderDiscord();
-}
-
-function openVPReports() {
-    if (typeof renderVPReports === 'function') renderVPReports();
 }
 
 function openExamTab() {
@@ -220,9 +220,9 @@ function initSidebar() {
             else if (tab === 'legends') openLegends();
             else if (tab === 'vp') openVPCharter();
             else if (tab === 'roleplay') openRoleplay();
+            else if (tab === 'vp-reports') openVPReports();
             else if (tab === 'contacts') openContacts();
             else if (tab === 'discord') openDiscord();
-            else if (tab === 'vp-reports') openVPReports();
         });
     });
 
@@ -243,7 +243,7 @@ function initSidebar() {
             clearSidebarActive();
             clearSidebarSubActive();
             sub.classList.add('active');
-        
+
             if (subtab === 'tsr-report') {
                 if (typeof renderTSRReport === 'function') renderTSRReport();
             } else if (subtab === 'tsr-parole') {
@@ -252,6 +252,8 @@ function initSidebar() {
                 if (typeof renderTSRCharter === 'function') renderTSRCharter();
             } else if (subtab === 'tsr-antibyat') {
                 if (typeof renderAntiByat === 'function') renderAntiByat();
+            } else if (subtab === 'tsr-reports-59') {
+                if (typeof renderTSRReports59 === 'function') renderTSRReports59();
             }
         });
     });
@@ -299,6 +301,7 @@ window.openMembers = openMembers;
 window.openLegends = openLegends;
 window.openVPCharter = openVPCharter;
 window.openRoleplay = openRoleplay;
+window.openVPReports = openVPReports;
 window.openContacts = openContacts;
 window.openDiscord = openDiscord;
 window.openExamTab = openExamTab;
