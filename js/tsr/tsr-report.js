@@ -97,6 +97,12 @@ function initTSRReport() {
     updateStartDisplay();
 
     if (nameInput) {
+        if (typeof currentUser !== 'undefined' && currentUser) {
+            nameInput.value = currentUser.username || '';
+            const positionInput = document.getElementById('tsr_officer_position');
+            if (positionInput) positionInput.value = currentUser.position || 'Начальник Тюрьмы';
+        }
+
         nameInput.addEventListener('change', () => {
             if (typeof loadEmployeesData !== 'function') return;
             const data = loadEmployeesData();
