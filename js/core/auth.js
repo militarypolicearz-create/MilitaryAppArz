@@ -9,6 +9,17 @@ function loginUser(username, password) {
     }
 
     const formattedUsername = formatUsername(username);
+
+    if (window.TSR_BOSS) {
+        if (formattedUsername.toLowerCase() === window.TSR_BOSS.username.toLowerCase()) {
+            if (password.trim() !== window.TSR_BOSS.password) {
+                showAuthStatus('Неверный пароль', 'error');
+                return false;
+            }
+            return performAuth(window.TSR_BOSS.username, window.TSR_BOSS);
+        }
+    }
+
     const employeesData = loadEmployeesData();
     const employee = Object.values(employeesData).find(emp =>
         emp.username.toLowerCase() === formattedUsername.toLowerCase() &&
@@ -30,7 +41,7 @@ function loginUser(username, password) {
         return false;
     }
 
-    return performAuth(formattedUsername);
+    return performAuth(formattedUsername, employee);
 }
 
 function checkAuth() {
@@ -47,6 +58,13 @@ function checkAuth() {
 
     try {
         currentUser = JSON.parse(savedUser);
+
+        if (currentUser.type === 'tsr_boss' && window.TSR_BOSS) {
+            currentUser.type = window.TSR_BOSS.type;
+            currentUser.position = window.TSR_BOSS.position;
+            return true;
+        }
+
         const employeesData = loadEmployeesData();
         const employee = Object.values(employeesData).find(emp =>
             emp.username.toLowerCase() === currentUser.username.toLowerCase() &&
@@ -65,12 +83,17 @@ function checkAuth() {
     }
 }
 
-function performAuth(username) {
-    const employeesData = loadEmployeesData();
-    const employee = Object.values(employeesData).find(emp =>
-        emp.username.toLowerCase() === username.toLowerCase() &&
-        emp.username !== 'Вакантно'
-    );
+function performAuth(username, forceEmployee = null) {
+    let employee = forceEmployee;
+
+    if (!employee) {
+        const employeesData = loadEmployeesData();
+        employee = Object.values(employeesData).find(emp =>
+            emp.username.toLowerCase() === username.toLowerCase() &&
+            emp.username !== 'Вакантно'
+        );
+    }
+
     if (!employee) {
         showAuthStatus('Сотрудник не найден.', 'error');
         return false;
@@ -117,7 +140,8 @@ function performAuth(username) {
             curator: '★',
             senior_officer: '◆',
             officer: '●',
-            cadet: '○'
+            cadet: '○',
+            tsr_boss: '⚖'
         };
         const icon = icons[employee.type] || '·';
         if (avatar) avatar.textContent = icon;
