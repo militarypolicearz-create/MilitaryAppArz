@@ -1,6 +1,6 @@
 const TEST_COUNT = 15;
 const INACTIVITY_TIMEOUT = 20000;
-const AUTH_EXPIRY_DAYS = 7;
+const AUTH_EXPIRY_DAYS = 14;
 
 const ADMIN_PASSWORD = "TryX9kTo77PassLm2TheQ8Exam2025RZx3kP9But5IfY6You2LoseN4t5202BvC7BanW1ForTheWholeLife2520";
 
@@ -39,7 +39,7 @@ const FIXED_EMPLOYEE_STRUCTURE = [
     { id: 'officer_6',        position: 'Офицер ВП',               type: 'officer',       username: 'Alexey_night' },
     { id: 'officer_5',        position: 'Офицер ВП',               type: 'officer',       username: 'Haruki_Yoshida' },
     { id: 'officer_7',        position: 'Офицер ВП',               type: 'officer',       username: 'Leon_Abobbi' },
-    { id: 'officer_3',        position: 'Офицер ВП',               type: 'officer',       username: 'Angel_McKellen' },
+    { id: 'officer_3',        position: 'Офицер ВП',               type: 'officer',       username: 'Backwood_Oxidize' },
     { id: 'officer_1',        position: 'Офицер ВП',               type: 'officer',       username: 'Вакантно' },
     { id: 'officer_8',        position: 'Офицер ВП',               type: 'officer',       username: 'Вакантно' },
     { id: 'officer_4',        position: 'Офицер ВП',               type: 'officer',       username: 'Вакантно' },
@@ -52,6 +52,13 @@ const FIXED_EMPLOYEE_STRUCTURE = [
     { id: 'cadet_5',          position: 'Курсант ВП',              type: 'cadet',        username: 'Вакантно' }
 ];
 
+window.TSR_BOSS = {
+    id: 'tsr_boss',
+    position: 'Начальник ТСР',
+    type: 'tsr_boss',
+    username: 'Jan_Abobbi',
+    password: 'Rt7kLm2Nq9Wv4Xz8Bp3Sc6Vf1Hg5Jd0K'
+};
 const GREETINGS = {
     cadet: [
         "Добро пожаловать, курсант. Ты только начинаешь свой путь в Военной Полиции. Впереди много испытаний, но мы верим в тебя.",
@@ -80,6 +87,15 @@ const GREETINGS = {
         "Ваше слово — закон, Куратор. Все модули активированы и ждут ваших указаний. Повелевайте.",
         "Ваше Превосходительство, ваша мудрость ведёт нас. Без вас система — ничто. Мы гордимся вами.",
         "Куратор, ваше величие — основа Военной Полиции. Приветствую вас. Система преклоняется перед вами."
+    ],
+    tsr_boss: [
+        "Приветствую, Начальник. Тюрьма Строгого Режима под вашим полным контролем. Все блоки заблокированы, система готова к работе.",
+        "С возвращением, Начальник. Заключённые в карцерах, охрана на постах. Ждём ваших распоряжений.",
+        "Система ТСР активирована. Начальник, ваше слово — закон для каждого блока и карцера.",
+        "Рады видеть вас, Начальник. Порядок в Тюрьме держится исключительно на вашей дисциплине и жёсткости.",
+        "Приветствую, Начальник ТСР. Все посты укомплектованы, отчёты готовы. Система ждёт ваших приказов.",
+        "Начальник на связи. Контроль над Тюрьмой Строгого Режима восстановлен. Все системы работают штатно.",
+        "Добро пожаловать, Начальник. Тюрьма Строгого Режима находится под вашим присмотром. Ни один заключённый не сбежит."
     ]
 };
 
