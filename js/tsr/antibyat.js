@@ -20,7 +20,8 @@ function renderAntiByat() {
                 <div class="antibyat-row">
                     <div class="antibyat-field">
                         <label>Ваше имя и фамилия</label>
-                        <input type="text" id="ab_officer_name" placeholder="Имя_Фамилия">
+                        <input type="text" id="ab_officer_name" placeholder="Имя_Фамилия" list="abEmployeesList">
+                        <datalist id="abEmployeesList"></datalist>
                     </div>
                     <div class="antibyat-field">
                         <label>Ник того, кого хотите повысить</label>
@@ -85,7 +86,7 @@ function renderAntiByat() {
 
             <div class="antibyat-result" id="abResult" style="display: none;">
                 <div class="antibyat-result__header">
-                    <h3>Готовый BBCode</h3>
+                    <h3>Готовый текст</h3>
                     <div class="antibyat-result__buttons">
                         <button class="btn small" id="abCopyBtn">Скопировать</button>
                         <button class="btn small ghost" id="abDownloadBtn">Скачать .txt</button>
@@ -131,6 +132,11 @@ function initAntiByatForm() {
         currentInput.addEventListener('change', updateNext);
     }
 
+    const officerInput = document.getElementById('ab_officer_name');
+    if (officerInput && typeof currentUser !== 'undefined' && currentUser) {
+        officerInput.value = currentUser.username || '';
+    }
+
     const generateBtn = document.getElementById('abGenerateBtn');
     if (generateBtn) generateBtn.addEventListener('click', generateAntiByat);
 
@@ -163,21 +169,21 @@ function generateAntiByat() {
         formattedDate = `${parts[2]}.${parts[1]}.${parts[0]}`;
     }
 
-    const code =
-`[I][B][FONT=courier new][COLOR=rgb(209, 213, 216)][SIZE=5]1. Ваше имя и фамилия: [/SIZE][/COLOR][COLOR=rgb(184, 49, 47)][SIZE=5]${officerName}[/SIZE][/COLOR][/FONT][/B][/I]
-[FONT=courier new][COLOR=rgb(209, 213, 216)][SIZE=5][I][B]2. Ник того, кого хотите повысить: [/B][/I][/SIZE][/COLOR][COLOR=rgb(184, 49, 47)][SIZE=5][I][B]${targetName}[/B][/I][/SIZE][/COLOR]
-[COLOR=rgb(209, 213, 216)][SIZE=5][I][B]3. Фракция: ${faction}
-4. Чем он отличился от всех и почему именно его хотите повысить [ссылку на отчёт/проделанная работа]: [URL='${achievements}']Тык[/URL]
+    const text =
+`1. Ваше имя и фамилия: ${officerName}
+2. Ник того, кого хотите повысить: ${targetName}
+3. Фракция: ${faction}
+4. Чем он отличился и почему именно его хотите повысить [ссылку на отчёт/проделанная работа]: ${achievements}
 5. Выписка из базы данных сотрудников: (/members) ${members}
-6. Копия мед.карты: (/showmc)${medcard}
+6. Копия мед.карты: (/showmc) ${medcard}
 7. На каком он звании сейчас: ${rankCurrent}
 8. На какое звание будет повышен: ${rankNext}
 9. Когда его повышали в последний раз ( /jobprogress ): ${jobprogress}
-10. Скриншот нахождения в Discord: ${discord}[/B][/I][/SIZE][/COLOR][/FONT]
-[B][I][FONT=courier new][COLOR=rgb(209, 213, 216)][SIZE=5]11. Дата: ${formattedDate}[/SIZE][/COLOR][/FONT][/I][/B]`;
+10. Скриншот нахождения в Discord: ${discord}
+11. Дата: ${formattedDate}`;
 
     document.getElementById('abResult').style.display = 'block';
-    document.getElementById('abCode').textContent = code;
+    document.getElementById('abCode').textContent = text;
     showMessage('Анти-Блат сгенерирован', 'success');
 }
 
