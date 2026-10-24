@@ -18,6 +18,16 @@ function renderTSRParole() {
 
             <div class="tsr-report-form">
                 <div class="tsr-report-row">
+                    <div class="tsr-report-field" style="grid-column: 1 / -1;">
+                        <label>Вставьте лог из чата (автоматически заполнит поля ниже)</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="parole_log_input" placeholder="[Тюрьма] Nick_Officer[123] выпустил заключенного Nick_Prisoner[456] на свободу! (за $ 80.000.000)" style="flex: 1;">
+                            <button class="btn small" id="paroleParseLogBtn">Распарсить</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tsr-report-row">
                     <div class="tsr-report-field">
                         <label>Ваше имя и фамилия</label>
                         <input type="text" id="parole_officer_name" placeholder="Например: Jan_Abobbi" list="paroleOfficersList">
@@ -90,12 +100,60 @@ function initTSRParole() {
         if (list) list.innerHTML = names.map(n => `<option value="${n}">`).join('');
     }
 
+    const officerInput = document.getElementById('parole_officer_name');
+    if (officerInput && typeof currentUser !== 'undefined' && currentUser) {
+        officerInput.value = currentUser.username || '';
+    }
+
     updateParoleDateTime();
 
+    document.getElementById('paroleParseLogBtn')?.addEventListener('click', parseParoleLog);
     document.getElementById('paroleGenerateBtn')?.addEventListener('click', generateTSRParole);
     document.getElementById('paroleCopyBtn')?.addEventListener('click', copyTSRParole);
     document.getElementById('paroleDownloadBtn')?.addEventListener('click', downloadTSRParole);
     document.getElementById('paroleClearBtn')?.addEventListener('click', () => renderTSRParole());
+}
+
+function parseParoleLog() {
+    const logInput = document.getElementById('parole_log_input');
+    if (!logInput) return;
+
+    const text = logInput.value.trim();
+    if (!text) {
+        showError('Вставьте строку из чата');
+        return;
+    }
+
+    // Ищем первое слово с подчеркиванием (ник офицера)
+    const nameRegex = /([a-zA-Z]+_[a-zA-Z]+)/g;
+    const names = [...text.matchAll(nameRegex)].map(m => m[1]);
+
+    if (names.length < 2) {
+        showError('Не удалось найти два ника в строке. Убедитесь, что там есть Ник_Фамилия.');
+        return;
+    }
+
+    const officerName = names[0];
+    const prisonerName = names[1];
+
+    // Ищем сумму (все цифры и точки после знака $)
+    const amountRegex = /\$\s*([\d.]+)/;
+    const amountMatch = text.match(amountRegex);
+    
+    let amount = "80.000.000"; // Если не найдем, оставим дефолт
+    if (amountMatch) {
+        amount = amountMatch[1];
+    }
+
+    const officerInput = document.getElementById('parole_officer_name');
+    const prisonerInput = document.getElementById('parole_prisoner_name');
+    const amountInput = document.getElementById('parole_amount');
+
+    if (officerInput) officerInput.value = officerName;
+    if (prisonerInput) prisonerInput.value = prisonerName;
+    if (amountInput) amountInput.value = amount;
+
+    showMessage('Поля заполнены из лога', 'success');
 }
 
 function updateParoleDateTime() {
@@ -162,3 +220,4 @@ window.renderTSRParole = renderTSRParole;
 window.generateTSRParole = generateTSRParole;
 window.copyTSRParole = copyTSRParole;
 window.downloadTSRParole = downloadTSRParole;
+window.parseParoleLog = parseParoleLog;
