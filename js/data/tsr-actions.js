@@ -26,11 +26,9 @@ const TSR_ACTIONS_5_9 = [
     { group: 'ТСР', text: 'Принять успешную сдачу правила рации департамента у мл.состава', points: 5, ranks: '7-9', limit: 'Максимум в день: 5 раз', dailyLimit: 5 },
     { group: 'ТСР', text: 'Пройти 1 круг пешего патруля на посту', points: 5, ranks: '5-9', limit: 'Максимум 5 раз в день', dailyLimit: 5 },
     { group: 'ТСР', text: '10 минут наземного патруля', points: 10, ranks: '5-9', limit: 'Максимум 30 минут в день', dailyLimit: 3 },
-    { group: 'ТСР', text: '1 патруль на дроне (ЛСа)', points: 15, ranks: '5-9', limit: 'Максимум 2 раза в день', dailyLimit: 2 },
-    { group: 'ТСР', text: '1 патруль на дроне (СФа / ТСР)', points: 30, ranks: '5-9', limit: 'Максимум 2 раза в день', dailyLimit: 2 },
+    { group: 'ТСР', text: '1 патруль на дроне', points: 30, ranks: '5-9', limit: 'Максимум 2 раза в день', dailyLimit: 2 },
     { group: 'ТСР', text: 'Проведение мероприятие с призом', points: 5, ranks: '5-9', limit: 'Максимум 3 раза в день', dailyLimit: 3 },
     { group: 'ТСР', text: 'Провести экскурсию для младшего состава', points: 10, ranks: '5-9', limit: 'Максимум 3 раза в день', dailyLimit: 3 },
-    { group: 'ТСР', text: '1 Водный патруль ЛСа/СФа', points: 20, ranks: '5-9', limit: 'Максимум 3 патруля в день', dailyLimit: 3 },
     { group: 'ТСР', text: 'Сопровождение на хаммере (за 1 заезд)', points: 5, ranks: '5-9', limit: 'Максимум 5 раз в день', dailyLimit: 5 },
     { group: 'ТСР', text: 'Сопровождение на вертолете "Маверик" (за 1 заезд)', points: 5, ranks: '5-9', limit: 'Максимум 3 раз в день', dailyLimit: 3 },
     { group: 'ТСР', text: 'Изготовление 10 мешков на заводе', points: 4, ranks: '5-9', limit: 'Максимум 100 мешков в день', dailyLimit: 10 },
@@ -48,14 +46,17 @@ const TSR_ACTIONS_5_9 = [
     { group: 'ТСР', text: 'Участие в ГРП/ГМП от Министра Обороны', points: 15, ranks: '5-9', limit: 'Максимум 3 раза в день', dailyLimit: 3 },
     { group: 'ТСР', text: 'Сдать проверку на реагирование от Министра Обороны', points: 5, ranks: '5-9', limit: 'Максимум 3 раза в день', dailyLimit: 3 },
     { group: 'ТСР', text: 'Участие в поставках боеприпасов с Министерством Здравоохранения (за 1 заезд)', points: 5, ranks: '5-9', limit: 'Максимум 3 раза в день', dailyLimit: 3 },
-    { group: 'ТСР', text: 'РП с заключенными (ТСР)', points: 9, ranks: 'ТСР', limit: 'Максимум 3 раза в день', dailyLimit: 3 },
-    { group: 'ТСР', text: 'Повысить срок заключенным за нарушения правил (ТСР)', points: 5, ranks: 'ТСР', limit: 'Максимум 5 раз в день', dailyLimit: 5 },
-    { group: 'ТСР', text: 'Посадить заключенного в карцер за нарушение правил (ТСР)', points: 5, ranks: 'ТСР', limit: 'Максимум 5 раз в день', dailyLimit: 5 }
+    { group: 'ТСР', text: 'РП с заключенными', points: 9, ranks: 'ТСР', limit: 'Максимум 3 раза в день', dailyLimit: 3 },
+    { group: 'ТСР', text: 'Повысить срок заключенным за нарушения правил', points: 5, ranks: 'ТСР', limit: 'Максимум 5 раз в день', dailyLimit: 5 },
+    { group: 'ТСР', text: 'Посадить заключенного в карцер за нарушение правил', points: 5, ranks: 'ТСР', limit: 'Максимум 5 раз в день', dailyLimit: 5 }
 ];
 
 TSR_ACTIONS_5_9.forEach(a => {
     if (a.dailyLimit && a.dailyLimit < 900) {
         a.dailyLimitPoints = a.dailyLimit * a.points;
+        a.maxPointsPerDay = a.dailyLimit * a.points; 
+    } else {
+        a.maxPointsPerDay = 9999;
     }
 });
 
