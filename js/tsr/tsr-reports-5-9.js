@@ -159,9 +159,15 @@ function addTSR59Action(container) {
                 <span class="tsr59-action-limit"></span>
                 <span class="tsr59-limit-badge"></span>
             </div>
-            <div class="tsr59-action-qty">
-                <label>Кол-во:</label>
-                <input type="number" class="tsr59-action-qty-input" min="1" value="1">
+            <div class="tsr59-action-controls">
+                <div class="tsr59-action-qty">
+                    <label>Кол-во:</label>
+                    <input type="number" class="tsr59-action-qty-input" min="1" value="1">
+                </div>
+                <div class="tsr59-action-link">
+                    <label>Ссылка:</label>
+                    <input type="text" class="tsr59-action-link-input" placeholder="https://imgur.com/...">
+                </div>
             </div>
         </div>
         <button class="tsr59-action-remove" type="button" title="Удалить">×</button>
@@ -174,11 +180,20 @@ function addTSR59Action(container) {
     const pointsEl = row.querySelector('.tsr59-action-points');
     const limitEl = row.querySelector('.tsr59-action-limit');
     const qtyInput = row.querySelector('.tsr59-action-qty-input');
+    const linkInput = row.querySelector('.tsr59-action-link-input');
 
     let selectedAction = null;
 
     const updatePoints = () => {
-        const qty = parseInt(qtyInput.value) || 1;
+        let qty = parseInt(qtyInput.value) || 1;
+        if (selectedAction && selectedAction.maxPointsPerDay) {
+            const maxQty = Math.floor(selectedAction.maxPointsPerDay / selectedAction.points);
+            if (qty > maxQty) {
+                qty = maxQty;
+                qtyInput.value = qty;
+                showError(`Максимум ${maxQty} шт. в день (${selectedAction.maxPointsPerDay} баллов)`);
+            }
+        }
         const total = selectedAction ? selectedAction.points * qty : 0;
         pointsEl.textContent = `Баллы: ${total}`;
         recalcTSR59Total();
@@ -263,13 +278,15 @@ function getDayTotals(day) {
     day.querySelectorAll('.tsr59-action-row').forEach(row => {
         const text = row.querySelector('.tsr59-action-input').value.trim();
         const qty = parseInt(row.querySelector('.tsr59-action-qty-input').value) || 1;
+        const link = row.querySelector('.tsr59-action-link-input').value.trim();
         if (!text) return;
         const action = getActionByText(text);
         if (!action) return;
         const key = action.text;
-        if (!totals[key]) totals[key] = { action, qty: 0, points: 0 };
+        if (!totals[key]) totals[key] = { action, qty: 0, points: 0, links: [] };
         totals[key].qty += qty;
         totals[key].points += action.points * qty;
+        if (link) totals[key].links.push(link);
     });
     return totals;
 }
@@ -394,14 +411,21 @@ function generateTSR59Report() {
         const actionLines = [];
 
         Object.values(totals).forEach(t => {
-            const { action, qty, points } = t;
+            const { action, qty, points, links } = t;
             dayTotal += points;
 
             if (action.dailyLimit && action.dailyLimit < 999 && qty > action.dailyLimit) {
                 warnings.push(`«${action.text}»: указано ${qty}, максимум ${action.dailyLimit} в день`);
             }
 
-            actionLines.push(`• ${escapeBBCode(action.text)}${qty > 1 ? ` (×${qty})` : ''} [${points} баллов]`);
+            let linkStr = '';
+            if (links.length > 0) {
+                linkStr = links.map(l => `[URL='${l}']Тык[/URL]`).join(', ');
+            } else {
+                linkStr = 'Тык';
+            }
+
+            actionLines.push(`• ${escapeBBCode(action.text)}[[U]${points}[/U]]: ${linkStr}`);
         });
 
         if (actionLines.length === 0) return;
@@ -409,9 +433,10 @@ function generateTSR59Report() {
         grandTotal += dayTotal;
 
         daysBlocks.push(
-`[B][COLOR=rgb(250, 197, 28)]Дата: ${formattedDate}[/COLOR][/B]
-${actionLines.join('\n')}
-[B]Баллов за день: [COLOR=rgb(184, 49, 47)]${dayTotal}[/COLOR][/B]`
+`[COLOR=rgb(250, 197, 28)][SIZE=5][I][B][I][B]Дата: ${formattedDate}[/B][/I][/B][/I][/SIZE][/COLOR]
+[COLOR=rgb(209, 213, 216)][SIZE=5][I][B][I]${actionLines.join('\n')}
+[B]Баллов за день: [U]${dayTotal}[/U][/B]
+[/I][/B][/I][/SIZE][/COLOR]`
         );
     });
 
@@ -427,22 +452,26 @@ ${actionLines.join('\n')}
         if (!proceed) return;
     }
 
+    const line = '[IMG size="928x20"]https://lh6.googleusercontent.com/bfkuOzG0e4kH5IKPsuBGLbGP9LBWXsD886Dvwkf-RquzpshIle3LHwid8n6mKaEFBFiNxyWCgjisr1eB-KCUC91WFQa910RvY0vMmV_i4_U7O7kaL3sYaJuIbkLN_0V4aCjvZCj1[/IMG]';
+
     const code =
-`[B]Прошу Вас рассмотреть моё заявление на повышение в должности, порядком перечнем ограничений и запретов, распространяющихся на сотрудников, информацией перед заполнением, ознакомлен и согласен. Ниже своих слов прикрепляю все необходимые документы и информацию:
-[I]Ваше имя и фамилия(На англ.): [COLOR=rgb(184, 49, 47)]${escapeBBCode(name)}[/COLOR]
-Ксерокопия паспорта [/showpass]:[B][I] [B][I][URL='${passLink}']Пакет документов[/URL][/I][/B][/I][/B]
+`[CENTER][I]${line}[/I]
+[B][I][FONT=courier new][COLOR=rgb(209, 213, 216)][SIZE=5]Прошу Вас рассмотреть моё заявление на повышение в должности, порядком перечнем ограничений и запретов, распространяющихся на сотрудников, информацией перед заполнением, ознакомлен и согласен. Ниже своих слов прикрепляю все необходимые документы и информацию:
+[I]${line}[/I][/SIZE][/COLOR][/FONT][/I][/B]
+[FONT=courier new][COLOR=rgb(209, 213, 216)][SIZE=5][I][B][I]Ваше имя и фамилия(На англ.): [/I][/B][/I][/SIZE][/COLOR][COLOR=rgb(184, 49, 47)][SIZE=5][I][B][I]${escapeBBCode(name)}[/I][/B][/I][/SIZE][/COLOR]
+[COLOR=rgb(209, 213, 216)][SIZE=5][I][B][I]Ксерокопия паспорта [/showpass]:[B][I] [B][I][URL='${passLink}']Пакет документов[/URL][/I][/B][/I][/B]
 Ксерокопия военного билета[B][I][/showpass][/I][/B]:[B][I] Выше[/I][/B]
 Выписка из мэрии [/stats]:[B][I] Выше[/I][/B]
 Ксерокопия мед. карты [/showmc]:[B][I] Выше[/I][/B]
 Выписка из базы данных сотрудников [/members]:[B][I] Выше[/I][/B]
 Ксерокопия трудового контракта [/jobprogress]:[B][I] Выше[/I][/B]
 Доказательства нахождения в специальной рации "Discord": Выше
-Доказательства проделанной мною работы [по пунктам]:
-
-${daysBlocks.join('\n\n')}
-
-[B]Всего баллов: [COLOR=rgb(184, 49, 47)]${grandTotal}[/COLOR][/B]
-Подпись[/I]: ${escapeBBCode(signature)}[/B]`;
+Доказательства проделанной мною работы [по пунктам]:[/I][/B]
+[I]${line}[/I][/SIZE][/COLOR]
+${daysBlocks.join('\n')}
+[COLOR=rgb(209, 213, 216)][SIZE=5][I][B][I][B]Всего баллов: ${grandTotal}[/B][/I][/B][/I][/SIZE][/COLOR][/FONT]
+[B][I][FONT=courier new][COLOR=rgb(209, 213, 216)][SIZE=5]Подпись: [/SIZE][/COLOR][COLOR=rgb(184, 49, 47)][FONT=courier new][SIZE=5]${escapeBBCode(signature)}[/SIZE][/FONT][/COLOR]
+[FONT=courier new][COLOR=rgb(209, 213, 216)][SIZE=5][I]${line}[/I][/SIZE][/COLOR][/FONT][/I][/B][/CENTER]`;
 
     document.getElementById('tsr59Result').style.display = 'block';
     document.getElementById('tsr59Code').textContent = code;
