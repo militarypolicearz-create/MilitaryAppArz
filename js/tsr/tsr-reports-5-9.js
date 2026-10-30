@@ -76,6 +76,9 @@ function initTSRReports59() {
         nameInput.value = currentUser.username || '';
     }
 
+    const container = document.getElementById('tsr59DaysContainer');
+    if (container) container.innerHTML = '';
+
     addTSR59Day();
 
     document.getElementById('tsr59AddDay')?.addEventListener('click', addTSR59Day);
@@ -85,11 +88,36 @@ function initTSRReports59() {
     document.getElementById('tsr59Download')?.addEventListener('click', downloadTSR59Report);
 }
 
+function updateAddDayButtonState() {
+    const container = document.getElementById('tsr59DaysContainer');
+    const addBtn = document.getElementById('tsr59AddDay');
+    if (!container || !addBtn) return;
+
+    const count = container.querySelectorAll('.tsr59-day').length;
+    if (count >= 5) {
+        addBtn.disabled = true;
+        addBtn.style.opacity = '0.5';
+        addBtn.style.cursor = 'not-allowed';
+        addBtn.textContent = 'Максимум 5 дней';
+    } else {
+        addBtn.disabled = false;
+        addBtn.style.opacity = '1';
+        addBtn.style.cursor = 'pointer';
+        addBtn.textContent = '+ Добавить дату';
+    }
+}
+
 function addTSR59Day() {
     const container = document.getElementById('tsr59DaysContainer');
     if (!container) return;
 
-    const dayIndex = container.children.length + 1;
+    const existingDays = container.querySelectorAll('.tsr59-day');
+    if (existingDays.length >= 5) {
+        showError('Максимум 5 дней (срок годности скриншотов — 5 дней)');
+        return;
+    }
+
+    const dayIndex = existingDays.length + 1;
     const today = new Date().toISOString().slice(0, 10);
 
     const day = document.createElement('div');
@@ -115,6 +143,8 @@ function addTSR59Day() {
         day.remove();
         renumberTSR59Days();
         recalcTSR59Total();
+        recalcDatesFromBottom();
+        updateAddDayButtonState();
     });
 
     day.querySelector('.tsr59-day__add-action').addEventListener('click', () => {
@@ -123,11 +153,33 @@ function addTSR59Day() {
     });
 
     day.querySelector('.tsr59-day__date').addEventListener('change', () => {
+        recalcDatesFromBottom();
         recalcTSR59Total();
     });
 
     addTSR59Action(day.querySelector('.tsr59-day__actions'));
     recalcTSR59Total();
+    recalcDatesFromBottom();
+    updateAddDayButtonState();
+}
+
+function recalcDatesFromBottom() {
+    const days = Array.from(document.querySelectorAll('#tsr59DaysContainer .tsr59-day'));
+    if (days.length === 0) return;
+
+    const lastDay = days[days.length - 1];
+    const lastDateInput = lastDay.querySelector('.tsr59-day__date');
+    if (!lastDateInput || !lastDateInput.value) return;
+
+    let currentDate = new Date(lastDateInput.value);
+
+    for (let i = days.length - 2; i >= 0; i--) {
+        currentDate.setDate(currentDate.getDate() - 1);
+        const dateInput = days[i].querySelector('.tsr59-day__date');
+        if (dateInput) {
+            dateInput.value = currentDate.toISOString().slice(0, 10);
+        }
+    }
 }
 
 function renumberTSR59Days() {
@@ -452,12 +504,13 @@ function generateTSR59Report() {
         if (!proceed) return;
     }
 
-    const line = '[IMG size="928x20"]https://lh6.googleusercontent.com/bfkuOzG0e4kH5IKPsuBGLbGP9LBWXsD886Dvwkf-RquzpshIle3LHwid8n6mKaEFBFiNxyWCgjisr1eB-KCUC91WFQa910RvY0vMmV_i4_U7O7kaL3sYaJuIbkLN_0V4aCjvZCj1[/IMG]';
+    const lineImg = `[IMG size="928x20"]https://lh6.googleusercontent.com/bfkuOzG0e4kH5IKPsuBGLbGP9LBWXsD886Dvwkf-RquzpshIle3LHwid8n6mKaEFBFiNxyWCgjisr1eB-KCUC91WFQa910RvY0vMmV_i4_U7O7kaL3sYaJuIbkLN_0V4aCjvZCj1[/IMG]`;
+    const extraImg = `[IMG size="2039x771"]https://media.discordapp.net/attachments/1410665560739676172/1565758686754906224/MakeMSPgreatAgain.png?ex=6ae611e9&is=6ae4c069&hm=0b4ef52350e37472d364c3ef07008cb77adac355847a058d4d579f1ba992a970&=&format=webp&quality=lossless[/IMG]`;
 
     const code =
-`[CENTER][I]${line}[/I]
+`[CENTER][I]${lineImg}[/I]
 [B][I][FONT=courier new][COLOR=rgb(209, 213, 216)][SIZE=5]Прошу Вас рассмотреть моё заявление на повышение в должности, порядком перечнем ограничений и запретов, распространяющихся на сотрудников, информацией перед заполнением, ознакомлен и согласен. Ниже своих слов прикрепляю все необходимые документы и информацию:
-[I]${line}[/I][/SIZE][/COLOR][/FONT][/I][/B]
+[I]${lineImg}[/I][/SIZE][/COLOR][/FONT][/I][/B]
 [FONT=courier new][COLOR=rgb(209, 213, 216)][SIZE=5][I][B][I]Ваше имя и фамилия(На англ.): [/I][/B][/I][/SIZE][/COLOR][COLOR=rgb(184, 49, 47)][SIZE=5][I][B][I]${escapeBBCode(name)}[/I][/B][/I][/SIZE][/COLOR]
 [COLOR=rgb(209, 213, 216)][SIZE=5][I][B][I]Ксерокопия паспорта [/showpass]:[B][I] [B][I][URL='${passLink}']Пакет документов[/URL][/I][/B][/I][/B]
 Ксерокопия военного билета[B][I][/showpass][/I][/B]:[B][I] Выше[/I][/B]
@@ -467,11 +520,13 @@ function generateTSR59Report() {
 Ксерокопия трудового контракта [/jobprogress]:[B][I] Выше[/I][/B]
 Доказательства нахождения в специальной рации "Discord": Выше
 Доказательства проделанной мною работы [по пунктам]:[/I][/B]
-[I]${line}[/I][/SIZE][/COLOR]
-${daysBlocks.join('\n')}
-[COLOR=rgb(209, 213, 216)][SIZE=5][I][B][I][B]Всего баллов: ${grandTotal}[/B][/I][/B][/I][/SIZE][/COLOR][/FONT]
-[B][I][FONT=courier new][COLOR=rgb(209, 213, 216)][SIZE=5]Подпись: [/SIZE][/COLOR][COLOR=rgb(184, 49, 47)][FONT=courier new][SIZE=5]${escapeBBCode(signature)}[/SIZE][/FONT][/COLOR]
-[FONT=courier new][COLOR=rgb(209, 213, 216)][SIZE=5][I]${line}[/I][/SIZE][/COLOR][/FONT][/I][/B][/CENTER]`;
+[I]${lineImg}[/I][/I][/SIZE][/COLOR]
+${daysBlocks.join('\n\n')}
+
+[COLOR=rgb(209, 213, 216)][SIZE=5][I][B][I][B]Всего баллов: ${grandTotal}[/B][/I][/B][/I][/SIZE][/COLOR][/I][/FONT]
+[I][B][I][FONT=courier new][COLOR=rgb(209, 213, 216)][SIZE=5]Подпись: [/SIZE][/COLOR][COLOR=rgb(184, 49, 47)][FONT=courier new][SIZE=5]${escapeBBCode(signature)}[/SIZE][/FONT][/COLOR]
+[FONT=courier new][COLOR=rgb(209, 213, 216)][SIZE=5][I]${lineImg}[/I][/SIZE][/COLOR][/FONT][/FONT][/I][B][I][B][I][B][I]${extraImg}[/I][/B][/I][/B][/I][/B]
+[I][FONT=courier new][FONT=courier new][COLOR=rgb(209, 213, 216)][SIZE=5][I][I][B][I][I]${lineImg}[/I][/I][/B][/I][/I][/SIZE][/COLOR][/FONT][/FONT][/I][/B][/I][/CENTER]`;
 
     document.getElementById('tsr59Result').style.display = 'block';
     document.getElementById('tsr59Code').textContent = code;
