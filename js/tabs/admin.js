@@ -2260,6 +2260,12 @@ function parseReportSections(text) {
 }
 
 function renderReportContent(content) {
+    if (Array.isArray(content)) {
+        content = content.join('\n');
+    } else if (typeof content !== 'string') {
+        content = String(content || '');
+    }
+
     if (!content || content.trim() === '' || content.trim() === '-') {
         return `
             <div class="fv-empty">
@@ -2341,7 +2347,8 @@ function renderReportContent(content) {
 }
 
 function openFileViewer(file) {
-    document.querySelectorAll('.file-viewer-modal').forEach(m => m.remove());
+    const fileViewer = document.getElementById("fileViewer");
+    if (!fileViewer) return;
 
     let rawText = '';
     let decryptedPlain = null;
@@ -2373,48 +2380,59 @@ function openFileViewer(file) {
         }
     }
 
-    const sections = parseReportSections(rawText);
+    // ЗАЩИТА ОТ ОШИБКИ content.trim is not a function
+    if (Array.isArray(rawText)) {
+        rawText = rawText.join('\n');
+    } else if (typeof rawText !== 'string') {
+        rawText = String(rawText || '');
+    }
 
-    const cardsHTML = sections.map(section => `
-        <div class="file-viewer-card">
-            <div class="file-viewer-card__head">
-                <div class="file-viewer-card__num">${section.num}</div>
-                <div class="file-viewer-card__title">${escapeHtml(section.title)}</div>
-                ${section.count !== null
-                    ? `<div class="file-viewer-card__badge">${section.count}</div>`
-                    : ''}
-            </div>
-            <div class="file-viewer-card__body">
-                ${renderReportContent(section.content)}
-            </div>
+    const lines = rawText
+        .split('\n')
+        .map(l => l.trimEnd())
+        .filter(l => {
+            const t = l.trim();
+            if (t === '') return true;
+            if (/^[-=_.*~]{3,}$/.test(t)) return false;
+            return true;
+        });
+
+    const linesHTML = lines.map(line => {
+        const trimmed = line.trim();
+        if (trimmed === '') {
+            return '<div class="file-viewer__spacer"></div>';
+        }
+        const idx = trimmed.indexOf(':');
+        if (idx > 2 && idx < 80) {
+            const key = trimmed.slice(0, idx).trim();
+            const value = trimmed.slice(idx + 1).trim();
+            return `
+                <div class="file-viewer__field">
+                    <div class="file-viewer__key">${escapeHtml(key)}</div>
+                    <div class="file-viewer__value">${escapeHtml(value)}</div>
+                </div>
+            `;
+        }
+        return `<div class="file-viewer__text">${escapeHtml(trimmed)}</div>`;
+    }).join('');
+
+    fileViewer.style.display = "block";
+    fileViewer.innerHTML = `
+        <div class="file-viewer__head">
+            <div class="file-viewer__title">${escapeHtml(file.name)}</div>
+            <button class="btn small ghost file-viewer__close" id="closeFileViewerBtn">✕ Закрыть</button>
         </div>
-    `).join('');
-
-    const modal = document.createElement('div');
-    modal.className = 'modal-overlay file-viewer-modal';
-    modal.innerHTML = `
-        <div class="modal-content file-viewer">
-            <div class="file-viewer__head">
-                <div class="file-viewer__title">${escapeHtml(file.name)}</div>
-                <button class="btn small ghost file-viewer__close">Закрыть</button>
-            </div>
-            <div class="file-viewer__body">
-                ${cardsHTML || '<div class="file-viewer__empty">Файл пуст или не содержит данных</div>'}
-            </div>
-            <div class="file-viewer__footer">
-                <span>Arizona RP | Военная Полиция</span>
-            </div>
+        <div class="file-viewer__body">
+            ${linesHTML}
         </div>
     `;
 
-    document.body.appendChild(modal);
-
-    const close = () => modal.remove();
-    modal.querySelector('.file-viewer__close').addEventListener('click', close);
-    modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
-    document.addEventListener('keydown', function escHandler(e) {
-        if (e.key === 'Escape') { close(); document.removeEventListener('keydown', escHandler); }
+    document.getElementById("closeFileViewerBtn").addEventListener("click", () => {
+        fileViewer.style.display = "none";
+        fileViewer.innerHTML = "";
     });
+
+    fileViewer.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function deleteFile(index) {
