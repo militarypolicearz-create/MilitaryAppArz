@@ -289,6 +289,9 @@ function generateTSRReport() {
         return;
     }
 
+    const lineImg = `[IMG alt="bfkuOzG0e4kH5IKPsuBGLbGP9LBWXsD886Dvwkf-RquzpshIle3LHwid8n6mKaEFBFiNxyWCgjisr1eB-KCUC91WFQa910RvY0vMmV_i4_U7O7kaL3sYaJuIbkLN_0V4aCjvZCj1"]https://lh6.googleusercontent.com/bfkuOzG0e4kH5IKPsuBGLbGP9LBWXsD886Dvwkf-RquzpshIle3LHwid8n6mKaEFBFiNxyWCgjisr1eB-KCUC91WFQa910RvY0vMmV_i4_U7O7kaL3sYaJuIbkLN_0V4aCjvZCj1[/IMG]`;
+    const extraImg = `[IMG size="2039x771"]https://media.discordapp.net/attachments/1410665560739676172/1565758686754906224/MakeMSPgreatAgain.png?ex=6ae611e9&is=6ae4c069&hm=0b4ef52350e37472d364c3ef07008cb77adac355847a058d4d579f1ba992a970&=&format=webp&quality=lossless[/IMG]`;
+
     let daysBlock = '';
 
     days.forEach(day => {
@@ -311,17 +314,22 @@ function generateTSRReport() {
         }
 
         daysBlock += `
-[FONT=courier new][COLOR=rgb(250, 197, 28)][SIZE=5][B][I]${formatDateDMY(iso)}[/I][/B][/SIZE][/COLOR]
+[FONT=courier new][FONT=courier new][COLOR=rgb(250, 197, 28)][SIZE=5][B][I]${formatDateDMY(iso)}[/I][/B][/SIZE][/COLOR]
 ${lines.join('\n')}
-[/FONT]`;
+[/FONT][/FONT]`;
     });
 
-    const result = `[SIZE=5][B][I][FONT=courier new][COLOR=rgb(209, 213, 216)]Я, ${position} [/COLOR][/FONT][/I][/B][/SIZE][FONT=courier new][COLOR=rgb(184, 49, 47)][SIZE=5][B][I]${name}[/I][/B][/SIZE][/COLOR][COLOR=rgb(209, 213, 216)][SIZE=5][B][I], прилагаю свою работу в период с [/I][/B][/SIZE][/COLOR][COLOR=rgb(250, 197, 28)][SIZE=5][B][I]${formatDateDMY(startISO)} - ${formatDateDMY(endISO)}[/I][/B][/SIZE][/COLOR]
-[COLOR=rgb(209, 213, 216)][SIZE=5][B][I]Доказательства:[/I][/B][/SIZE][/COLOR]
+    const result = `[CENTER][B][I][B][I]${lineImg}[/I][/B][/I][/B]
+[SIZE=5][B][I][FONT=courier new][COLOR=rgb(209, 213, 216)]Я, ${position} [/COLOR][/FONT][/I][/B][/SIZE][FONT=courier new][COLOR=rgb(184, 49, 47)][SIZE=5][B][I]${name}[/I][/B][/SIZE][/COLOR][COLOR=rgb(209, 213, 216)][SIZE=5][B][I], прилагаю свою работу в период с [/I][/B][/SIZE][/COLOR][COLOR=rgb(250, 197, 28)][SIZE=5][B][I]${formatDateDMY(startISO)} - ${formatDateDMY(endISO)}[/I][/B][/SIZE][/COLOR]
+[COLOR=rgb(209, 213, 216)][SIZE=5][B][I]Доказательства:[/I][/B][/SIZE][/COLOR][/FONT]
+[B][I][B][I]${lineImg}[/I][/B][/I][/B]
 ${daysBlock}
-
-[FONT=courier new][COLOR=rgb(209, 213, 216)][SIZE=5][B][I]Дата: [/I][/B][/SIZE][/COLOR][COLOR=rgb(250, 197, 28)][SIZE=5][B][I]${formatDateDMY(endISO)}[/I][/B][/SIZE][/COLOR][/FONT]
-[SIZE=5][I][B][FONT=courier new][COLOR=rgb(209, 213, 216)]Подпись: ${signature}[/COLOR][/FONT][/B][/I][/SIZE]`;
+[B][I][B][I]${lineImg}[/I][/B][/I][/B]
+[FONT=courier new][FONT=courier new][COLOR=rgb(209, 213, 216)][SIZE=5][B][I]Дата: [/I][/B][/SIZE][/COLOR][COLOR=rgb(250, 197, 28)][SIZE=5][B][I]${formatDateDMY(endISO)}[/I][/B][/SIZE][/COLOR][/FONT]
+[SIZE=5][I][B][FONT=courier new][COLOR=rgb(209, 213, 216)]Подпись: ${signature}[/COLOR][/FONT]
+[FONT=courier new][COLOR=rgb(209, 213, 216)][B][I][B][I]${lineImg}[/I][/B][/I][/B][/COLOR][/FONT]
+[FONT=courier new][COLOR=rgb(209, 213, 216)][B][I][B][I][B][I]${extraImg}[/I][/B][/I][/B][/I][/B][/COLOR][/FONT]
+[FONT=courier new][COLOR=rgb(209, 213, 216)][B][I][B][I][B][I][I][B][B][I][B][I]${lineImg}[/I][/B][/I][/B][/B][/I][/I][/B][/I][/B][/I][/B][/COLOR][/FONT][/B][/I][/SIZE][/FONT][/CENTER]`;
 
     document.getElementById('tsrResult').style.display = 'block';
     document.getElementById('tsrCode').textContent = result;
