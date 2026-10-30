@@ -22,8 +22,8 @@ const FIXED_ACCESS_CODES = {
     'officer_4':        'Cd5eF8gH1iJ4kL7mN0oP3qR6sT9uV2',
     'officer_10':       'Gh9iJ2kL5mN8oP1qR4sT7uV0wX3yZ6',
 
-    'cadet_1':          'Hi0jK3lM6nO9pQ2rS5tU8vW1xY4zA7',
     'cadet_3':          'Jk2lM5nO8pQ1rS4tU7vW0xY3zA6bC9',
+    'cadet_1':          'Hi0jK3lM6nO9pQ2rS5tU8vW1xY4zA7',
     'cadet_2':          'Ij1kL4mN7oP0qR3sT6uV9wX2yZ5aB8',
     'cadet_4':          'Kl3mN6oP9qR2sT5uV8wX1yZ4aB7cD0',
     'cadet_5':          'Lm4nO7pQ0rS3tU6vW9xY2zA5bC8dE1'
@@ -45,8 +45,8 @@ const FIXED_EMPLOYEE_STRUCTURE = [
     { id: 'officer_4',        position: 'Офицер ВП',               type: 'officer',       username: 'Вакантно' },
     { id: 'officer_10',       position: 'Офицер ВП',               type: 'officer',       username: 'Вакантно' },
 
-    { id: 'cadet_1',          position: 'Курсант ВП',              type: 'cadet',        username: 'Backwood_Oxidize' },
-    { id: 'cadet_3',          position: 'Курсант ВП',              type: 'cadet',        username: 'Вакантно' },
+    { id: 'cadet_3',          position: 'Курсант ВП',              type: 'cadet',        username: 'Backwood_Oxidize' },
+    { id: 'cadet_1',          position: 'Курсант ВП',              type: 'cadet',        username: 'Вакантно' },
     { id: 'cadet_2',          position: 'Курсант ВП',              type: 'cadet',        username: 'Вакантно' },
     { id: 'cadet_4',          position: 'Курсант ВП',              type: 'cadet',        username: 'Вакантно' },
     { id: 'cadet_5',          position: 'Курсант ВП',              type: 'cadet',        username: 'Вакантно' }
