@@ -169,18 +169,27 @@ function generateAntiByat() {
         formattedDate = `${parts[2]}.${parts[1]}.${parts[0]}`;
     }
 
+    const lineImg = `[IMG alt="bfkuOzG0e4kH5IKPsuBGLbGP9LBWXsD886Dvwkf-RquzpshIle3LHwid8n6mKaEFBFiNxyWCgjisr1eB-KCUC91WFQa910RvY0vMmV_i4_U7O7kaL3sYaJuIbkLN_0V4aCjvZCj1"]https://lh6.googleusercontent.com/bfkuOzG0e4kH5IKPsuBGLbGP9LBWXsD886Dvwkf-RquzpshIle3LHwid8n6mKaEFBFiNxyWCgjisr1eB-KCUC91WFQa910RvY0vMmV_i4_U7O7kaL3sYaJuIbkLN_0V4aCjvZCj1[/IMG]`;
+
+    const extraImg = `[IMG size="2039x771"]https://media.discordapp.net/attachments/1410665560739676172/1565758686754906224/MakeMSPgreatAgain.png?ex=6ae611e9&is=6ae4c069&hm=0b4ef52350e37472d364c3ef07008cb77adac355847a058d4d579f1ba992a970&=&format=webp&quality=lossless[/IMG]`;
+
     const text =
-`1. Ваше имя и фамилия: ${officerName}
-2. Ник того, кого хотите повысить: ${targetName}
-3. Фракция: ${faction}
-4. Чем он отличился и почему именно его хотите повысить [ссылку на отчёт/проделанная работа]: ${achievements}
+`[CENTER][B][I][FONT=courier new][COLOR=rgb(209, 213, 216)][SIZE=5]${lineImg}
+[B]1. Ваше имя и фамилия: [/B][/SIZE][/COLOR][COLOR=rgb(184, 49, 47)][SIZE=5][B]${officerName}[/B][/SIZE][/COLOR][/FONT][/I][/B]
+[FONT=courier new][COLOR=rgb(209, 213, 216)][SIZE=5][B][I][B]2. Ник того, кого хотите повысить: [/B][/I][/B][/SIZE][/COLOR][COLOR=rgb(184, 49, 47)][SIZE=5][B][I][B]${targetName}[/B][/I][/B][/SIZE][/COLOR]
+[COLOR=rgb(209, 213, 216)][SIZE=5][B][I][B]3. Фракция: ${faction}
+4. Чем он отличился от всех и почему именно его хотите повысить [ссылку на отчёт/проделанная работа]: ${achievements}
 5. Выписка из базы данных сотрудников: (/members) ${members}
 6. Копия мед.карты: (/showmc) ${medcard}
+[B][I][B][I]${lineImg}[/I][/B][/I][/B]
 7. На каком он звании сейчас: ${rankCurrent}
 8. На какое звание будет повышен: ${rankNext}
 9. Когда его повышали в последний раз ( /jobprogress ): ${jobprogress}
 10. Скриншот нахождения в Discord: ${discord}
-11. Дата: ${formattedDate}`;
+[I]11. Дата: ${formattedDate}
+${lineImg}[/I][/B]
+${extraImg}[/I][/B][/SIZE][/COLOR][/FONT]
+[B][I][B][FONT=courier new][COLOR=rgb(209, 213, 216)][SIZE=5]${lineImg}[/SIZE][/COLOR][/FONT][/B][/I][/B][/CENTER]`;
 
     document.getElementById('abResult').style.display = 'block';
     document.getElementById('abCode').textContent = text;
