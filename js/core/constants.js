@@ -34,8 +34,8 @@ const FIXED_EMPLOYEE_STRUCTURE = [
     { id: 'senior_officer_2', position: 'Заместитель Куратора ВП', type: 'senior_officer', username: 'Chaffy_Washington' },
     { id: 'senior_officer_1', position: 'Заместитель Куратора ВП', type: 'senior_officer', username: 'Ralph_Laurence' },
 
-    { id: 'officer_2',        position: 'Офицер ВП',               type: 'officer',       username: 'Kiril_Kot' },
-    { id: 'officer_9',        position: 'Офицер ВП',               type: 'officer',       username: 'Hungwoo_Abobbi' },
+    { id: 'officer_2',        position: 'Офицер ВП',               type: 'officer',       username: 'Вакантно' },
+    { id: 'officer_9',        position: 'Офицер ВП',               type: 'officer',       username: 'Samat_Abobbi' },
     { id: 'officer_6',        position: 'Офицер ВП',               type: 'officer',       username: 'Alexey_night' },
     { id: 'officer_5',        position: 'Офицер ВП',               type: 'officer',       username: 'Haruki_Yoshida' },
     { id: 'officer_7',        position: 'Офицер ВП',               type: 'officer',       username: 'Leon_Abobbi' },
