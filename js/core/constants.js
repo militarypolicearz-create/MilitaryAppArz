@@ -30,8 +30,8 @@ const FIXED_ACCESS_CODES = {
 };
 
 const FIXED_EMPLOYEE_STRUCTURE = [
-    { id: 'curator',          position: 'Куратор ВП',              type: 'curator',        username: 'Dobriy_Abobbi' },
-    { id: 'senior_officer_2', position: 'Заместитель Куратора ВП', type: 'senior_officer', username: 'Chaffy_Washington' },
+    { id: 'curator',          position: 'Куратор ВП',              type: 'curator',        username: 'Chaffy_Washington' },
+    { id: 'senior_officer_2', position: 'Заместитель Куратора ВП', type: 'senior_officer', username: 'Dobriy_Abobbi' },
     { id: 'senior_officer_1', position: 'Заместитель Куратора ВП', type: 'senior_officer', username: 'Вакантно' },
 
     { id: 'officer_9',        position: 'Офицер ВП',               type: 'officer',       username: 'Samat_Abobbi' },
