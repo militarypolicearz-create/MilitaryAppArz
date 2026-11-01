@@ -254,6 +254,8 @@ function initSidebar() {
                 if (typeof renderAntiByat === 'function') renderAntiByat();
             } else if (subtab === 'tsr-reports-59') {
                 if (typeof renderTSRReports59 === 'function') renderTSRReports59();
+            } else if (subtab === 'tsr-reprieve') {
+                if (typeof renderTSRReprieve === 'function') renderTSRReprieve();
             }
         });
     });
