@@ -217,48 +217,42 @@ function generateDecree(selectedArticles) {
         const input = field.querySelector('.material-link');
         const value = input.value.trim();
         if (value) {
-            const label = field.querySelector('label').textContent;
-            if (label.includes('Видео')) videoLinks.push(value);
-            else if (label.includes('Фото')) photoLinks.push(value);
+            if (field.dataset.type === 'video') videoLinks.push(value);
+            else if (field.dataset.type === 'photo') photoLinks.push(value);
         }
     });
 
     let materialsHtml = '';
     if (videoLinks.length > 0 || photoLinks.length > 0) {
-        materialsHtml = '\n[TABLE width="100%"]\n';
-
+        materialsHtml = '[TABLE width="100%"]\n';
         if (videoLinks.length > 0) {
-            materialsHtml += `[TR]\n[TD width="50%"][CENTER][FONT=courier new]Видеофиксация:[/FONT][/CENTER][/TD]\n[TD width="50%"][CENTER][FONT=courier new]`;
+            materialsHtml += `[TR]\n[td width="50%"][CENTER][FONT=courier new]Видеофиксация:[/FONT][/CENTER][/td]\n[td width="50%"][CENTER][FONT=courier new]`;
             materialsHtml += videoLinks.map((link, i) => {
                 const label = videoLinks.length > 1 ? `Видео-материал ${i + 1}` : 'Видео-материал';
-                return `[URL="${link}"]${label}[/URL]`;
+                return `[URL='${link}']${label}[/URL]`;
             }).join('; ');
-            materialsHtml += `[/FONT][/CENTER][/TD]\n[/TR]\n`;
+            materialsHtml += `[/FONT][/CENTER][/td]\n[/TR]\n`;
         }
-
         if (photoLinks.length > 0) {
-            materialsHtml += `[TR]\n[TD width="50%"][CENTER][FONT=courier new]Фотофиксация:[/FONT][/CENTER][/TD]\n[TD width="50%"][CENTER][FONT=courier new]`;
+            materialsHtml += `[TR]\n[td width="50%"][CENTER][FONT=courier new]Фотофиксация:[/FONT][/CENTER][/td]\n[td width="50%"][CENTER][FONT=courier new]`;
             materialsHtml += photoLinks.map((link, i) => {
                 const label = photoLinks.length > 1 ? `Фото-материал ${i + 1}` : 'Фото-материал';
-                return `[URL="${link}"]${label}[/URL]`;
+                return `[URL='${link}']${label}[/URL]`;
             }).join('; ');
-            materialsHtml += `[/FONT][/CENTER][/TD]\n[/TR]\n`;
+            materialsHtml += `[/FONT][/CENTER][/td]\n[/TR]\n`;
         }
-
-        materialsHtml += '[/TABLE]\n';
+        materialsHtml += '[/TABLE]';
     } else {
-        materialsHtml = `
-[TABLE width="100%"]
+        materialsHtml = `[TABLE width="100%"]
 [TR]
-[TD width="50%"][CENTER][FONT=courier new]Видеофиксация:[/FONT][/CENTER][/TD]
-[TD width="50%"][CENTER][FONT=courier new]не приложено[/FONT][/CENTER][/TD]
+[td width="50%"][CENTER][FONT=courier new]Видеофиксация:[/FONT][/CENTER][/td]
+[td width="50%"][CENTER][FONT=courier new]не приложено[/FONT][/CENTER][/td]
 [/TR]
 [TR]
-[TD width="50%"][CENTER][FONT=courier new]Фотофиксация:[/FONT][/CENTER][/TD]
-[TD width="50%"][CENTER][FONT=courier new]не приложено[/FONT][/CENTER][/TD]
+[td width="50%"][CENTER][FONT=courier new]Фотофиксация:[/FONT][/CENTER][/td]
+[td width="50%"][CENTER][FONT=courier new]не приложено[/FONT][/CENTER][/td]
 [/TR]
-[/TABLE]
-`;
+[/TABLE]`;
     }
 
     if (!officerName || !defName) {
@@ -285,11 +279,9 @@ function generateDecree(selectedArticles) {
         });
         let lawBlocks = [];
         for (const [law, arts] of Object.entries(grouped)) {
-            const points = arts.map(a => `[COLOR=rgb(250,197,28)]Пункт №${a.point}:[/COLOR] [COLOR=rgb(255,255,255)]${a.text}[/COLOR]`).join('\n');
-            lawBlocks.push(`
-[COLOR=rgb(250,197,28)][B]${law}:[/B][/COLOR]
-${points}
-`);
+            const points = arts.map(a => `[COLOR=rgb(250, 197, 28)]Пункт №${a.point}:[/COLOR] [COLOR=rgb(255, 255, 255)]${a.text}[/COLOR]`).join('\n');
+            lawBlocks.push(`[COLOR=rgb(250, 197, 28)][B]${law}:[/B][/COLOR]
+${points}`);
         }
         articlesHtml = lawBlocks.join('\n');
     }
@@ -298,94 +290,75 @@ ${points}
         return str.replace(/\[/g, '&#91;').replace(/\]/g, '&#93;');
     }
 
-    const resultText = `
-[CENTER]
-[IMG width="300px"]https://cdn11.bigcommerce.com/s-jbg7mp3qyd/images/stencil/1280x1280/products/2515/1041/dep_army_police_badge__84795.1464722242.jpg?c=2&imbypass=on[/IMG]
+    const lineImg = `[IMG width="1060px" height="20px"]https://lh6.googleusercontent.com/bfkuOzG0e4kH5IKPsuBGLbGP9LBWXsD886Dvwkf-RquzpshIle3LHwid8n6mKaEFBFiNxyWCgjisr1eB-KCUC91WFQa910RvY0vMmV_i4_U7O7kaL3sYaJuIbkLN_0V4aCjvZCj1[/IMG]`;
 
-[FONT=courier new][SIZE=7]П О С Т А Н О В Л Е Н И Е №[COLOR=rgb(250,197,28)] ${decreeNumber} [/COLOR][/SIZE][/FONT]
+    const resultText = `[CENTER][IMG width="300px" height="300px" size="1254x1254"]https://cdn.discordapp.com/attachments/1410665560739676172/1567198611232522431/favicon.png?ex=6aeb4ef2&is=6ae9fd72&hm=01bfe06753a81f6fb863152f5c3c17a5a9df2df21031af01adbb4c11d0ade5be&[/IMG]
+[FONT=courier new][SIZE=7]П О С Т А Н О В Л Е Н И Е №[COLOR=rgb(250, 197, 28)] ${decreeNumber} [/COLOR][/SIZE][/FONT]
 
-[IMG width="660px" height="20px"]https://lh6.googleusercontent.com/bfkuOzG0e4kH5IKPsuBGLbGP9LBWXsD886Dvwkf-RquzpshIle3LHwid8n6mKaEFBFiNxyWCgjisr1eB-KCUC91WFQa910RvY0vMmV_i4_U7O7kaL3sYaJuIbkLN_0V4aCjvZCj1[/IMG]
-[/CENTER]
-
+${lineImg}[/CENTER]
 [TABLE width="100%"]
 [TR]
-[TD][CENTER][FONT=courier new][SIZE=5][COLOR=rgb(250,197,28)]С В Е Д Е Н И Я[/COLOR] о постановлении[/SIZE][/FONT][/CENTER][/TD]
+[td][CENTER][FONT=courier new][SIZE=5][COLOR=rgb(250, 197, 28)]С В Е Д Е Н И Я[/COLOR] о постановлении[/SIZE][/FONT][/CENTER][/td]
 [/TR]
 [/TABLE]
-
 [TABLE width="100%"]
 [TR]
-[TD width="50%"][CENTER][FONT=courier new]
-Офицер Военной Полиции: [COLOR=rgb(41,105,176)]${escapeBBCode(officerName)}[/COLOR] — ${escapeBBCode(officerPos)}.
-Обвиняемый: [COLOR=rgb(41,105,176)]${escapeBBCode(defName)}[/COLOR] — ${escapeBBCode(defPos)}.
-[/FONT][/CENTER][/TD]
-
-[TD width="50%"][CENTER][FONT=courier new]
+[td width="50%"][CENTER][FONT=courier new]
+Офицер Военной Полиции: [COLOR=rgb(41, 105, 176)]${escapeBBCode(officerName)}[/COLOR] — ${escapeBBCode(officerPos)}.
+Обвиняемый: [COLOR=rgb(41, 105, 176)]${escapeBBCode(defName)}[/COLOR] — ${escapeBBCode(defPos)}.[/FONT][/CENTER][/td]
+[td width="50%"][CENTER][FONT=courier new]
 Дата составления постановления: ${now.toLocaleDateString('ru-RU')}.
-Статус документа: [COLOR=rgb(65,168,95)]ДЕЙСТВУЕТ[/COLOR].
-[/FONT][/CENTER][/TD]
+Статус документа: [COLOR=rgb(65, 168, 95)]ДЕЙСТВУЕТ[/COLOR].[/FONT][/CENTER][/td]
 [/TR]
 [/TABLE]
-
-
+[CENTER][/CENTER]
 [TABLE width="100%"]
 [TR]
-[TD][CENTER][FONT=courier new][SIZE=5][COLOR=rgb(250,197,28)]С О Д Е Р Ж А Н И Е[/COLOR] постановления[/SIZE][/FONT][/CENTER][/TD]
+[td][CENTER][FONT=courier new][SIZE=5][COLOR=rgb(250, 197, 28)]С О Д Е Р Ж А Н И Е[/COLOR] постановления[/SIZE][/FONT][/CENTER][/td]
 [/TR]
 [/TABLE]
+[CENTER]${lineImg}
 
-
-[CENTER]
-[IMG width="660px" height="20px"]https://lh6.googleusercontent.com/bfkuOzG0e4kH5IKPsuBGLbGP9LBWXsD886Dvwkf-RquzpshIle3LHwid8n6mKaEFBFiNxyWCgjisr1eB-KCUC91WFQa910RvY0vMmV_i4_U7O7kaL3sYaJuIbkLN_0V4aCjvZCj1[/IMG]
 [FONT=courier new][SIZE=4][B]Описание обстоятельств:[/B]
 
-${escapeBBCode(circumstances || 'Не указано.')}
-[/SIZE][/FONT]
-[IMG width="660px" height="20px"]https://lh6.googleusercontent.com/bfkuOzG0e4kH5IKPsuBGLbGP9LBWXsD886Dvwkf-RquzpshIle3LHwid8n6mKaEFBFiNxyWCgjisr1eB-KCUC91WFQa910RvY0vMmV_i4_U7O7kaL3sYaJuIbkLN_0V4aCjvZCj1[/IMG]
+${escapeBBCode(circumstances || 'Не указано.')}[/SIZE][/FONT]
 
-
-
-[FONT=courier new][SIZE=5][COLOR=rgb(250,197,28)]Д О С Ь Е[/COLOR] обвиняемого[/SIZE][/FONT][/CENTER]
-
+${lineImg}[/CENTER]
 [TABLE width="100%"]
 [TR]
-[TD width="50%"][CENTER][FONT=courier new]
+[td][CENTER][FONT=courier new][SIZE=5][COLOR=rgb(250, 197, 28)]Д О С Ь Е[/COLOR] обвиняемого[/SIZE][/FONT][/CENTER][/td]
+[/TR]
+[/TABLE]
+[TABLE width="100%"]
+[TR]
+[td width="50%"][CENTER][FONT=courier new]
 Имя, фамилия:
 Место службы:
-Должность:
-[/FONT][/CENTER][/TD]
-[TD width="50%"][CENTER][FONT=courier new]
+Должность:[/FONT][/CENTER][/td]
+[td width="50%"][CENTER][FONT=courier new]
 ${escapeBBCode(defName)}.
 ${escapeBBCode(defUnit || 'Не указано.')}.
-${escapeBBCode(defPos || 'не имеется')}.
-[/FONT][/CENTER][/TD]
+${escapeBBCode(defPos || 'не имеется')}.[/FONT][/CENTER][/td]
 [/TR]
 [/TABLE]
-
 
 [TABLE width="100%"]
 [TR]
-[TD][CENTER][FONT=courier new][SIZE=5][COLOR=rgb(250,197,28)]О Б В И Н Е Н И Я[/COLOR][/SIZE][/FONT][/CENTER][/TD]
+[td][CENTER][FONT=courier new][SIZE=5][COLOR=rgb(250, 197, 28)]О Б В И Н Е Н И Я[/COLOR][/SIZE][/FONT][/CENTER][/td]
 [/TR]
 [/TABLE]
-
-[CENTER]
-[IMG width="660px" height="20px"]https://lh6.googleusercontent.com/bfkuOzG0e4kH5IKPsuBGLbGP9LBWXsD886Dvwkf-RquzpshIle3LHwid8n6mKaEFBFiNxyWCgjisr1eB-KCUC91WFQa910RvY0vMmV_i4_U7O7kaL3sYaJuIbkLN_0V4aCjvZCj1[/IMG]
+[CENTER]${lineImg}
 
 ${articlesHtml}
 
-[IMG width="660px" height="20px"]https://lh6.googleusercontent.com/bfkuOzG0e4kH5IKPsuBGLbGP9LBWXsD886Dvwkf-RquzpshIle3LHwid8n6mKaEFBFiNxyWCgjisr1eB-KCUC91WFQa910RvY0vMmV_i4_U7O7kaL3sYaJuIbkLN_0V4aCjvZCj1[/IMG]
-[/CENTER]
-
-
+${lineImg}[/CENTER]
 [TABLE width="100%"]
 [TR]
-[TD][CENTER][FONT=courier new][SIZE=5][COLOR=rgb(250,197,28)]М А Т Е Р И А Л Ы[/COLOR] к постановлению[/SIZE][/FONT][/CENTER][/TD]
+[td][CENTER][FONT=courier new][SIZE=5][COLOR=rgb(250, 197, 28)]М А Т Е Р И А Л Ы[/COLOR] к постановлению[/SIZE][/FONT][/CENTER][/td]
 [/TR]
 [/TABLE]
-
 ${materialsHtml}
-`;
+[CENTER]${lineImg}[/CENTER]`;
 
     document.getElementById('decreeResult').style.display = 'block';
     document.getElementById('decreeCode').textContent = resultText;
