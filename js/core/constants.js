@@ -30,22 +30,22 @@ const FIXED_ACCESS_CODES = {
 };
 
 const FIXED_EMPLOYEE_STRUCTURE = [
-    { id: 'curator',          position: 'Куратор ВП',              type: 'curator',        username: 'Chaffy_Washington' },
-    { id: 'senior_officer_2', position: 'Заместитель Куратора ВП', type: 'senior_officer', username: 'Dobriy_Abobbi' },
+    { id: 'curator',          position: 'Куратор ВП',              type: 'curator',        username: 'Dobriy_Abobbi' },
+    { id: 'senior_officer_2', position: 'Заместитель Куратора ВП', type: 'senior_officer', username: 'Вакантно' },
     { id: 'senior_officer_1', position: 'Заместитель Куратора ВП', type: 'senior_officer', username: 'Вакантно' },
 
-    { id: 'officer_9',        position: 'Офицер ВП',               type: 'officer',       username: 'Samat_Abobbi' },
-    { id: 'officer_6',        position: 'Офицер ВП',               type: 'officer',       username: 'Alexey_night' },
-    { id: 'officer_5',        position: 'Офицер ВП',               type: 'officer',       username: 'Haruki_Yoshida' },
-    { id: 'officer_7',        position: 'Офицер ВП',               type: 'officer',       username: 'Leon_Abobbi' },
     { id: 'officer_3',        position: 'Офицер ВП',               type: 'officer',       username: 'Christoffer_Olds' },
+    { id: 'officer_9',        position: 'Офицер ВП',               type: 'officer',       username: 'Вакантно' },
+    { id: 'officer_6',        position: 'Офицер ВП',               type: 'officer',       username: 'Вакантно' },
+    { id: 'officer_5',        position: 'Офицер ВП',               type: 'officer',       username: 'Вакантно' },
+    { id: 'officer_7',        position: 'Офицер ВП',               type: 'officer',       username: 'Вакантно' },
     { id: 'officer_2',        position: 'Офицер ВП',               type: 'officer',       username: 'Вакантно' },
     { id: 'officer_1',        position: 'Офицер ВП',               type: 'officer',       username: 'Вакантно' },
     { id: 'officer_8',        position: 'Офицер ВП',               type: 'officer',       username: 'Вакантно' },
     { id: 'officer_4',        position: 'Офицер ВП',               type: 'officer',       username: 'Вакантно' },
     { id: 'officer_10',       position: 'Офицер ВП',               type: 'officer',       username: 'Вакантно' },
 
-    { id: 'cadet_1',          position: 'Курсант ВП',              type: 'cadet',        username: 'Backwood_Oxidize' },
+    { id: 'cadet_1',          position: 'Курсант ВП',              type: 'cadet',        username: 'Вакантно' },
     { id: 'cadet_3',          position: 'Курсант ВП',              type: 'cadet',        username: 'Вакантно' },
     { id: 'cadet_2',          position: 'Курсант ВП',              type: 'cadet',        username: 'Вакантно' },
     { id: 'cadet_4',          position: 'Курсант ВП',              type: 'cadet',        username: 'Вакантно' },
