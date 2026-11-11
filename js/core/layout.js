@@ -149,6 +149,7 @@ function openDiscord() {
     if (typeof renderDiscord === 'function') renderDiscord();
 }
 
+
 function openExamTab() {
     hideAllMainAreas();
     showMainArea('mainArea');
@@ -256,6 +257,8 @@ function initSidebar() {
                 if (typeof renderTSRReports59 === 'function') renderTSRReports59();
             } else if (subtab === 'tsr-reprieve') {
                 if (typeof renderTSRReprieve === 'function') renderTSRReprieve();
+            } else if (subtab === 'tsr-charter-tsr') {
+                if (typeof renderTSRCharterTSR === 'function') renderTSRCharterTSR();
             }
         });
     });
