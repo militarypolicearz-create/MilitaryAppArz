@@ -47,7 +47,7 @@ function renderTSRCharterTSRChapters() {
         container.innerHTML = `
             <div class="vp-empty">
                 <div class="vp-empty__title">Данные устава пока не заполнены</div>
-                <div class="vp-empty__text">В articlesDB нет записей с названием "Устав ТСР"</div>
+                <div class="vp-empty__text">В tsrArticlesDB нет записей</div>
             </div>
         `;
         return;
@@ -63,12 +63,30 @@ function renderTSRCharterTSRChapters() {
                 <div class="vp-chapter__toggle">▼</div>
             </div>
             <div class="vp-chapter__body">
-                ${chapter.rules.map(rule => `
+                ${chapter.rules.map(rule => {
+                    let formattedText = rule.text;
+
+                    if (formattedText.includes('<ul>') || formattedText.includes('<li>')) {
+                        formattedText = formattedText; 
+                    } else if (formattedText.includes('\n')) {
+                        const lines = formattedText.split('\n').map(l => l.trim()).filter(l => l !== '');
+                        const firstLine = lines[0];
+                        const listItems = lines.slice(1).map(line => {
+                            let cleanLine = line.replace(/^[a-zA-Zа-яА-Я]\)\s*/, '').replace(/^-\s*/, '').replace(/^•\s*/, '').replace(/^\d+\.\s*/, '');
+                            return `<li>${escapeHtml(cleanLine)}</li>`;
+                        }).join('');
+                        formattedText = `${escapeHtml(firstLine)}<ul>${listItems}</ul>`;
+                    } else {
+                        formattedText = escapeHtml(formattedText);
+                    }
+
+                    return `
                     <div class="vp-rule">
                         <div class="vp-rule__point">${escapeHtml(rule.point)}</div>
-                        <div class="vp-rule__text">${rule.text}</div>
+                        <div class="vp-rule__text">${formattedText}</div>
                     </div>
-                `).join('')}
+                    `;
+                }).join('')}
             </div>
         </div>
     `).join('');
@@ -79,7 +97,6 @@ function renderTSRCharterTSRChapters() {
         });
     });
 }
-
 function buildTSRCharterTSRChaptersFromArticles() {
     if (typeof tsrArticlesDB === 'undefined') return [];
 
