@@ -47,7 +47,7 @@ function renderTSRCharterChapters() {
         container.innerHTML = `
             <div class="vp-empty">
                 <div class="vp-empty__title">Данные устава пока не заполнены</div>
-                <div class="vp-empty__text">В articlesDB нет записей с названием "Устав МО"</div>
+                <div class="vp-empty__text">Проверьте массив articlesDB — в нём должны быть записи с категорией "устав"</div>
             </div>
         `;
         return;
@@ -65,17 +65,14 @@ function renderTSRCharterChapters() {
             <div class="vp-chapter__body">
                 ${chapter.rules.map(rule => {
                     let formattedText = rule.text;
-                    if (formattedText.includes('\n')) {
-                        const lines = formattedText.split('\n').map(l => l.trim()).filter(l => l !== '');
-                        const firstLine = lines[0];
-                        const listItems = lines.slice(1).map(line => {
-                            let cleanLine = line.replace(/^[a-zA-Zа-яА-Я]\)\s*/, '').replace(/^-\s*/, '').replace(/^•\s*/, '').replace(/^\d+\.\s*/, '');
-                            return `<li>${escapeHtml(cleanLine)}</li>`;
-                        }).join('');
-                        formattedText = `${escapeHtml(firstLine)}<ul>${listItems}</ul>`;
+                    
+                    // Если есть HTML-теги, не экранируем их
+                    if (formattedText.includes('<ul>') || formattedText.includes('<li>')) {
+                        formattedText = formattedText;
                     } else {
                         formattedText = escapeHtml(formattedText);
                     }
+
                     return `
                     <div class="vp-rule">
                         <div class="vp-rule__point">${escapeHtml(rule.point)}</div>
