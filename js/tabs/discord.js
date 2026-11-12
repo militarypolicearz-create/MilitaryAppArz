@@ -10,7 +10,7 @@ function renderDiscord() {
     const servers = [
         {
             title: 'Официальный сервер Arizona RP',
-            url: 'https://discord.com/invite/kp7ENmW'
+            url: 'https://discord.gg/arzspace'
         },
         {
             title: 'Личный сервер Главного Администратора Abobbi Gang',
